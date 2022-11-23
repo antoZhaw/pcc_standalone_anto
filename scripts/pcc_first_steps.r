@@ -14,17 +14,33 @@ library(janitor) # clean and consistent naming
 library(forcats) # handling factor levels
 library(raster) # rasterizing vector data
 library(knitr) # for pretty tables
+library(RCSF) # for CSF ground classification
 
 
 # Read LAS file
+# Read settings: Intensity (i), color information (RGB) of the first point is loaded only to reduce computational time.
+las = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyziRGB", filter = "-keep_first")
+# las_check(las)
+
+# setup csf filter settings
+# rigidness: does not seem to have much impact.
+# class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
+mycsf <- csf(TRUE, 0.5, 1, rigidness = 3)
+# apply ground classification
+las <- classify_ground(las, mycsf)
+# filter ground from classified las
+gnd <- filter_ground(las)
+plot(gnd, size = 3, color = "RGB", bg = "white")
+
+
+
+
+plot(las, color ="RGB")
+
 
 print(las)
 summary(las)
 
-
-las = readLAS("data/TLS_Saane_2022_WGS84/ScanPos003 - SINGLESCANS - 221011_112204.las", select = "xyzi", filter = "-keep_first")
-las_check(las)
-plot(las)
 
 # Negation of attributes is also possible (all except intensity and angle)
 # las = readLAS(LASfile, select = "* -i -a")
