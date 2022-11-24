@@ -29,7 +29,14 @@ is.veg <- function(G) {
 # of the first point is loaded only to reduce computational time.
 las = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyziRGBrc", filter = "-keep_first")
 
-summary(las)
+las <- add_attribute(las, 0, "RGBmean")
+las$RGBmean <- (las$R + las$G + las$B)/3
+# las$veg <- if_else(las$G >= 23051, T, F)
+
+# plot(las, size = 3, color = "RGB", bg = "white")
+
+summary(las$Classification)
+typeof(las$Classification)
 
 # Point Metrics calculations (untested, heavy duty)------
 # Add attribute on point level
@@ -50,27 +57,38 @@ summary(las)
 mycsf <- csf(TRUE, 0.5, 1, rigidness = 3)
 # apply ground classification
 las <- classify_ground(las, mycsf)
+summary(las$Classification)
 
-# filter ground from classified las
+# filter non-ground part from classified las------------------------------------
+nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
+# plot(nongnd, size = 3, color = "RGB", bg = "white")
+
+# alternative approach (untested)
+# poi <- ~Classification == 2
+# can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
+
+# filter ground from classified las---------------------------------------------
 gnd <- filter_ground(las)
-plot(gnd, size = 3, color = "RGB", bg = "white")
+# plot(gnd, size = 3, color = "RGB", bg = "white")
 
-poi <- ~Classification == 2
-can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
+# plot(can, size = 3, color = "RGB", bg = "white")
 
-plot(can, size = 3, color = "RGB", bg = "white")
-
+# Filter functions--------------------------------------------------------------
+# las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
 
 # Exploration of Colors---------------------------------------------------------
 
 par(mfrow = c(2,1))
-hist(can$R)
+hist(nongnd$RGBmean)
+hist(gnd$RGBmean)
+
+hist(nongnd$R)
 hist(gnd$R)
 
-hist(can$G)
+hist(nongnd$G)
 hist(gnd$G)
 
-hist(can$B)
+hist(nongnd$B)
 hist(gnd$B)
 
 
