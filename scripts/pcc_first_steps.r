@@ -27,16 +27,22 @@ is.veg <- function(G) {
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyziRGBrc", filter = "-keep_first")
+las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBc", filter = "-keep_first")
 
+# Add attributes---------------------------------------------------------
+las <- las_origin
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
-# las$veg <- if_else(las$G >= 23051, T, F)
-
-# plot(las, size = 3, color = "RGB", bg = "white")
-
-summary(las$Classification)
-typeof(las$Classification)
+summary(las$RGBmean)
+hist(las$RGBmean)
+max(las$RGBmean)
+# Add whitenoise attribute
+# good thresholds for whitenoise filtering between 40000...(45000)...48000
+poi <- ~if_else(las$RGBmean >= 45000, T, F)
+las <- classify_poi(las, class = LASNOISE, poi = poi)
+las <- filter_poi(las, Classification != LASNOISE)
+# las <- classify_noise(las, las$RGBmean <= 2000)
+plot(las, size = 1, color = "RGB", bg = "black")
 
 # Point Metrics calculations (untested, heavy duty)------
 # Add attribute on point level
