@@ -24,18 +24,35 @@ is.veg <- function(G) {
   return(list(veg = is_veg))
 }
 
+to.LAScolor <- function(small_color) {
+  # According to LAS Speciﬁcation 1.4 - R14 of 
+  # the American Society for Photogrammetry and Remote Sensing (ASPRS)
+  # A normalization of each pixel channel to a two byte integer is recommended.
+  LAScolor <- small_color * 256 
+  return(LAScolor)
+}
+
+to.LAScolor(255)
+
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBc", filter = "-keep_first")
-
-# Add attributes---------------------------------------------------------
+las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBci", filter = "-keep_first")
 las <- las_origin
+
+# Data exploration--------------------------------------------------------------
+# plot(las, size = 1, color = "Intensity", bg = "black")
+
+
+# Add RGBmean attribute---------------------------------------------------------
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
 summary(las$RGBmean)
 hist(las$RGBmean)
 max(las$RGBmean)
+
+summary(las$R)
+
 # Add whitenoise attribute
 # good thresholds for whitenoise filtering between 40000...(45000)...48000
 poi <- ~if_else(las$RGBmean >= 45000, T, F)
