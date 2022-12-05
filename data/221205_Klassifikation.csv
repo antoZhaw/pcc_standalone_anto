@@ -1,0 +1,461 @@
+id;hex;r;g;b;class
+1;8b9eb9;139;158;185;sky
+2;75a1d9;117;161;217;sky
+3;718eb0;113;142;176;sky
+4;7494cf;116;148;207;sky
+5;6c85af;108;133;175;sky
+6;81a4d0;129;164;208;sky
+7;7490c2;116;144;194;sky
+8;7c9fd5;124;159;213;sky
+9;5d78a3;93;120;163;sky
+10;7e95b9;126;149;185;sky
+11;81a2d6;129;162;214;sky
+12;82a0c7;130;160;199;sky
+13;7e9fd6;126;159;214;sky
+14;8099b4;128;153;180;sky
+15;7d98ca;125;152;202;sky
+16;657d8c;101;125;140;sky
+17;555f74;85;95;116;sky
+18;86a9d2;134;169;210;sky
+19;657d8c;101;125;140;sky
+20;82a2c4;130;162;196;sky
+21;324261;50;66;97;sky
+22;85a4dc;133;164;220;sky
+23;7e9fc8;126;159;200;sky
+24;6983a5;105;131;165;sky
+25;4b5977;75;89;119;sky
+26;7c9dd9;124;157;217;sky
+27;7e9ed6;126;158;214;sky
+28;5a7fb5;90;127;181;sky
+29;5c88c8;92;136;200;sky
+30;6981ac;105;129;172;sky
+31;476288;71;98;136;sky
+32;5a8ed8;90;142;216;sky
+33;52637a;82;99;122;sky
+34;4d71ab;77;113;171;sky
+35;7b9bd7;123;155;215;sky
+36;628fd8;98;143;216;sky
+37;7184aa;113;132;170;sky
+38;7090d0;112;144;208;sky
+39;7395d9;115;149;217;sky
+40;7193cd;113;147;205;sky
+41;5e77ab;94;119;171;sky
+42;6c90d6;108;144;214;sky
+43;697ba8;105;123;168;sky
+44;6384bc;99;132;188;sky
+45;5e77ab;94;119;171;sky
+46;7092d2;112;146;210;sky
+47;627497;98;116;151;sky
+48;5177b2;81;119;178;sky
+49;5a6f9f;90;111;159;sky
+50;8596c7;133;150;199;sky
+51;5a82c7;90;130;199;sky
+52;5988d0;89;136;208;sky
+53;5e6f8d;94;111;141;sky
+54;5e8bd3;94;139;211;sky
+55;6b87b9;107;135;185;sky
+56;6691d9;102;145;217;sky
+57;8b98ba;139;152;186;sky
+58;567cc1;86;124;193;sky
+59;35517e;53;81;126;sky
+60;547db8;84;125;184;sky
+61;454748;69;71;72;sediment
+62;52534f;82;83;79;sediment
+63;49484b;73;72;75;sediment
+64;474543;71;69;67;sediment
+65;37393b;55;57;59;sediment
+66;45494e;69;73;78;sediment
+67;383836;56;56;54;sediment
+68;515151;81;81;81;sediment
+69;4e5054;78;80;84;sediment
+70;4c4d52;76;77;82;sediment
+71;6e6b66;110;107;102;sediment
+72;505257;80;82;87;sediment
+73;706d68;112;109;104;sediment
+74;464543;70;69;67;sediment
+75;7f7c79;127;124;121;sediment
+76;595856;89;88;86;sediment
+77;57585b;87;88;91;sediment
+78;5b5d5f;91;93;95;sediment
+79;6c6c6c;108;108;108;sediment
+80;707070;112;112;112;sediment
+81;605f5f;96;95;95;sediment
+82;676663;103;102;99;sediment
+83;535353;83;83;83;sediment
+84;616165;97;97;101;sediment
+85;6f706f;111;112;111;sediment
+86;616364;97;99;100;sediment
+87;797a79;121;122;121;sediment
+88;6f6f70;111;111;112;sediment
+89;595959;89;89;89;sediment
+90;717171;113;113;113;sediment
+91;6c6d6d;108;109;109;sediment
+92;797c7e;121;124;126;sediment
+93;3f444e;63;68;78;sediment
+94;999897;153;152;151;sediment
+95;929295;146;146;149;sediment
+96;534f4c;83;79;76;sediment
+97;5a5a59;90;90;89;sediment
+98;717171;113;113;113;sediment
+99;737272;115;114;114;sediment
+100;676765;103;103;101;sediment
+101;656563;101;101;99;sediment
+102;5a5d63;90;93;99;sediment
+103;454446;69;68;70;sediment
+104;6f7075;111;112;117;sediment
+105;454242;69;66;66;sediment
+106;61615f;97;97;95;sediment
+107;535353;83;83;83;sediment
+108;636466;99;100;102;sediment
+109;494b51;73;75;81;sediment
+110;6f6f70;111;111;112;sediment
+111;413f3c;65;63;60;sediment
+112;868683;134;134;131;sediment
+113;3e3b38;62;59;56;sediment
+114;3a3837;58;56;55;sediment
+115;424347;66;67;71;sediment
+116;3f3e3e;63;62;62;sediment
+117;6d6d6b;109;109;107;sediment
+118;797a7c;121;122;124;sediment
+119;494d54;73;77;84;sediment
+120;747679;116;118;121;sediment
+121;78752b;120;117;43;vegetation general
+122;62672c;98;103;44;vegetation general
+123;72732c;114;115;44;vegetation general
+124;555d26;85;93;38;vegetation general
+125;ac9e53;172;158;83;vegetation general
+126;59692b;89;105;43;vegetation general
+127;a89e3a;168;158;58;vegetation general
+128;504e22;80;78;34;vegetation general
+129;545c2d;84;92;45;vegetation general
+130;515a20;81;90;32;vegetation general
+131;696a31;105;106;49;vegetation general
+132;868138;134;129;56;vegetation general
+133;707729;112;119;41;vegetation general
+134;8e8e2d;142;142;45;vegetation general
+135;73672b;115;103;43;vegetation general
+136;7c822f;124;130;47;vegetation general
+137;747625;116;118;37;vegetation general
+138;5c7032;92;112;50;vegetation general
+139;bfae61;191;174;97;vegetation general
+140;565d27;86;93;39;vegetation general
+141;454a1e;69;74;30;vegetation general
+142;414a2a;65;74;42;vegetation general
+143;4d5521;77;85;33;vegetation general
+144;c0b628;192;182;40;vegetation general
+145;414a20;65;74;32;vegetation general
+146;677637;103;118;55;vegetation general
+147;68713e;104;113;62;vegetation general
+148;596a22;89;106;34;vegetation general
+149;323a19;50;58;25;vegetation general
+150;596a22;89;106;34;vegetation general
+151;8b7b21;139;123;33;vegetation general
+152;615f05;97;95;5;vegetation general
+153;8a8425;138;132;37;vegetation general
+154;6f6811;111;104;17;vegetation general
+155;968c16;150;140;22;vegetation general
+156;413d0c;65;61;12;vegetation general
+157;4d490d;77;73;13;vegetation general
+158;54510b;84;81;11;vegetation general
+159;908f3f;144;143;63;vegetation general
+160;7b7f15;123;127;21;vegetation general
+161;444002;68;64;2;vegetation general
+162;56501a;86;80;26;vegetation general
+163;83831e;131;131;30;vegetation general
+164;514912;81;73;18;vegetation general
+165;595916;89;89;22;vegetation general
+166;7c7a21;124;122;33;vegetation general
+167;978728;151;135;40;vegetation general
+168;424f20;66;79;32;vegetation general
+169;7a6f2f;122;111;47;vegetation general
+170;596b27;89;107;39;vegetation general
+171;3d4019;61;64;25;vegetation general
+172;b59a4b;181;154;75;vegetation general
+173;323c1e;50;60;30;vegetation general
+174;333b28;51;59;40;vegetation general
+175;2b3622;43;54;34;vegetation general
+176;3b4720;59;71;32;vegetation general
+177;36431f;54;67;31;vegetation general
+178;304314;48;67;20;vegetation general
+179;7c8723;124;135;35;vegetation general
+180;929835;146;152;53;vegetation general
+181;cdb844;205;184;68;vegetation bright
+182;c2bf4f;194;191;79;vegetation bright
+183;e7cd45;231;205;69;vegetation bright
+184;b5a73e;181;167;62;vegetation bright
+185;d4b552;212;181;82;vegetation bright
+186;d4c460;212;196;96;vegetation bright
+187;cdc45d;205;196;93;vegetation bright
+188;cec557;206;197;87;vegetation bright
+189;d3c35f;211;195;95;vegetation bright
+190;d3c764;211;199;100;vegetation bright
+191;baaf56;186;175;86;vegetation bright
+192;d4c95f;212;201;95;vegetation bright
+193;cdbb5d;205;187;93;vegetation bright
+194;d3be66;211;190;102;vegetation bright
+195;b8ae51;184;174;81;vegetation bright
+196;c9b64f;201;182;79;vegetation bright
+197;d6bb48;214;187;72;vegetation bright
+198;8a7d46;138;125;70;vegetation bright
+199;c9ba61;201;186;97;vegetation bright
+200;ddc13f;221;193;63;vegetation bright
+201;8a8231;138;130;49;vegetation bright
+202;938952;147;137;82;vegetation bright
+203;d2c665;210;198;101;vegetation bright
+204;a69b5d;166;155;93;vegetation bright
+205;c8b571;200;181;113;vegetation bright
+206;c7ad6b;199;173;107;vegetation bright
+207;c2ab7b;194;171;123;vegetation bright
+208;9e956a;158;149;106;vegetation bright
+209;bca948;188;169;72;vegetation bright
+210;7e7d4d;126;125;77;vegetation bright
+211;7c845d;124;132;93;vegetation bright
+212;808863;128;136;99;vegetation bright
+213;7d845b;125;132;91;vegetation bright
+214;c7bc7d;199;188;125;vegetation bright
+215;e1c550;225;197;80;vegetation bright
+216;e4ca4e;228;202;78;vegetation bright
+217;e4bf5a;228;191;90;vegetation bright
+218;b9b525;185;181;37;vegetation bright
+219;cbc162;203;193;98;vegetation bright
+220;b0b12f;176;177;47;vegetation bright
+221;a8a8a7;168;168;167;cliff bright
+222;a4a6a5;164;166;165;cliff bright
+223;a2a3a3;162;163;163;cliff bright
+224;848484;132;132;132;cliff bright
+225;8d8e8e;141;142;142;cliff bright
+226;a3a6a5;163;166;165;cliff bright
+227;a9aaa6;169;170;166;cliff bright
+228;9d9a94;157;154;148;cliff bright
+229;a4a3a0;164;163;160;cliff bright
+230;aaaba4;170;171;164;cliff bright
+231;6d6d6e;109;109;110;cliff bright
+232;878078;135;128;120;cliff bright
+233;a6acac;166;172;172;cliff bright
+234;8d8d8d;141;141;141;cliff bright
+235;afada4;175;173;164;cliff bright
+236;969695;150;150;149;cliff bright
+237;b0a191;176;161;145;cliff bright
+238;959593;149;149;147;cliff bright
+239;aaa8a1;170;168;161;cliff bright
+240;848383;132;131;131;cliff bright
+241;949494;148;148;148;cliff bright
+242;7b7c7b;123;124;123;cliff bright
+243;aca8a1;172;168;161;cliff bright
+244;a5a7a6;165;167;166;cliff bright
+245;a0a2a0;160;162;160;cliff bright
+246;989995;152;153;149;cliff bright
+247;93928f;147;146;143;cliff bright
+248;8e8e8c;142;142;140;cliff bright
+249;a3a3a0;163;163;160;cliff bright
+250;8a8988;138;137;136;cliff bright
+251;9f9d9a;159;157;154;cliff bright
+252;8e8e8d;142;142;141;cliff bright
+253;7b7874;123;120;116;cliff bright
+254;918c85;145;140;133;cliff bright
+255;7d7a75;125;122;117;cliff bright
+256;807e7c;128;126;124;cliff bright
+257;84817e;132;129;126;cliff bright
+258;8a8a8a;138;138;138;cliff bright
+259;6d6c69;109;108;105;cliff bright
+260;94908c;148;144;140;cliff bright
+261;857e74;133;126;116;cliff bright
+262;969086;150;144;134;cliff bright
+263;8a8680;138;134;128;cliff bright
+264;908c88;144;140;136;cliff bright
+265;817e78;129;126;120;cliff bright
+266;83807c;131;128;124;cliff bright
+267;989896;152;152;150;cliff bright
+268;76746a;118;116;106;cliff bright
+269;898580;137;133;128;cliff bright
+270;716f68;113;111;104;cliff bright
+271;817e7b;129;126;123;cliff bright
+272;827c71;130;124;113;cliff bright
+273;93908b;147;144;139;cliff bright
+274;71706b;113;112;107;cliff bright
+275;888481;136;132;129;cliff bright
+276;989693;152;150;147;cliff bright
+277;8c8986;140;137;134;cliff bright
+278;adaba7;173;171;167;cliff bright
+279;a8a7a3;168;167;163;cliff bright
+280;9d9689;157;150;137;cliff bright
+281;5c6d7d;92;109;125;cliff blue
+282;5f707f;95;112;127;cliff blue
+283;4f5e6f;79;94;111;cliff blue
+284;4a5965;74;89;101;cliff blue
+285;708292;112;130;146;cliff blue
+286;5f707e;95;112;126;cliff blue
+287;5e6e7d;94;110;125;cliff blue
+288;4b5b6d;75;91;109;cliff blue
+289;516271;81;98;113;cliff blue
+290;4c5c6d;76;92;109;cliff blue
+291;3b4450;59;68;80;cliff blue
+292;4c5d6b;76;93;107;cliff blue
+293;54656d;84;101;109;cliff blue
+294;4e5e6a;78;94;106;cliff blue
+295;5d6d74;93;109;116;cliff blue
+296;4a545e;74;84;94;cliff blue
+297;435363;67;83;99;cliff blue
+298;505961;80;89;97;cliff blue
+299;687880;104;120;128;cliff blue
+300;576671;87;102;113;cliff blue
+301;5f7080;95;112;128;cliff blue
+302;47596c;71;89;108;cliff blue
+303;5a6c7c;90;108;124;cliff blue
+304;6a7c8c;106;124;140;cliff blue
+305;5d6d74;93;109;116;cliff blue
+306;56687e;86;104;126;cliff blue
+307;4e6074;78;96;116;cliff blue
+308;353e49;53;62;73;cliff blue
+309;515f69;81;95;105;cliff blue
+310;5f6e7a;95;110;122;cliff blue
+311;475b71;71;91;113;cliff blue
+312;45586f;69;88;111;cliff blue
+313;576a7f;87;106;127;cliff blue
+314;5b6b7a;91;107;122;cliff blue
+315;62717c;98;113;124;cliff blue
+316;5e6c77;94;108;119;cliff blue
+317;546571;84;101;113;cliff blue
+318;637078;99;112;120;cliff blue
+319;465a71;70;90;113;cliff blue
+320;45596f;69;89;111;cliff blue
+321;5f707e;95;112;126;cliff blue
+322;586878;88;104;120;cliff blue
+323;51647a;81;100;122;cliff blue
+324;4a505b;74;80;91;cliff blue
+325;5d707f;93;112;127;cliff blue
+326;445464;68;84;100;cliff blue
+327;405161;64;81;97;cliff blue
+328;6d8098;109;128;152;cliff blue
+329;798a9c;121;138;156;cliff blue
+330;5e7386;94;115;134;cliff blue
+331;58697a;88;105;122;cliff blue
+332;4b5b67;75;91;103;cliff blue
+333;444e53;68;78;83;cliff blue
+334;5b7184;91;113;132;cliff blue
+335;51616d;81;97;109;cliff blue
+336;506174;80;97;116;cliff blue
+337;5d6d74;93;109;116;cliff blue
+338;46525b;70;82;91;cliff blue
+339;50606a;80;96;106;cliff blue
+340;4f5c69;79;92;105;cliff blue
+341;41484b;65;72;75;cliff dark
+342;373b38;55;59;56;cliff dark
+343;383e3c;56;62;60;cliff dark
+344;434d4d;67;77;77;cliff dark
+345;33352f;51;53;47;cliff dark
+346;394142;57;65;66;cliff dark
+347;2d302f;45;48;47;cliff dark
+348;353b3c;53;59;60;cliff dark
+349;303533;48;53;51;cliff dark
+350;2d2e2a;45;46;42;cliff dark
+351;31332f;49;51;47;cliff dark
+352;495459;73;84;89;cliff dark
+353;1e2226;30;34;38;cliff dark
+354;2f373a;47;55;58;cliff dark
+355;272925;39;41;37;cliff dark
+356;23241f;35;36;31;cliff dark
+357;282826;40;40;38;cliff dark
+358;1b1d21;27;29;33;cliff dark
+359;272d36;39;45;54;cliff dark
+360;384246;56;66;70;cliff dark
+361;3f4441;63;68;65;cliff dark
+362;171a1d;23;26;29;cliff dark
+363;414c4f;65;76;79;cliff dark
+364;21262b;33;38;43;cliff dark
+365;15181c;21;24;28;cliff dark
+366;31373c;49;55;60;cliff dark
+367;333c43;51;60;67;cliff dark
+368;272826;39;40;38;cliff dark
+369;1a1d21;26;29;33;cliff dark
+370;262a2e;38;42;46;cliff dark
+371;181c1c;24;28;28;cliff dark
+372;455257;69;82;87;cliff dark
+373;333b3f;51;59;63;cliff dark
+374;4f595b;79;89;91;cliff dark
+375;2b3134;43;49;52;cliff dark
+376;3d3f3c;61;63;60;cliff dark
+377;212528;33;37;40;cliff dark
+378;323838;50;56;56;cliff dark
+379;4c5559;76;85;89;cliff dark
+380;363e41;54;62;65;cliff dark
+381;323435;50;52;53;cliff dark
+382;30322f;48;50;47;cliff dark
+383;313331;49;51;49;cliff dark
+384;32342f;50;52;47;cliff dark
+385;3b403f;59;64;63;cliff dark
+386;3b4142;59;65;66;cliff dark
+387;2c2e30;44;46;48;cliff dark
+388;31332e;49;51;46;cliff dark
+389;535b5b;83;91;91;cliff dark
+390;323532;50;53;50;cliff dark
+391;313432;49;52;50;cliff dark
+392;434a4c;67;74;76;cliff dark
+393;2c2e2a;44;46;42;cliff dark
+394;2d3131;45;49;49;cliff dark
+395;374145;55;65;69;cliff dark
+396;4b5252;75;82;82;cliff dark
+397;40484b;64;72;75;cliff dark
+398;2d2f2b;45;47;43;cliff dark
+399;3d4648;61;70;72;cliff dark
+400;363835;54;56;53;cliff dark
+401;62713b;98;113;59;vegetation dark
+402;4c5b33;76;91;51;vegetation dark
+403;5d6a40;93;106;64;vegetation dark
+404;5c6b3e;92;107;62;vegetation dark
+405;4f5e3d;79;94;61;vegetation dark
+406;666f49;102;111;73;vegetation dark
+407;2d3415;45;52;21;vegetation dark
+408;38431e;56;67;30;vegetation dark
+409;434d2a;67;77;42;vegetation dark
+410;37411d;55;65;29;vegetation dark
+411;2b3213;43;50;19;vegetation dark
+412;2b3312;43;51;18;vegetation dark
+413;4f5c39;79;92;57;vegetation dark
+414;403c24;64;60;36;vegetation dark
+415;555f3d;85;95;61;vegetation dark
+416;5e7041;94;112;65;vegetation dark
+417;293814;41;56;20;vegetation dark
+418;273113;39;49;19;vegetation dark
+419;486022;72;96;34;vegetation dark
+420;445529;68;85;41;vegetation dark
+421;2e3d0f;46;61;15;vegetation dark
+422;2c3a13;44;58;19;vegetation dark
+423;364620;54;70;32;vegetation dark
+424;232810;35;40;16;vegetation dark
+425;4d5c36;77;92;54;vegetation dark
+426;54663f;84;102;63;vegetation dark
+427;3d4222;61;66;34;vegetation dark
+428;344110;52;65;16;vegetation dark
+429;29321d;41;50;29;vegetation dark
+430;5b7126;91;113;38;vegetation dark
+431;2f4315;47;67;21;vegetation dark
+432;525c3e;82;92;62;vegetation dark
+433;384727;56;71;39;vegetation dark
+434;414a2c;65;74;44;vegetation dark
+435;35450f;53;69;15;vegetation dark
+436;3b410a;59;65;10;vegetation dark
+437;374213;55;66;19;vegetation dark
+438;36410e;54;65;14;vegetation dark
+439;505f14;80;95;20;vegetation dark
+440;576125;87;97;37;vegetation dark
+441;4f5628;79;86;40;vegetation dark
+442;303c0c;48;60;12;vegetation dark
+443;3a4b0f;58;75;15;vegetation dark
+444;272f18;39;47;24;vegetation dark
+445;2e330c;46;51;12;vegetation dark
+446;3a3a0b;58;58;11;vegetation dark
+447;556114;85;97;20;vegetation dark
+448;3c470a;60;71;10;vegetation dark
+449;41400d;65;64;13;vegetation dark
+450;4e4f16;78;79;22;vegetation dark
+451;3f451c;63;69;28;vegetation dark
+452;2a3409;42;52;9;vegetation dark
+453;5f5f15;95;95;21;vegetation dark
+454;283517;40;53;23;vegetation dark
+455;424a0f;66;74;15;vegetation dark
+456;434d13;67;77;19;vegetation dark
+457;5c6721;92;103;33;vegetation dark
+458;6d6f10;109;111;16;vegetation dark
+459;5c6b1b;92;107;27;vegetation dark
+460;404714;64;71;20;vegetation dark
