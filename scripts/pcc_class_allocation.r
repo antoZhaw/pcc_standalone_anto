@@ -17,10 +17,14 @@ dir_data <- file.path(dir_repo, "data")
 dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",
                  locale = locale(encoding = "UTF-8"), delim = ";", 
                  col_types = cols()) %>%
-  janitor::clean_names() %>% # säubert die Spaltennamen %>% 
+  janitor::clean_names() %>% # säubert die Spaltennamen 
+  mutate(RtoG = r/g) %>% 
+  mutate(RtoB = r/b) %>% 
+  mutate(GtoB = g/b) %>% 
   mutate(
     main_class = case_when(
       class == "sky"~"sky",
+      class == "dark blue sky"~"sky",
       class == "sediment"~"sediment",
       class == "vegetation general"~"vegetation",
       class == "vegetation bright"~"vegetation",
@@ -32,6 +36,34 @@ dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",
     )
   )
 
+summary(dt)
+
+pRtoG <- ggplot(data = dt, mapping = aes(x = class, y = RtoG, colour = main_class)) +
+  geom_boxplot(size=0.5) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  # scale_y_continuous(breaks = c(0,50,100,150,200,250), limits = c(0,255)) +
+  labs(x = "Klasse",
+       y = "R zu G", 
+       title = "Verhältnis R/G nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
+
+pRtoB <- ggplot(data = dt, mapping = aes(x = class, y = RtoB, colour = main_class)) +
+  geom_boxplot(size=0.5) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_y_continuous(breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
+  labs(x = "Klasse",
+       y = "R zu B", 
+       title = "Verhältnis R/B nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
+
+pGtoB <- ggplot(data = dt, mapping = aes(x = class, y = GtoB, colour = main_class)) +
+  geom_boxplot(size=0.5) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_y_continuous(breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
+  labs(x = "Klasse",
+       y = "G zu B", 
+       title = "Verhältnis G/B nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
 
 pR <- ggplot(data = dt, mapping = aes(x = class, y = r, colour = main_class)) +
   geom_boxplot(size=0.5) +
@@ -96,12 +128,16 @@ pR
 pG
 pB
 
+pRtoG
+pRtoB
+pGtoB
 
 dt_cliff_blue <- dt %>% filter(class == "cliff blue")
 dt_cliff_bright <- dt %>% filter(class == "cliff bright")
 dt_cliff_dark <- dt %>% filter(class == "cliff dark")
 
 dt_sky <- dt %>% filter(class == "sky")
+dt_darksky <- dt %>% filter(class == "dark blue sky")
 
 dt_veg_dark <- dt %>% filter(class == "vegetation dark")
 dt_veg_bright <- dt %>% filter(class == "vegetation bright")
@@ -114,13 +150,15 @@ summary(dt_cliff_blue)
 summary(dt_cliff_bright)
 summary(dt_cliff_dark)
 
+# Sediment
+summary(dt_sediment)
+
 # Sky
 summary(dt_sky)
+summary(dt_darksky)
 
 # Vegetation
 summary(dt_veg_dark)
 summary(dt_veg_bright)
 summary(dt_veg_gen)
 
-# Sediment
-summary(dt_sediment)

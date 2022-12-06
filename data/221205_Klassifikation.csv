@@ -1,4 +1,4 @@
-id;hex;r;g;b;class
+ID;hex;r;g;b;class
 1;8b9eb9;139;158;185;sky
 2;75a1d9;117;161;217;sky
 3;718eb0;113;142;176;sky
@@ -459,3 +459,33 @@ id;hex;r;g;b;class
 458;6d6f10;109;111;16;vegetation dark
 459;5c6b1b;92;107;27;vegetation dark
 460;404714;64;71;20;vegetation dark
+461;213647;33;54;71;dark blue sky
+462;334b63;51;75;99;dark blue sky
+463;3e5260;62;82;96;dark blue sky
+464;1f3036;31;48;54;dark blue sky
+465;2c3f56;44;63;86;dark blue sky
+466;3a4549;58;69;73;dark blue sky
+467;1c2b38;28;43;56;dark blue sky
+468;324456;50;68;86;dark blue sky
+469;202f38;32;47;56;dark blue sky
+470;365063;54;80;99;dark blue sky
+471;354a64;53;74;100;dark blue sky
+472;1a2f47;26;47;71;dark blue sky
+473;1b364e;27;54;78;dark blue sky
+474;213e5d;33;62;93;dark blue sky
+475;192b4d;25;43;77;dark blue sky
+476;2a3e5b;42;62;91;dark blue sky
+477;203c5c;32;60;92;dark blue sky
+478;1f3248;31;50;72;dark blue sky
+479;283a4d;40;58;77;dark blue sky
+480;334b63;51;75;99;dark blue sky
+481;324456;50;68;86;dark blue sky
+482;28384b;40;56;75;dark blue sky
+483;334b63;51;75;99;dark blue sky
+484;24384c;36;56;76;dark blue sky
+485;23323f;35;50;63;dark blue sky
+486;283643;40;54;67;dark blue sky
+487;2d3c42;45;60;66;dark blue sky
+488;344e5e;52;78;94;dark blue sky
+489;435e66;67;94;102;dark blue sky
+490;3a555b;58;85;91;dark blue sky

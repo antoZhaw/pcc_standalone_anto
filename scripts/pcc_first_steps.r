@@ -1,5 +1,10 @@
 # libraries ---------------------------------------------------------------
 
+# Fragen an Nils
+# 1) Eher attribute erstellen und einfache Formulas oder umgekehrt?
+# 2) Operatoren && und &
+# 3) Bug in poi_darksky
+
 # install packages
 
 library(lidR) # summary tables
@@ -38,6 +43,7 @@ sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
 # 1st Quantile for Blue = 170, 120 takes away more sediment.
 sky_lower_RGB <- as.integer(c("25", "50", "120")) %>% to.LAScolor()
 
+# currently unused
 darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
 darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
@@ -47,17 +53,27 @@ darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
 poi_whitenoise <- ~if_else(las$RGBmean >= 45000, T, F)
 
-poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
-                      las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
-                      las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
-                    , T, F)
+# poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
+#                       las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
+#                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
+#                     , T, F)
 
 # Factor does not work for some reason.
-poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
-                      las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
-                      las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
-                        as.numeric(las$B/las$R) >= 1.40
-                    , T, F)
+# poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
+                    #   las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
+                    #   las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
+                    #     as.numeric(las$B/las$R) >= 1.40
+                    # , T, F)
+
+# RtoB überschneidet sich mit rock.
+poi_sky <- ~if_else(las$RtoB <= 0.722, T, F)
+
+# Maximales RtoB: 1.21 in cliff_bright
+# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
+poi_rock <- ~if_else(las$RtoB >= 0.75 & las$RtoB <= 1.22, T, F)
+
+# Minimales RtoB: 1.265, minimales GtoB: 1.374 (Stand 6.12.22)
+poi_veg <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3, T, F)
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -72,6 +88,15 @@ las <- las_origin
 # Add RGBmean attribute
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
+
+# Add Ratio R to B
+las <- add_attribute(las, 0, "RtoB")
+las$RtoB <- (las$R/las$B)
+
+# Add Ratio G to B
+las <- add_attribute(las, 0, "GtoB")
+las$GtoB <- (las$G/las$B)
+
 # summary(las$RGBmean)
 # hist(las$RGBmean)
 # max(las$RGBmean)
@@ -88,17 +113,26 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_sky)
 # las_blue <- filter_poi(las, Classification == LASRAIL)
 # plot(las_blue, size = 1, color = "RGB", bg = "black")
 
-# Classify dark blue points (classified as LASWIREGUARD here)
-las <- classify_poi(las, class = LASWIREGUARD, poi = poi_darksky)
+# Classify dark blue points (classified as LASWIREGUARD here), currently unused
+# las <- classify_poi(las, class = LASWIREGUARD, poi = poi_darksky)
 # las_darksky <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_darksky, size = 1, color = "RGB", bg = "white")
-
 
 # Plot denoised LAS
 las <- filter_poi(las, Classification != LASRAIL)
 las <- filter_poi(las, Classification != LASNOISE)
-las <- filter_poi(las, Classification != LASWIREGUARD)
+# las <- filter_poi(las, Classification != LASWIREGUARD)
 plot(las, size = 1, color = "RGB", bg = "black")
+
+# Classify vegetation
+las <- classify_poi(las, class = LASMEDIUMVEGETATION, poi = poi_veg)
+# las_veg <- filter_poi(las, Classification == LASMEDIUMVEGETATION)
+# plot(las_veg, size = 1, color = "RGB", bg = "black")
+
+# Classify sediment
+las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock)
+# las_rock <- filter_poi(las, Classification == LASROADSURFACE)
+# plot(las_rock, size = 1, color = "RGB", bg = "black")
 
 
 # Point Metrics calculations (untested, heavy duty)-----------------------------
