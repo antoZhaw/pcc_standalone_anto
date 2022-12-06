@@ -1,4 +1,4 @@
-# libraries ---------------------------------------------------------------
+# libraries --------------------------------------------------------------------
 
 # install packages
 
@@ -6,9 +6,15 @@ library(tidyverse)
 library(janitor)    #saeubert spaltennamen
 library(lubridate)
 
-# read data----------------------------------------------------------------
+# globals-----------------------------------------------------------------------
+user <- Sys.getenv("USERNAME")
 
-dt <- read_delim("C:/code_wc/pcc_standalone/data/221205_Klassifikation.csv",",",
+dir_repo <- if_else(user == "gubelyve", "C:/Daten/math_gubelyve/pcc_standalone", "C:/code_wc/pcc_standalone")
+dir_data <- file.path(dir_repo, "data")
+
+# read data---------------------------------------------------------------------
+
+dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",
                  locale = locale(encoding = "UTF-8"), delim = ";", 
                  col_types = cols()) %>%
   janitor::clean_names() %>% # säubert die Spaltennamen %>% 
