@@ -90,15 +90,15 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_sky)
 
 # Classify dark blue points (classified as LASWIREGUARD here)
 las <- classify_poi(las, class = LASWIREGUARD, poi = poi_darksky)
-las_darksky <- filter_poi(las, Classification == LASWIREGUARD)
-plot(las_darksky, size = 1, color = "RGB", bg = "white")
+# las_darksky <- filter_poi(las, Classification == LASWIREGUARD)
+# plot(las_darksky, size = 1, color = "RGB", bg = "white")
 
 
 # Plot denoised LAS
-# las <- filter_poi(las, Classification != LASRAIL)
-# las <- filter_poi(las, Classification != LASNOISE)
-# las <- filter_poi(las, Classification != LASWIREGUARD)
-# plot(las, size = 1, color = "RGB", bg = "black")
+las <- filter_poi(las, Classification != LASRAIL)
+las <- filter_poi(las, Classification != LASNOISE)
+las <- filter_poi(las, Classification != LASWIREGUARD)
+plot(las, size = 1, color = "RGB", bg = "black")
 
 
 # Point Metrics calculations (untested, heavy duty)-----------------------------
