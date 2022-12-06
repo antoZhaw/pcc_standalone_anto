@@ -18,21 +18,34 @@ library(RCSF) # for CSF ground classification
 library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 
-# Functions------
+# Functions---------------------------------------------------------------------
 is.veg <- function(G) {
   is_veg <- G > 120 
   return(list(veg = is_veg))
 }
 
-to.LAScolor <- function(small_color) {
+to.LAScolor <- function(small_RGB) {
   # According to LAS Speciﬁcation 1.4 - R14 of 
   # the American Society for Photogrammetry and Remote Sensing (ASPRS)
   # A normalization of each pixel channel to a two byte integer is recommended.
-  LAScolor <- small_color * 256 
-  return(LAScolor)
+  LAScolor <- small_RGB * 256 
+  return(as.integer(LAScolor))
 }
 
-to.LAScolor(255)
+# Globals-----------------------------------------------------------------------
+
+sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
+sky_lower_RGB <- as.integer(c("25", "50", "170")) %>% to.LAScolor()
+
+# Formulas----------------------------------------------------------------------
+
+poi_whitenoise <- ~if_else(las$RGBmean >= 45000, T, F)
+
+poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
+                      las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
+                      las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
+                    , T, F)
+
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -47,19 +60,30 @@ las <- las_origin
 # Add RGBmean attribute---------------------------------------------------------
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
-summary(las$RGBmean)
-hist(las$RGBmean)
-max(las$RGBmean)
+# summary(las$RGBmean)
+# hist(las$RGBmean)
+# max(las$RGBmean)
 
 summary(las$R)
 
-# Add whitenoise attribute
-# good thresholds for whitenoise filtering between 40000...(45000)...48000
-poi <- ~if_else(las$RGBmean >= 45000, T, F)
-las <- classify_poi(las, class = LASNOISE, poi = poi)
-las <- filter_poi(las, Classification != LASNOISE)
+# Classify white noise 
+# good thresholds for white noise filter between 40000...(45000)...48000
+las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
+# las <- filter_poi(las, Classification != LASNOISE)
 # las <- classify_noise(las, las$RGBmean <= 2000)
+# plot(las, size = 1, color = "RGB", bg = "black")
+
+
+# Classify blue points (classified as LASRAIL here)
+las <- classify_poi(las, class = LASRAIL, poi = poi_sky)
+# las_blue <- filter_poi(las, Classification == LASRAIL)
+# plot(las_blue, size = 1, color = "RGB", bg = "black")
+
+# Plot denoised LAS
+las <- filter_poi(las, Classification != LASRAIL)
+las <- filter_poi(las, Classification != LASNOISE)
 plot(las, size = 1, color = "RGB", bg = "black")
+
 
 # Point Metrics calculations (untested, heavy duty)------
 # Add attribute on point level
