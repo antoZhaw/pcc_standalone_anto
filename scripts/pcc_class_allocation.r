@@ -12,7 +12,6 @@ user <- Sys.getenv("USERNAME")
 dir_repo <- if_else(user == "gubelyve", "C:/Daten/math_gubelyve/pcc_standalone", "C:/code_wc/pcc_standalone")
 dir_data <- file.path(dir_repo, "data")
 
-
 # read data---------------------------------------------------------------------
 
 dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",

@@ -52,12 +52,12 @@ poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
                     , T, F)
 
+# Factor does not work for some reason.
 poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
                       las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
                       las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
                         as.numeric(las$B/las$R) >= 1.40
                     , T, F)
-
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -88,11 +88,10 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_sky)
 # las_blue <- filter_poi(las, Classification == LASRAIL)
 # plot(las_blue, size = 1, color = "RGB", bg = "black")
 
-
-# Classify blue points (classified as LASWIREGUARD here)
+# Classify dark blue points (classified as LASWIREGUARD here)
 las <- classify_poi(las, class = LASWIREGUARD, poi = poi_darksky)
 las_darksky <- filter_poi(las, Classification == LASWIREGUARD)
-plot(las_darksky, size = 1, color = "RGB", bg = "black")
+plot(las_darksky, size = 1, color = "RGB", bg = "white")
 
 
 # Plot denoised LAS
@@ -102,7 +101,7 @@ plot(las_darksky, size = 1, color = "RGB", bg = "black")
 # plot(las, size = 1, color = "RGB", bg = "black")
 
 
-# Point Metrics calculations (untested, heavy duty)------
+# Point Metrics calculations (untested, heavy duty)-----------------------------
 # Add attribute on point level
 # M <- point_metrics(las, ~is.planar(X,Y,Z), k = 20, filter = ~Classification != LASGROUND)
 # Run metrics computation
