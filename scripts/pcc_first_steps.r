@@ -35,7 +35,13 @@ to.LAScolor <- function(small_RGB) {
 # Globals-----------------------------------------------------------------------
 
 sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
-sky_lower_RGB <- as.integer(c("25", "50", "170")) %>% to.LAScolor()
+# 1st Quantile for Blue = 170, 120 takes away more sediment.
+sky_lower_RGB <- as.integer(c("25", "50", "120")) %>% to.LAScolor()
+
+darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
+darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
+
+
 
 # Formulas----------------------------------------------------------------------
 
@@ -44,6 +50,12 @@ poi_whitenoise <- ~if_else(las$RGBmean >= 45000, T, F)
 poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
                       las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
+                    , T, F)
+
+poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
+                      las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
+                      las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
+                        as.numeric(las$B/las$R) >= 1.40
                     , T, F)
 
 
@@ -56,15 +68,13 @@ las <- las_origin
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
 
-
-# Add RGBmean attribute---------------------------------------------------------
+# Classify noise----------------------------------------------------------------
+# Add RGBmean attribute
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
 # summary(las$RGBmean)
 # hist(las$RGBmean)
 # max(las$RGBmean)
-
-summary(las$R)
 
 # Classify white noise 
 # good thresholds for white noise filter between 40000...(45000)...48000
@@ -73,16 +83,23 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 # las <- classify_noise(las, las$RGBmean <= 2000)
 # plot(las, size = 1, color = "RGB", bg = "black")
 
-
 # Classify blue points (classified as LASRAIL here)
 las <- classify_poi(las, class = LASRAIL, poi = poi_sky)
 # las_blue <- filter_poi(las, Classification == LASRAIL)
 # plot(las_blue, size = 1, color = "RGB", bg = "black")
 
+
+# Classify blue points (classified as LASWIREGUARD here)
+las <- classify_poi(las, class = LASWIREGUARD, poi = poi_darksky)
+las_darksky <- filter_poi(las, Classification == LASWIREGUARD)
+plot(las_darksky, size = 1, color = "RGB", bg = "black")
+
+
 # Plot denoised LAS
-las <- filter_poi(las, Classification != LASRAIL)
-las <- filter_poi(las, Classification != LASNOISE)
-plot(las, size = 1, color = "RGB", bg = "black")
+# las <- filter_poi(las, Classification != LASRAIL)
+# las <- filter_poi(las, Classification != LASNOISE)
+# las <- filter_poi(las, Classification != LASWIREGUARD)
+# plot(las, size = 1, color = "RGB", bg = "black")
 
 
 # Point Metrics calculations (untested, heavy duty)------

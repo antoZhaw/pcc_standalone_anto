@@ -108,6 +108,7 @@ dt_veg_dark <- dt %>% filter(class == "vegetation dark")
 dt_veg_bright <- dt %>% filter(class == "vegetation bright")
 dt_veg_gen <- dt %>% filter(class == "vegetation general")
 
+dt_sediment <- dt %>% filter(class == "sediment")
 
 # Cliff
 summary(dt_cliff_blue)
@@ -122,3 +123,5 @@ summary(dt_veg_dark)
 summary(dt_veg_bright)
 summary(dt_veg_gen)
 
+# Sediment
+summary(dt_sediment)
