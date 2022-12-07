@@ -82,12 +82,19 @@ poi_sky_nar <- ~if_else(las$RtoB <= 0.722, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-poi_rock <- ~if_else(las$RtoB >= 0.75 & las$RtoB <= 1.22, T, F)
+poi_rock_nar <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
+                       las$GtoB >= 0.9428 & las$GtoB <= 1.0507, T, F)
+
+poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
+                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507, T, F)
+
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBci", filter = "-keep_first")
+
+
 las <- las_origin
 
 # Data exploration--------------------------------------------------------------
@@ -106,6 +113,12 @@ las$RtoB <- (las$R/las$B)
 las <- add_attribute(las, 0, "GtoB")
 las$GtoB <- (las$G/las$B)
 
+
+# Add Factor RtoB times GtoB
+las <- add_attribute(las, 0, "RBtimesGB")
+las$RBtimesGB <- (las$RtoB*las$GtoB)
+
+
 # summary(las$RGBmean)
 # summary(las$GtoB)
 # hist(las$RGBmean)
@@ -113,7 +126,7 @@ las$GtoB <- (las$G/las$B)
 
 # Classify white noise 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
-# las <- filter_poi(las, Classification != LASNOISE)
+las <- filter_poi(las, Classification != LASNOISE)
 # las <- classify_noise(las, las$RGBmean <= 2000)
 # plot(las, size = 1, color = "RGB", bg = "black")
 
@@ -124,6 +137,7 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 
 # Classify sky - narrow approach
 las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_nar)
+las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_sky_nar <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_sky_nar, size = 1, color = "RGB", bg = "black")
 
@@ -141,11 +155,12 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_nar)
 
 # Classify vegetation - narrow approach
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
+las <- filter_poi(las, Classification != LASLOWVEGETATION)
 # las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
 # plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment
-las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock)
+las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
 las_rock <- filter_poi(las, Classification == LASROADSURFACE)
 plot(las_rock, size = 1, color = "RGB", bg = "black")
 

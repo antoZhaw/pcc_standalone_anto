@@ -21,6 +21,9 @@ dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",
   mutate(RtoG = r/g) %>% 
   mutate(RtoB = r/b) %>% 
   mutate(GtoB = g/b) %>% 
+  mutate(RtimesG = r*g) %>% 
+  mutate(RGtimesB = RtoB * GtoB) %>% 
+  mutate(RGplusB = RtoB + GtoB) %>% 
   mutate(
     main_class = case_when(
       class == "sky"~"sky",
@@ -37,6 +40,29 @@ dt <- read_delim(file.path(dir_data, "221205_Klassifikation.csv"),",",
   )
 
 summary(dt)
+
+pRGtimesB <- ggplot(data = dt, mapping = aes(x = class, y = RGtimesB, colour = main_class)) +
+  geom_boxplot(size=0.5) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_y_continuous(breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
+  labs(x = "Klasse",
+       y = "R zu G", 
+       title = "R/G multipliziert mit B/G nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
+
+pRGtimesB
+
+pRGplusB <- ggplot(data = dt, mapping = aes(x = class, y = RGplusB, colour = main_class)) +
+  geom_boxplot(size=0.5) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  scale_y_continuous(breaks = c(0,1,2,3,4,5), limits = c(0,5)) +
+  labs(x = "Klasse",
+       y = "R zu G", 
+       title = "Verhältnis R/G nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
+
+pRGplusB
+
 
 pRtoG <- ggplot(data = dt, mapping = aes(x = class, y = RtoG, colour = main_class)) +
   geom_boxplot(size=0.5) +
