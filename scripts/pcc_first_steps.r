@@ -158,7 +158,7 @@ las <- classify_ground(las, mycsf)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 
-# filter non-ground part from classified las------------------------------------
+# filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
 # plot(nongnd, size = 3, color = "RGB", bg = "white")
 
@@ -173,6 +173,9 @@ las$Classification <- LASNONCLASSIFIED
 # Classify white noise 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 las <- filter_poi(las, Classification != LASNOISE)
+# las_noise <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise, size = 1, color = "RGB", bg = "black")
+
 
 # Separated plot
 # las <- classify_noise(las, las$RGBmean <= 2000)
