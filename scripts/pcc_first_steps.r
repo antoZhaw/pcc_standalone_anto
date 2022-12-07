@@ -48,8 +48,6 @@ sky_lower_RGB <- as.integer(c("25", "50", "120")) %>% to.LAScolor()
 darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
 darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
-
-
 # Formulas----------------------------------------------------------------------
 # good thresholds for white noise filter between 40000...(45000)...48000
 poi_whitenoise <- ~if_else(las$RGBmean >= 40000, T, F)
@@ -73,11 +71,26 @@ poi_sky_nar <- ~if_else(las$RtoB <= 0.722 &
 
 poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
                            las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+                           las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
+
 poi_rock_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+                           las$ground == F &
+                           las$Classification == LASNONCLASSIFIED, T, F)
+
+poi_sed_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
+                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+                           las$ground == T &
+                           las$Classification == LASNONCLASSIFIED, T, F)
+
+# Maximales RtoB: 1.21 in cliff_bright
+# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
+
+poi_sed_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+                           las$ground == T &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 
@@ -102,6 +115,9 @@ las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample
 
 # Create copy of read LAS to omit loading procedure.
 las <- las_origin
+
+# Display loaded classes (supposed to be zero)
+# factor(las$Classification)
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
@@ -129,6 +145,28 @@ las$RBtimesGB <- (las$RtoB*las$GtoB)
 # summary(las$GtoB)
 # hist(las$RGBmean)
 # max(las$RGBmean)
+
+
+# Segment Ground with Cloth Simulation Filter-----------------------------------
+# setup csf filter settings
+# rigidness: does not seem to have much impact.
+# class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
+mycsf <- csf(TRUE, 0.5, 1, rigidness = 3)
+# apply ground classification
+las <- classify_ground(las, mycsf)
+# gnd <- filter_ground(las)
+las <- add_attribute(las, FALSE, "ground")
+las$ground <- if_else(las$Classification == LASGROUND, T, F)
+
+# filter non-ground part from classified las------------------------------------
+# nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
+# plot(nongnd, size = 3, color = "RGB", bg = "white")
+
+# Reset class LASGROUND for further procedure
+las$Classification <- LASNONCLASSIFIED
+
+# Check whether classes are reset (Levels are supposed to be zero)
+# factor(las$Classification)
 
 # Classify noise----------------------------------------------------------------
 
@@ -169,14 +207,27 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
 # Classify sediment-------------------------------------------------------------
 
 # wide approach
+# las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_wide)
+# las_sed_wide <- filter_poi(las, Classification == LASKEYPOINT)
+# plot(las_sed_wide, size = 1, color = "RGB", bg = "black")
+
+# narrow approach
+las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_nar)
+# las_sed_nar <- filter_poi(las, Classification == LASLOWPOINT)
+# plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
+
+# Classify rocks and cliffs-----------------------------------------------------
+
+# wide approach
 las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
-# las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
-# plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
+las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
 
 # narrow approach
 las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
-# las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
-# plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
+las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
+plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
+
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -193,25 +244,7 @@ plot(las, size = 1, color = "Classification", bg = "black", clear_artifacts = T)
 #  un(M <- point_metrics(las, ~is.veg(G), k = 20)
 # merge the output with the point cloud to visualize the result
 
-# Add manual LAS attribute within R---------------------------------------------
-# las <- add_attribute(las, FALSE, "veg")
-# las$veg <- if_else(las$G >= 23051, T, F)
-# plot(las, color = "veg")
-
-# Ground filter with CSF--------------------------------------------------------
-# setup csf filter settings
-# rigidness: does not seem to have much impact.
-# class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
-mycsf <- csf(TRUE, 0.5, 1, rigidness = 3)
-# apply ground classification
-las <- classify_ground(las, mycsf)
-summary(las$Classification)
-
-# filter non-ground part from classified las------------------------------------
-nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
-# plot(nongnd, size = 3, color = "RGB", bg = "white")
-
-# alternative approach (untested)
+# Alternative approach for Ground filtration (untested)
 # poi <- ~Classification == 2
 # can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
 
