@@ -69,24 +69,29 @@ poi_whitenoise <- ~if_else(las$RGBmean >= 40000, T, F)
 
 # Minimales RtoB: 1.265, minimales GtoB: 1.374 (Stand 6.12.22)
 # Wide set: RtoB >= 1.25, GtoB >= 1.3
-poi_veg_wide <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3, T, F)
+poi_veg_wide <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3 & 
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 # Narrow set: RtoB >= 1.67, GtoB >= 1.618
-poi_veg_nar <- ~if_else(las$RtoB >= 1.67 & las$GtoB >= 1.618, T, F)
+poi_veg_nar <- ~if_else(las$RtoB >= 1.67 & las$GtoB >= 1.618 & 
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 # RtoB überschneidet sich mit rock.
-poi_sky_wide <- ~if_else(las$GtoB <= 0.8244, T, F)
+poi_sky_wide <- ~if_else(las$GtoB <= 0.8244 & 
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 # Alternatives: RtoB <= 0.7514
-poi_sky_nar <- ~if_else(las$RtoB <= 0.722, T, F)
+poi_sky_nar <- ~if_else(las$RtoB <= 0.722 &
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-poi_rock_nar <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
-                       las$GtoB >= 0.9428 & las$GtoB <= 1.0507, T, F)
+poi_rock_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
-                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507, T, F)
+                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+                           las$Classification == LASNONCLASSIFIED, T, F)
 
 
 # Read LAS file-----------------------------------------------------------------
@@ -96,6 +101,7 @@ las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample
 
 
 las <- las_origin
+las$Classification
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
@@ -112,7 +118,6 @@ las$RtoB <- (las$R/las$B)
 # Add Ratio G to B
 las <- add_attribute(las, 0, "GtoB")
 las$GtoB <- (las$G/las$B)
-
 
 # Add Factor RtoB times GtoB
 las <- add_attribute(las, 0, "RBtimesGB")
@@ -152,18 +157,23 @@ las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_veg_wide <- filter_poi(las, Classification == LASHIGHVEGETATION)
 # plot(las_veg_wide, size = 1, color = "RGB", bg = "black")
 
-
 # Classify vegetation - narrow approach
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
 las <- filter_poi(las, Classification != LASLOWVEGETATION)
 # las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
 # plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
 
-# Classify sediment
-las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
-las_rock <- filter_poi(las, Classification == LASROADSURFACE)
-plot(las_rock, size = 1, color = "RGB", bg = "black")
+# Classify sediment - wide approach
+las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
+las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
 
+# Classify sediment - narrow approach
+las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
+las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
+plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
+
+plot(las, color = "Classification")
 
 # Point Metrics calculations (untested, heavy duty)-----------------------------
 # Add attribute on point level
