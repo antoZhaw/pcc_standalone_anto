@@ -54,19 +54,6 @@ darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 # good thresholds for white noise filter between 40000...(45000)...48000
 poi_whitenoise <- ~if_else(las$RGBmean >= 40000, T, F)
 
-# poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
-#                       las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
-#                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
-#                     , T, F)
-
-# Factor does not work for some reason.
-# poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
-                    #   las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
-                    #   las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
-                    #     as.numeric(las$B/las$R) >= 1.40
-                    # , T, F)
-
-
 # Minimales RtoB: 1.265, minimales GtoB: 1.374 (Stand 6.12.22)
 # Wide set: RtoB >= 1.25, GtoB >= 1.3
 poi_veg_wide <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3 & 
@@ -84,29 +71,43 @@ poi_sky_wide <- ~if_else(las$GtoB <= 0.8244 &
 poi_sky_nar <- ~if_else(las$RtoB <= 0.722 &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
+poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
+                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+                           las$Classification == LASNONCLASSIFIED, T, F)
+
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
 poi_rock_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
-                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
-                           las$Classification == LASNONCLASSIFIED, T, F)
 
+# Unused formulas---------------------------------------------------------------
+
+# poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
+#                       las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
+#                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
+#                     , T, F)
+
+# Factor does not work for some reason.
+# poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
+#   las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
+#   las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
+#     as.numeric(las$B/las$R) >= 1.40
+# , T, F)
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBci", filter = "-keep_first")
+las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBc", filter = "-keep_first")
 
-
+# Create copy of read LAS to omit loading procedure.
 las <- las_origin
-las$Classification
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
 
-# Classify noise----------------------------------------------------------------
+
+# Create attributes for classification------------------------------------------
 # Add RGBmean attribute
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
@@ -123,57 +124,67 @@ las$GtoB <- (las$G/las$B)
 las <- add_attribute(las, 0, "RBtimesGB")
 las$RBtimesGB <- (las$RtoB*las$GtoB)
 
-
+# Explore them
 # summary(las$RGBmean)
 # summary(las$GtoB)
 # hist(las$RGBmean)
 # max(las$RGBmean)
 
+# Classify noise----------------------------------------------------------------
+
 # Classify white noise 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 las <- filter_poi(las, Classification != LASNOISE)
+
+# Separated plot
 # las <- classify_noise(las, las$RGBmean <= 2000)
 # plot(las, size = 1, color = "RGB", bg = "black")
 
-# Classify sky - wide approach
+# Classify sky------------------------------------------------------------------
+
+# wide approach
 # las <- classify_poi(las, class = LASRAIL, poi = poi_sky_wide)
 # las_sky_wide <- filter_poi(las, Classification == LASRAIL)
 # plot(las_sky_wide, size = 1, color = "RGB", bg = "black")
 
-# Classify sky - narrow approach
+# narrow approach
 las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_nar)
-las <- filter_poi(las, Classification != LASWIREGUARD)
+# las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_sky_nar <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_sky_nar, size = 1, color = "RGB", bg = "black")
 
-# Plot denoised LAS
-# las <- filter_poi(las, Classification != LASRAIL)
-# las <- filter_poi(las, Classification != LASNOISE)
-# las <- filter_poi(las, Classification != LASWIREGUARD)
-# plot(las, size = 1, color = "RGB", bg = "black")
+# Classify vegetation-----------------------------------------------------------
 
-# Classify vegetation - wide approach
+# wide approach
 # las <- classify_poi(las, class = LASHIGHVEGETATION, poi = poi_veg_wide)
 # las_veg_wide <- filter_poi(las, Classification == LASHIGHVEGETATION)
 # plot(las_veg_wide, size = 1, color = "RGB", bg = "black")
 
-# Classify vegetation - narrow approach
+# narrow approach
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
-las <- filter_poi(las, Classification != LASLOWVEGETATION)
+# las <- filter_poi(las, Classification != LASLOWVEGETATION)
 # las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
 # plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
 
-# Classify sediment - wide approach
+# Classify sediment-------------------------------------------------------------
+
+# wide approach
 las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
-las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
-plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
+# las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+# plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
 
-# Classify sediment - narrow approach
+# narrow approach
 las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
-las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
-plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
+# las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
+# plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
 
-plot(las, color = "Classification")
+# Plot classified point cloud---------------------------------------------------
+
+# Filter out noise and unclassified points for reduced computational time.
+las <- filter_poi(las, Classification != LASNOISE)
+las <- filter_poi(las, Classification != LASNONCLASSIFIED)
+las <- filter_poi(las, Classification != LASUNCLASSIFIED)
+plot(las, size = 1, color = "Classification", bg = "black", clear_artifacts = T)
 
 # Point Metrics calculations (untested, heavy duty)-----------------------------
 # Add attribute on point level
