@@ -1,11 +1,4 @@
 # libraries ---------------------------------------------------------------
-
-# Fragen an Nils
-# 1) Eher attribute erstellen und einfache Formulas oder umgekehrt?
-# 2) Operatoren && und &
-# 3) Bug in poi_darksky
-# LAS$R ersetzen
-
 # install packages
 
 library(lidR) # summary tables
@@ -61,13 +54,16 @@ poi_veg_wide <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3 &
 poi_veg_nar <- ~if_else(las$RtoB >= 1.67 & las$GtoB >= 1.618 & 
                            las$Classification == LASNONCLASSIFIED, T, F)
 
-# RtoB überschneidet sich mit rock.
-poi_sky_wide <- ~if_else(las$GtoB <= 0.8244 & 
-                           las$Classification == LASNONCLASSIFIED, T, F)
+poi_sky_ExB <- ~if_else(las$ExB >= 13500 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+#ExB = 18500, already takes away some cliff parts.
+#ExB = 14500, doubles cliff part but no sediment.
+#ExB = 13500, sediment is affected.
 
-# Alternatives: RtoB <= 0.7514
-poi_sky_nar <- ~if_else(las$RtoB <= 0.722 &
-                           las$Classification == LASNONCLASSIFIED, T, F)
+poi_sky_BPI <- ~if_else(las$BPI >= 0.391 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+#BPI = 0.391 represents 3rd Qu. and already takes away sediment
+
 
 poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
                            las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
@@ -148,6 +144,14 @@ las$GPI <- (las$G/(las$R+las$G+las$B))
 las <- add_attribute(las, 0, "ExG")
 las$ExG <- (2*las$G-las$R-las$B)
 
+# Add Blue Percentage Index BPI
+las <- add_attribute(las, 0, "BPI")
+las$BPI <- (las$B/(las$R+las$G+las$B))
+
+# Add Excess Blue Index ExB
+las <- add_attribute(las, 0, "ExB")
+las$ExB <- (2*las$B-las$R-las$G)
+
 # Add Excess Green minus Excess Red Index ExGR
 las <- add_attribute(las, 0, "ExGR")
 las$ExGR <- ((2*las$G-las$R-las$B)-(2*las$R-las$G-las$B))
@@ -157,18 +161,37 @@ las <- add_attribute(las, 0, "GLI")
 las$GLI <- (((las$G-las$R)+(las$G-las$B))/(2*las$G+las$R+las$B))
 
 # Add RGB Vegetation Index RGBVI
+# Produces NAs
 las <- add_attribute(las, 0, "RGBVI")
 las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
 
 # Add Visible Atmospherically Resistant Index VARI
-las <- add_attribute(las, 0, "VARI")
-las$VARI <- ((las$G-las$R)/(las$G+las$R-las$B))
+# las <- add_attribute(las, 0, "VARI")
+# las$VARI <- ((las$G-las$R)/(las$G+las$R-las$B))
 
 # Add Normalised Green Red Difference Index VARI
-las <- add_attribute(las, 0, "NGRDI")
-las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
+# Throws an error
+# las <- add_attribute(las, 0, "NGRDI")
+# las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
 
+# las_origin <- las
 
+# plot(las, size = 1, color = "ExB", bg = "black")
+
+# las <- las_origin
+
+# Testing-----------------------------------------------------------------------
+# Classify white noise 
+# las <- classify_poi(las, class = LASNOISE, poi = poi_sky_BPI)
+# las <- filter_poi(las, Classification != LASNOISE)
+# las_noise_BPI <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise_BPI, size = 1, color = "RGB", bg = "black")
+
+# las <- las_origin
+# las <- classify_poi(las, class = LASNOISE, poi = poi_sky_ExB)
+# las <- filter_poi(las, Classification != LASNOISE)
+# las_noise_ExB <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise_ExB, size = 1, color = "RGB", bg = "black")
 
 
 # Explore them
@@ -210,17 +233,12 @@ las <- filter_poi(las, Classification != LASNOISE)
 
 # Separated plot
 # las <- classify_noise(las, las$RGBmean <= 2000)
-# plot(las, size = 1, color = "RGB", bg = "black")
+plot(las, size = 1, color = "RGB", bg = "black")
 
 # Classify sky------------------------------------------------------------------
 
-# wide approach
-# las <- classify_poi(las, class = LASRAIL, poi = poi_sky_wide)
-# las_sky_wide <- filter_poi(las, Classification == LASRAIL)
-# plot(las_sky_wide, size = 1, color = "RGB", bg = "black")
-
-# narrow approach
-las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_nar)
+# Classify with Excess Blue Index
+las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_sky_nar <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_sky_nar, size = 1, color = "RGB", bg = "black")
@@ -235,8 +253,8 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_nar)
 # narrow approach
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
 # las <- filter_poi(las, Classification != LASLOWVEGETATION)
-# las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
-# plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
+las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
+plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment-------------------------------------------------------------
 

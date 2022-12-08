@@ -62,6 +62,15 @@ pRGplusB <- ggplot(data = dt, mapping = aes(x = class, y = RGplusB, colour = mai
 
 pRGplusB
 
+pscat <- ggplot(data = dt, mapping = aes(x = g, y = b, colour = main_class)) +
+  geom_point(size=2) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  # scale_y_continuous(breaks = c(0,50,100,150,200,250), limits = c(0,255)) +
+  labs(x = "Klasse",
+       y = "R zu G", 
+       title = "Verhältnis R/G nach Klasse",
+       subtitle = "Manuell zugewiesene Klassen")
+pscat
 
 pRtoG <- ggplot(data = dt, mapping = aes(x = class, y = RtoG, colour = main_class)) +
   geom_boxplot(size=0.5) +
