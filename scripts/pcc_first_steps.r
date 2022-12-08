@@ -43,22 +43,43 @@ darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
 # Formulas----------------------------------------------------------------------
 # good thresholds for white noise filter between 40000...(45000)...48000
-poi_whitenoise <- ~if_else(las$RGBmean >= 40000, T, F)
+poi_whitenoise <- ~if_else(las$RGBmean >= 45000, T, F)
 
-# Minimales RtoB: 1.265, minimales GtoB: 1.374 (Stand 6.12.22)
-# Wide set: RtoB >= 1.25, GtoB >= 1.3
-poi_veg_wide <- ~if_else(las$RtoB >= 1.25 & las$GtoB >= 1.3 & 
-                           las$Classification == LASNONCLASSIFIED, T, F)
+poi_veg_GLI <- ~if_else(las$GLI >= 0.10 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+# GLI filters a broad range from greyish and yellowish parts.
+# GLI = 0.15 is conservative, no sediment and cliff is affected
+# GPI = 0.11 is ideal.
+# GPI = 0.09 boarder of watercourse is affected entirely.
+# GPI = 0.07 is already the lower limit, cliff and sediment points are affected.
 
-# Narrow set: RtoB >= 1.67, GtoB >= 1.618
-poi_veg_nar <- ~if_else(las$RtoB >= 1.67 & las$GtoB >= 1.618 & 
+
+poi_veg_GPI <- ~if_else(las$GPI >= 0.37 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+# GPI filters a broad range from greyish and yellowish parts.
+# GPI = 0.4 is conservative, no sediment and cliff is affected
+# GPI = 0.37 is ideal.
+# GPI = 0.36 boarder of watercourse is affected entirely.
+# GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
+
+poi_veg_ExG <- ~if_else(las$ExG >= 7000 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+# ExG filters vegetation in general
+# ExG = 7500, border of watercourse is affected partly.
+# ExG = 6000, border of watercourse is affected almost entirely
+# ExG = 5500, border of watercourse and some sediment is affected.
+
+poi_veg_ExGR <- ~if_else(las$ExGR >= 14000 & 
                            las$Classification == LASNONCLASSIFIED, T, F)
+# ExGR filters specially bright green and blue points, yellowish points not
+# ExGR = 14000, Point of cliff are affected
+# ExGR = 10000, Parts of cliff are affected
 
 poi_sky_ExB <- ~if_else(las$ExB >= 13500 & 
                           las$Classification == LASNONCLASSIFIED, T, F)
-#ExB = 18500, already takes away some cliff parts.
-#ExB = 14500, doubles cliff part but no sediment.
-#ExB = 13500, sediment is affected.
+# ExB = 18500, already takes away some cliff parts.
+# ExB = 14500, doubles cliff part but no sediment.
+# ExB = 13500, sediment is affected.
 
 poi_sky_BPI <- ~if_else(las$BPI >= 0.391 & 
                           las$Classification == LASNONCLASSIFIED, T, F)
@@ -141,31 +162,34 @@ las <- add_attribute(las, 0, "GPI")
 las$GPI <- (las$G/(las$R+las$G+las$B))
 
 # Add Excess Green Index ExG
-las <- add_attribute(las, 0, "ExG")
-las$ExG <- (2*las$G-las$R-las$B)
+# las <- add_attribute(las, 0, "ExG")
+# las$ExG <- (2*las$G-las$R-las$B)
 
 # Add Blue Percentage Index BPI
-las <- add_attribute(las, 0, "BPI")
-las$BPI <- (las$B/(las$R+las$G+las$B))
+# las <- add_attribute(las, 0, "BPI")
+# las$BPI <- (las$B/(las$R+las$G+las$B))
 
 # Add Excess Blue Index ExB
 las <- add_attribute(las, 0, "ExB")
 las$ExB <- (2*las$B-las$R-las$G)
 
 # Add Excess Green minus Excess Red Index ExGR
-las <- add_attribute(las, 0, "ExGR")
-las$ExGR <- ((2*las$G-las$R-las$B)-(2*las$R-las$G-las$B))
+# las <- add_attribute(las, 0, "ExGR")
+# las$ExGR <- ((2*las$G-las$R-las$B)-(2*las$R-las$G-las$B))
 
 # Add Green Leaf Index GLI
 las <- add_attribute(las, 0, "GLI")
 las$GLI <- (((las$G-las$R)+(las$G-las$B))/(2*las$G+las$R+las$B))
 
+# Buggy forumulas---------------------------------------------------------------
+
 # Add RGB Vegetation Index RGBVI
-# Produces NAs
-las <- add_attribute(las, 0, "RGBVI")
-las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
+# Produces NAs only
+# las <- add_attribute(las, 0, "RGBVI")
+# las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
 
 # Add Visible Atmospherically Resistant Index VARI
+# Ranges from -Inf to Inf
 # las <- add_attribute(las, 0, "VARI")
 # las$VARI <- ((las$G-las$R)/(las$G+las$R-las$B))
 
@@ -173,33 +197,6 @@ las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
 # Throws an error
 # las <- add_attribute(las, 0, "NGRDI")
 # las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
-
-# las_origin <- las
-
-# plot(las, size = 1, color = "ExB", bg = "black")
-
-# las <- las_origin
-
-# Testing-----------------------------------------------------------------------
-# Classify white noise 
-# las <- classify_poi(las, class = LASNOISE, poi = poi_sky_BPI)
-# las <- filter_poi(las, Classification != LASNOISE)
-# las_noise_BPI <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise_BPI, size = 1, color = "RGB", bg = "black")
-
-# las <- las_origin
-# las <- classify_poi(las, class = LASNOISE, poi = poi_sky_ExB)
-# las <- filter_poi(las, Classification != LASNOISE)
-# las_noise_ExB <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise_ExB, size = 1, color = "RGB", bg = "black")
-
-
-# Explore them
-# summary(las$RGBmean)
-# summary(las$GtoB)
-# hist(las$RGBmean)
-# max(las$RGBmean)
-
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -230,31 +227,44 @@ las <- filter_poi(las, Classification != LASNOISE)
 # las_noise <- filter_poi(las, Classification == LASNOISE)
 # plot(las_noise, size = 1, color = "RGB", bg = "black")
 
-
-# Separated plot
-# las <- classify_noise(las, las$RGBmean <= 2000)
-plot(las, size = 1, color = "RGB", bg = "black")
-
 # Classify sky------------------------------------------------------------------
+# Vegetation filter priority: ExB, BPI (some might be deactivated)
 
-# Classify with Excess Blue Index
 las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_sky_nar <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_sky_nar, size = 1, color = "RGB", bg = "black")
 
+
+# Testing-----------------------------------------------------------------------
+# summary(las$GLI)
+
+# las <- las_origin
+# las <- classify_poi(las, class = LASHIGHVEGETATION, poi = poi_veg_GLI)
+# las <- filter_poi(las, Classification != LASHIGHVEGETATION)
+# las_test <- filter_poi(las, Classification == LASHIGHVEGETATION)
+# plot(las_test, size = 1, color = "RGB", bg = "black")
+
+# plot(las, size = 1, color = "RGB", bg = "black")
+# plot(las, size = 1, color = "ExG", bg = "black")
+# plot(las, size = 1, color = "GPI", bg = "black")
+# plot(las, size = 1, color = "GLI", bg = "black")
+# plot(las, size = 1, color = "ExGR", bg = "black")
+ 
+# Explore them
+# summary(las$RGBmean)
+# summary(las$GtoB)
+# hist(las$RGBmean)
+# max(las$RGBmean)
+
+
 # Classify vegetation-----------------------------------------------------------
+# Vegetation filter priority: GLI, GPI, ExG, ExGR (some might be deactivated)
 
-# wide approach
-# las <- classify_poi(las, class = LASHIGHVEGETATION, poi = poi_veg_wide)
-# las_veg_wide <- filter_poi(las, Classification == LASHIGHVEGETATION)
-# plot(las_veg_wide, size = 1, color = "RGB", bg = "black")
-
-# narrow approach
-las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_nar)
+las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # las <- filter_poi(las, Classification != LASLOWVEGETATION)
-las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
-plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
+# las_veg_nar <- filter_poi(las, Classification == LASLOWVEGETATION)
+# plot(las_veg_nar, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment-------------------------------------------------------------
 
@@ -271,14 +281,14 @@ las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_nar)
 # Classify rocks and cliffs-----------------------------------------------------
 
 # wide approach
-las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
-las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
-plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
+# las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
+# las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+# plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
 
 # narrow approach
 las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
-las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
-plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
+# las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
+# plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
 
 
 # Plot classified point cloud---------------------------------------------------
@@ -287,9 +297,13 @@ plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
 las <- filter_poi(las, Classification != LASNOISE)
 las <- filter_poi(las, Classification != LASNONCLASSIFIED)
 las <- filter_poi(las, Classification != LASUNCLASSIFIED)
-plot(las, size = 1, color = "Classification", bg = "black", clear_artifacts = T)
+# Sediment currently disabled
+las <- filter_poi(las, Classification != LASROADSURFACE)
+plot(las, size = 1, color = "Classification", bg = "black")
 
-# Point Metrics calculations (untested, heavy duty)-----------------------------
+
+# Outdated stuff----------------------------------------------------------------
+# Point Metrics calculations (untested, heavy duty)
 # Add attribute on point level
 # M <- point_metrics(las, ~is.planar(X,Y,Z), k = 20, filter = ~Classification != LASGROUND)
 # Run metrics computation
@@ -299,12 +313,6 @@ plot(las, size = 1, color = "Classification", bg = "black", clear_artifacts = T)
 # Alternative approach for Ground filtration (untested)
 # poi <- ~Classification == 2
 # can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
-
-# filter ground from classified las---------------------------------------------
-gnd <- filter_ground(las)
-# plot(gnd, size = 3, color = "RGB", bg = "white")
-
-# plot(can, size = 3, color = "RGB", bg = "white")
 
 # Filter functions--------------------------------------------------------------
 # las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
@@ -328,15 +336,11 @@ hist(gnd$B)
 # Classification with L-moments-------------------------------------------------
 # cloud_metrics(las, func = ~as.list(lmom::samlmu(Z)))
 
-
-
 # Maybe worth trying out
 # ?classify_poi()
 
-
 print(las)
 summary(las)
-
 
 # Negation of attributes is also possible (all except intensity and angle)
 # las = readLAS(LASfile, select = "* -i -a")
