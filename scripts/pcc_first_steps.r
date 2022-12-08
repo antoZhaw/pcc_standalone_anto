@@ -158,8 +158,8 @@ las <- add_attribute(las, 0, "RBtimesGB")
 las$RBtimesGB <- (las$RtoB*las$GtoB)
 
 # Add Green Percentage Index GPI
-las <- add_attribute(las, 0, "GPI")
-las$GPI <- (las$G/(las$R+las$G+las$B))
+# las <- add_attribute(las, 0, "GPI")
+# las$GPI <- (las$G/(las$R+las$G+las$B))
 
 # Add Excess Green Index ExG
 # las <- add_attribute(las, 0, "ExG")
@@ -299,7 +299,7 @@ las <- filter_poi(las, Classification != LASNONCLASSIFIED)
 las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 # Sediment currently disabled
 las <- filter_poi(las, Classification != LASROADSURFACE)
-plot(las, size = 1, color = "Classification", bg = "black")
+plot(las, size = 1, color = "Classification", bg = "black", legend = T)
 
 
 # Outdated stuff----------------------------------------------------------------
