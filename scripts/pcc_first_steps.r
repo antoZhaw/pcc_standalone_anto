@@ -140,6 +140,37 @@ las$GtoB <- (las$G/las$B)
 las <- add_attribute(las, 0, "RBtimesGB")
 las$RBtimesGB <- (las$RtoB*las$GtoB)
 
+# Add Green Percentage Index GPI
+las <- add_attribute(las, 0, "GPI")
+las$GPI <- (las$G/(las$R+las$G+las$B))
+
+# Add Excess Green Index ExG
+las <- add_attribute(las, 0, "ExG")
+las$ExG <- (2*las$G-las$R-las$B)
+
+# Add Excess Green minus Excess Red Index ExGR
+las <- add_attribute(las, 0, "ExGR")
+las$ExGR <- ((2*las$G-las$R-las$B)-(2*las$R-las$G-las$B))
+
+# Add Green Leaf Index GLI
+las <- add_attribute(las, 0, "GLI")
+las$GLI <- (((las$G-las$R)+(las$G-las$B))/(2*las$G+las$R+las$B))
+
+# Add RGB Vegetation Index RGBVI
+las <- add_attribute(las, 0, "RGBVI")
+las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
+
+# Add Visible Atmospherically Resistant Index VARI
+las <- add_attribute(las, 0, "VARI")
+las$VARI <- ((las$G-las$R)/(las$G+las$R-las$B))
+
+# Add Normalised Green Red Difference Index VARI
+las <- add_attribute(las, 0, "NGRDI")
+las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
+
+
+
+
 # Explore them
 # summary(las$RGBmean)
 # summary(las$GtoB)
