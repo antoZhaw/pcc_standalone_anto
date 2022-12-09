@@ -45,6 +45,9 @@ darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 # good thresholds for white noise filter between 40000...(45000)...48000
 poi_whitenoise <- ~if_else(las$RGBmean >= 45000, T, F)
 
+# good thresholds for black noise filter between 4000...(6000)...8000
+poi_blacknoise <- ~if_else(las$RGBmean <= 6000, T, F)
+
 poi_veg_GLI <- ~if_else(las$GLI >= 0.10 & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 # GLI filters a broad range from greyish and yellowish parts.
@@ -85,28 +88,32 @@ poi_sky_BPI <- ~if_else(las$BPI >= 0.391 &
                           las$Classification == LASNONCLASSIFIED, T, F)
 #BPI = 0.391 represents 3rd Qu. and already takes away sediment
 
+RtoBmin <- 0.7222
+RtoBmax <- 1.1290
 
-poi_rock_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
-                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+GtoBmin <- 0.8333
+GtoBmax <- 1.1613
+poi_rock_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
+                           las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
                            las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
 
-poi_rock_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+poi_rock_times <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
                            las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sed_wide <- ~if_else(las$RtoB >= 0.8221 & las$RtoB <= 1.00 &
-                           las$GtoB >= 0.9428 & las$GtoB <= 1.0507 &
+poi_sed_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
+                           las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
                            las$ground == T &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
 
-poi_sed_nar <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+poi_sed_times <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
                            las$ground == T &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
@@ -181,7 +188,7 @@ las$ExB <- (2*las$B-las$R-las$G)
 las <- add_attribute(las, 0, "GLI")
 las$GLI <- (((las$G-las$R)+(las$G-las$B))/(2*las$G+las$R+las$B))
 
-# Buggy forumulas---------------------------------------------------------------
+# Buggy Indices-----------------------------------------------------------------
 
 # Add RGB Vegetation Index RGBVI
 # Produces NAs only
@@ -223,9 +230,16 @@ las$Classification <- LASNONCLASSIFIED
 
 # Classify white noise 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
-las <- filter_poi(las, Classification != LASNOISE)
+# las <- filter_poi(las, Classification != LASNOISE)
+
+# Classify black noise
+las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
+
+# Plot filtered noise
 # las_noise <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise, size = 1, color = "RGB", bg = "black")
+# plot(las_noise, size = 1, color = "RGB", bg = "white")
+
+las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
@@ -234,7 +248,6 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASWIREGUARD)
 # las_sky_nar <- filter_poi(las, Classification == LASWIREGUARD)
 # plot(las_sky_nar, size = 1, color = "RGB", bg = "black")
-
 
 # Testing-----------------------------------------------------------------------
 # summary(las$GLI)
@@ -269,27 +282,30 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # Classify sediment-------------------------------------------------------------
 
 # wide approach
-# las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_wide)
-# las_sed_wide <- filter_poi(las, Classification == LASKEYPOINT)
-# plot(las_sed_wide, size = 1, color = "RGB", bg = "black")
+las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
+las_sed_wide <- filter_poi(las, Classification == LASKEYPOINT)
+plot(las_sed_wide, size = 1, color = "RGB", bg = "black")
 
 # narrow approach
-las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_nar)
+# las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
 # las_sed_nar <- filter_poi(las, Classification == LASLOWPOINT)
 # plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
 
 # Classify rocks and cliffs-----------------------------------------------------
 
 # wide approach
-# las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_wide)
+las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
 # las_rock_wide <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_wide, size = 1, color = "RGB", bg = "black")
 
+# Show the unclassified----
+# las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
+# plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
+
 # narrow approach
-las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_nar)
+# las <- classify_poi(las, class = LASROADSURFACE, poi = poi_rock_times)
 # las_rock_nar <- filter_poi(las, Classification == LASROADSURFACE)
 # plot(las_rock_nar, size = 1, color = "RGB", bg = "black")
-
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -300,7 +316,6 @@ las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 # Sediment currently disabled
 las <- filter_poi(las, Classification != LASROADSURFACE)
 plot(las, size = 1, color = "Classification", bg = "black", legend = T)
-
 
 # Outdated stuff----------------------------------------------------------------
 # Point Metrics calculations (untested, heavy duty)
