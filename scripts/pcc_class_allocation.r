@@ -62,7 +62,7 @@ pRGplusB <- ggplot(data = dt, mapping = aes(x = class, y = RGplusB, colour = mai
 
 pRGplusB
 
-pscat <- ggplot(data = dt, mapping = aes(x = g, y = b, colour = main_class)) +
+pscat <- ggplot(data = dt, mapping = aes(x = b, y = g, colour = main_class)) +
   geom_point(size=2) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   # scale_y_continuous(breaks = c(0,50,100,150,200,250), limits = c(0,255)) +
