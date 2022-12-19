@@ -33,6 +33,21 @@ to.LAScolor <- function(small_RGB) {
 
 # Globals-----------------------------------------------------------------------
 
+user <- Sys.getenv("USERNAME")
+dir_repo <- if_else(user == "gubelyve", 
+                    "C:/Daten/math_gubelyve/pcc_standalone",
+                    "C:/code_wc/pcc_standalone")
+
+dir_subset_2021 <- if_else(user == "gubelyve",
+                    r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)", 
+                    r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)")
+
+
+dir_wholeset_2022 <- if_else(user == "gubelyve",
+                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)", 
+                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)")
+
+
 sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
 # 1st Quantile for Blue = 170, 120 takes away more sediment.
 sky_lower_RGB <- as.integer(c("25", "50", "120")) %>% to.LAScolor()
@@ -116,7 +131,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(r"(C:\Daten\math_gubelyve\tls_data\saane_20211013_subsample_onlyRGBpts.las)", select = "xyzRGBc", filter = "-keep_first")
+las_origin = readLAS(dir_wholeset_2022, select = "xyzRGBc", filter = "-keep_first")
 
 # Create copy of read LAS to omit loading procedure.
 las <- las_origin
