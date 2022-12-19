@@ -42,72 +42,34 @@ darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
 darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
 # Formulas----------------------------------------------------------------------
-# good thresholds for white noise filter between 40000...(45000)...48000
-poi_whitenoise <- ~if_else(las$RGBmean >= 38000, T, F)
+poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_tresh, T, F)
 
-# good thresholds for black noise filter between 4000...(6000)...8000
-poi_blacknoise <- ~if_else(las$RGBmean <= 6000, T, F)
+poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_tresh, T, F)
 
-poi_sky_ExB <- ~if_else(las$ExB >= 3500 & las$ground == F &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-# ExB = 18500, already takes away some cliff parts.
-# ExB = 14500, doubles cliff part but no sediment.
-# ExB = 13500, cliff wall is affected.
-# ExB = 3500, cliff wall is affected on a wide range but still works.
-
-poi_red_ExR <- ~if_else(las$ExR >= 45000 &
+poi_sky_ExB <- ~if_else(las$ExB >= ExB_tresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_red_RPI <- ~if_else(las$RPI >= 0.9 & 
+poi_sky_BPI <- ~if_else(las$BPI >= BPI_tresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-
-poi_veg_GLI <- ~if_else(las$GLI >= 0.04 & 
+poi_red_ExR <- ~if_else(las$ExR >= ExR_tresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
-# GLI filters a broad range from greyish and yellowish parts.
-# GLI = 0.15 is conservative, no sediment and cliff is affected
-# GPI = 0.11 is ideal.
-# GPI = 0.09 boarder of watercourse is affected entirely.
-# GPI = 0.07 cliff and sediment points are affected.
-# GPI = 0.04 bush and canopy around sediment areas are included, except brown.
 
-poi_veg_GPI <- ~if_else(las$GPI >= 0.35 & 
+poi_red_RPI <- ~if_else(las$RPI >= RPI_tresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
-# GPI filters a broad range from greyish and yellowish parts.
-# GPI = 0.4 is conservative, no sediment and cliff is affected
-# GPI = 0.37 is ideal.
-# GPI = 0.36 boarder of watercourse is affected entirely.
-# GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
 
-poi_veg_ExG <- ~if_else(las$ExG >= 4500 & 
+poi_veg_GLI <- ~if_else(las$GLI >= GLI_tresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
-# ExG filters vegetation in general, neglects rather dark points
-# ExG = 7500, border of watercourse is affected partly.
-# ExG = 6000, border of watercourse is affected almost entirely
-# ExG = 5500, border of watercourse and some sediment is affected.
-# ExG = 4500, lower limit.
 
-poi_veg_ExGR <- ~if_else(las$ExGR >= 14000 & 
+poi_veg_GPI <- ~if_else(las$GPI >= GPI_tresh & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
+poi_veg_ExG <- ~if_else(las$ExG >= ExG_tresh & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
+poi_veg_ExGR <- ~if_else(las$ExGR >= ExGR_tresh & 
                            las$Classification == LASNONCLASSIFIED, T, F)
-# ExGR filters specially bright green and blue points, yellowish points not
-# ExGR = 14000, Point of cliff are affected
-# ExGR = 10000, Parts of cliff are affected
 
-poi_sky_BPI <- ~if_else(las$BPI >= 0.391 & las$ground == F &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-#BPI = 0.391 represents 3rd Qu. and already takes away sediment
-
-# Maximales RtoB: 1.21 in cliff_bright
-# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-
-#Min: 0.7222 and Max. 1.1290 derived from cliff_dark
-RtoBmin <- 0.7222
-RtoBmax <- 1.1290
-
-#Min: 0.8333 and Max. 1.1613 derived from cliff_dark
-#Min: 0.7928 from cliff_blue
-GtoBmin <- 0.7928
-GtoBmax <- 1.1613
 poi_rock_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
                               las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
                               las$ground == F &
@@ -118,15 +80,14 @@ poi_sed_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
                              las$ground == T &
                              las$Classification == LASNONCLASSIFIED, T, F)
 
-
-poi_rock_times <- ~if_else(las$RBtimesGB >= 0.980 & las$RBtimesGB <= 1.02 &
+poi_rock_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
                            las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
 
-poi_sed_times <- ~if_else(las$RBtimesGB >= 0.9370 & las$RBtimesGB <= 1.0433 &
+poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
                            las$ground == T &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
@@ -250,10 +211,16 @@ las$Classification <- LASNONCLASSIFIED
 # Classify noise----------------------------------------------------------------
 
 # Classify white noise 
+whitenoise_tresh <- 38000
+# good thresholds for white noise filter between 40000...(45000)...48000
+
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 # las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify black noise
+blacknoise_tresh <- 6000
+# good thresholds for black noise filter between 4000...(6000)...8000
+
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
@@ -264,6 +231,8 @@ las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify Red parts------------------------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
+ExR_tresh <- 45000
+RPI_tresh <- 0.9
 
 # las_origin <- las
 # las <- las_origin
@@ -277,6 +246,15 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_red_ExR)
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
+
+ExB_tresh <- 3500
+# ExB = 18500, already takes away some cliff parts.
+# ExB = 14500, doubles cliff part but no sediment.
+# ExB = 13500, cliff wall is affected.
+# ExB = 3500, cliff wall is affected on a wide range but still works.
+
+BPI_tresh <- 0.391
+#BPI = 0.391 represents 3rd Qu. and already takes away sediment
 
 # las_origin <- las
 # las <- las_origin
@@ -310,6 +288,33 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # Classify vegetation-----------------------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
+GLI_tresh <- 0.04
+# GLI filters a broad range from greyish and yellowish parts.
+# GLI = 0.15 is conservative, no sediment and cliff is affected
+# GPI = 0.11 is ideal.
+# GPI = 0.09 boarder of watercourse is affected entirely.
+# GPI = 0.07 cliff and sediment points are affected.
+# GPI = 0.04 bush and canopy around sediment areas are included, except brown.
+
+GPI_tresh <- 0.35
+# GPI filters a broad range from greyish and yellowish parts.
+# GPI = 0.4 is conservative, no sediment and cliff is affected
+# GPI = 0.37 is ideal.
+# GPI = 0.36 boarder of watercourse is affected entirely.
+# GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
+
+ExG_tresh <- 4500
+# ExG filters vegetation in general, neglects rather dark points
+# ExG = 7500, border of watercourse is affected partly.
+# ExG = 6000, border of watercourse is affected almost entirely
+# ExG = 5500, border of watercourse and some sediment is affected.
+# ExG = 4500, lower limit.
+
+ExGR_tresh <- 14000
+# ExGR filters specially bright green and blue points, yellowish points not
+# ExGR = 14000, Point of cliff are affected
+# ExGR = 10000, Parts of cliff are affected
+
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # las <- filter_poi(las, Classification != LASLOWVEGETATION)
 # las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
@@ -317,12 +322,27 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 
 # Classify sediment-------------------------------------------------------------
 
+# Maximales RtoB: 1.21 in cliff_bright
+# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
+
+#Min: 0.7222 and Max. 1.1290 derived from cliff_dark
+RtoBmin <- 0.7222
+RtoBmax <- 1.1290
+
+#Min: 0.8333 and Max. 1.1613 derived from cliff_dark
+#Min: 0.7928 from cliff_blue
+GtoBmin <- 0.7928
+GtoBmax <- 1.1613
+
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
 # las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
 # plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
 
 # Approach with RtoB times GtoB
+# Set limits for sediment.
+RBtimesGB_min <- 0.9370
+RBtimesGB_max <- 1.0433
 # las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
 # las_sed_times <- filter_poi(las, Classification == LASLOWPOINT)
 # plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
@@ -341,13 +361,16 @@ las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
 # plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
 # Approach with RtoB times GtoB
+# Set limits again for rock. If not set, limits of sediment filter is applied.
+RBtimesGB_min <- 0.98
+RBtimesGB_max <- 1.02
 # las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_times)
 # las_rock_times <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
 
 # Plot classified point cloud---------------------------------------------------
 
-# Show the unclassified----
+# Show the unclassified---------------------------------------------------------
 las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
 plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
 
