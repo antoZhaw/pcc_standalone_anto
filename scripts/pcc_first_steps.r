@@ -55,6 +55,13 @@ poi_sky_ExB <- ~if_else(las$ExB >= 3500 & las$ground == F &
 # ExB = 13500, cliff wall is affected.
 # ExB = 3500, cliff wall is affected on a wide range but still works.
 
+poi_red_ExR <- ~if_else(las$ExR >= 45000 &
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
+poi_red_RPI <- ~if_else(las$RPI >= 0.9 & 
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
+
 poi_veg_GLI <- ~if_else(las$GLI >= 0.04 & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 # GLI filters a broad range from greyish and yellowish parts.
@@ -194,6 +201,14 @@ las$ExB <- (2*las$B-las$R-las$G)
 las <- add_attribute(las, 0, "GLI")
 las$GLI <- (((las$G-las$R)+(las$G-las$B))/(2*las$G+las$R+las$B))
 
+# Add Red Percentage Index RPI
+las <- add_attribute(las, 0, "RPI")
+las$RPI <- (las$R/(las$R+las$G+las$B))
+
+# Add Excess Red Index ExR
+las <- add_attribute(las, 0, "ExR")
+las$ExR <- (2*las$R-las$G-las$B)
+
 # Buggy Indices-----------------------------------------------------------------
 
 # Add RGB Vegetation Index RGBVI
@@ -246,6 +261,19 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 # plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
+
+# Classify Red parts------------------------------------------------------------
+# Red filter priority: ExR, RPI (some might be deactivated)
+
+# las_origin <- las
+# las <- las_origin
+
+# poi_red_RPI
+
+las <- classify_poi(las, class = LASWIREGUARD, poi = poi_red_ExR)
+# las <- filter_poi(las, Classification != LASWIREGUARD)
+# las_sky <- filter_poi(las, Classification == LASWIREGUARD)
+# plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
