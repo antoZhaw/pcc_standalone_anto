@@ -55,7 +55,8 @@ poi_sky_BPI <- ~if_else(las$BPI >= BPI_tresh & las$ground == F &
 poi_red_ExR <- ~if_else(las$ExR >= ExR_tresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_red_ExR_band <- ~if_else(las$ExR >= ExR_tresh_min & las$ExR <= ExR_tresh_max &
+poi_sed_ExR_band <- ~if_else(las$ExR >= ExR_tresh_min & las$ExR <= ExR_tresh_max &
+                          las$ground == T &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
 poi_red_RPI <- ~if_else(las$RPI >= RPI_tresh & 
@@ -270,6 +271,7 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # Explore them
 # summary(las$RGBmean)
 # summary(las$GtoB)
+summary(las$ExR)
 # hist(las$RGBmean)
 # max(las$RGBmean)
 
@@ -339,8 +341,19 @@ GtoBmax <- 1.1613
 
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
-# las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
-# plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
+
+# Classify band of negative excess red parts------------------------------------
+# Negative ExR values appear to be sediment, ground criteria is set true.
+ExR_tresh_max <- 1000
+ExR_tresh_min <- -53000
+# ExR = -53000 ... 1000 seems to affect sediment points more than others
+# No big difference between -20000 and -53000
+
+las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ExR_band)
+
+# For an exclusive plot of negative ExR values choose LASBRIDGE as class.
+# las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
+# plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
 
 # Approach with RtoB times GtoB
 # Set limits for sediment.
@@ -349,6 +362,7 @@ RBtimesGB_max <- 1.0433
 # las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
 # las_sed_times <- filter_poi(las, Classification == LASLOWPOINT)
 # plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
+
 
 # Classify rocks and cliffs-----------------------------------------------------
 
@@ -370,18 +384,6 @@ RBtimesGB_max <- 1.02
 # las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_times)
 # las_rock_times <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
-
-# Classify band of red parts----------------------------------------------------
-# Red filter priority: ExR, RPI (some might be deactivated)
-ExR_tresh_max <- 12000
-ExR_tresh_min <- 8000
-# ExR = 30000, broad vegetation is affected, some sediment parts too.
-# ExR = 20000, first lines of cliff relief is affected.
-
-las <- classify_poi(las, class = LASBRIGDE, poi = poi_red_ExR_band)
-# las <- filter_poi(las, Classification != LASBRIGDE)
-las_red <- filter_poi(las, Classification == LASBRIGDE)
-plot(las_red, size = 1, color = "RGB", bg = "black")
 
 # Plot classified point cloud---------------------------------------------------
 
