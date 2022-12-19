@@ -49,6 +49,9 @@ poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_tresh, T, F)
 poi_sky_ExB <- ~if_else(las$ExB >= ExB_tresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
+poi_sky_ExB_band <- ~if_else(las$ExB >= ExB_tresh_min & las$ExB <= ExB_tresh_max &
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
 poi_sky_BPI <- ~if_else(las$BPI >= BPI_tresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
@@ -351,7 +354,7 @@ ExR_tresh_min <- -53000
 
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ExR_band)
 
-# For an exclusive plot of negative ExR values choose LASBRIDGE as class.
+# For an exclusive plot of negative ExR values change to LASBRIDGE as class.
 # las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
 # plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
 
@@ -377,6 +380,7 @@ las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
 # las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
+
 # Approach with RtoB times GtoB
 # Set limits again for rock. If not set, limits of sediment filter is applied.
 RBtimesGB_min <- 0.98
@@ -384,6 +388,19 @@ RBtimesGB_max <- 1.02
 # las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_times)
 # las_rock_times <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
+
+# Test - Classify band of negative excess blue parts----------------------------
+# Negative ExB values appear to be sediment, ground criteria is set true.
+# ExB_tresh_max <- 3499
+# ExB_tresh_min <- -8000
+# ExB = -8000 ... 3499 are greyish points but no distinct classes
+# ExB = -60000 ... -8000 are greenish, greyish points but no distinct classes
+# No big difference between -20000 and -53000
+
+# las <- classify_poi(las, class = LASBRIGDE, poi = poi_sky_ExB_band)
+# las_exb_neg <- filter_poi(las, Classification == LASBRIGDE)
+# plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
+# summary(las$ExB)
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -412,7 +429,7 @@ plot(las, size = 1, color = "Classification", bg = "black", legend = T)
 # poi <- ~Classification == 2
 # can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
 
-# Filter functions--------------------------------------------------------------
+# Alternative filter functions--------------------------------------------------------------
 # las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
 
 # Exploration of Colors---------------------------------------------------------
@@ -431,15 +448,7 @@ hist(nongnd$B)
 hist(gnd$B)
 
 
-# Classification with L-moments-------------------------------------------------
-# cloud_metrics(las, func = ~as.list(lmom::samlmu(Z)))
-
-# Maybe worth trying out
-# ?classify_poi()
-
-print(las)
-summary(las)
-
+# Help lines
 # Negation of attributes is also possible (all except intensity and angle)
 # las = readLAS(LASfile, select = "* -i -a")
 
