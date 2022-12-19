@@ -229,21 +229,6 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 las <- filter_poi(las, Classification != LASNOISE)
 
-# Classify Red parts------------------------------------------------------------
-# Red filter priority: ExR, RPI (some might be deactivated)
-ExR_tresh <- 45000
-RPI_tresh <- 0.9
-
-# las_origin <- las
-# las <- las_origin
-
-# poi_red_RPI
-
-las <- classify_poi(las, class = LASWIREGUARD, poi = poi_red_ExR)
-# las <- filter_poi(las, Classification != LASWIREGUARD)
-# las_sky <- filter_poi(las, Classification == LASWIREGUARD)
-# plot(las_sky, size = 1, color = "RGB", bg = "black")
-
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
 
@@ -285,7 +270,7 @@ las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
 # hist(las$RGBmean)
 # max(las$RGBmean)
 
-# Classify vegetation-----------------------------------------------------------
+# Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
 GLI_tresh <- 0.04
@@ -317,8 +302,23 @@ ExGR_tresh <- 14000
 
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # las <- filter_poi(las, Classification != LASLOWVEGETATION)
-# las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
-# plot(las_veg, size = 1, color = "RGB", bg = "black")
+
+# Classify Red parts of vegetation----------------------------------------------
+# Red filter priority: ExR, RPI (some might be deactivated)
+ExR_tresh <- 20000
+# ExB = 30000, broad vegetation is affected, some sediment parts too.
+# ExB = 20000, first lines of cliff relief is affected.
+
+RPI_tresh <- 0.9
+
+las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
+# las <- filter_poi(las, Classification != LASBRIGDE)
+# las_red <- filter_poi(las, Classification == LASBRIGDE)
+# plot(las_red, size = 1, color = "RGB", bg = "black")
+
+# Plot vegetation
+las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
+plot(las_veg, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment-------------------------------------------------------------
 
