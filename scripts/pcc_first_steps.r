@@ -55,6 +55,9 @@ poi_sky_BPI <- ~if_else(las$BPI >= BPI_tresh & las$ground == F &
 poi_red_ExR <- ~if_else(las$ExR >= ExR_tresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
+poi_red_ExR_band <- ~if_else(las$ExR >= ExR_tresh_min & las$ExR <= ExR_tresh_max &
+                          las$Classification == LASNONCLASSIFIED, T, F)
+
 poi_red_RPI <- ~if_else(las$RPI >= RPI_tresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
@@ -306,8 +309,8 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # Classify Red parts of vegetation----------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
 ExR_tresh <- 20000
-# ExB = 30000, broad vegetation is affected, some sediment parts too.
-# ExB = 20000, first lines of cliff relief is affected.
+# ExR = 30000, broad vegetation is affected, some sediment parts too.
+# ExR = 20000, first lines of cliff relief is affected.
 
 RPI_tresh <- 0.9
 
@@ -317,8 +320,8 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # plot(las_red, size = 1, color = "RGB", bg = "black")
 
 # Plot vegetation
-las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
-plot(las_veg, size = 1, color = "RGB", bg = "black")
+# las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
+# plot(las_veg, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment-------------------------------------------------------------
 
@@ -367,6 +370,18 @@ RBtimesGB_max <- 1.02
 # las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_times)
 # las_rock_times <- filter_poi(las, Classification == LASWIRECONDUCTOR)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
+
+# Classify band of red parts----------------------------------------------------
+# Red filter priority: ExR, RPI (some might be deactivated)
+ExR_tresh_max <- 12000
+ExR_tresh_min <- 8000
+# ExR = 30000, broad vegetation is affected, some sediment parts too.
+# ExR = 20000, first lines of cliff relief is affected.
+
+las <- classify_poi(las, class = LASBRIGDE, poi = poi_red_ExR_band)
+# las <- filter_poi(las, Classification != LASBRIGDE)
+las_red <- filter_poi(las, Classification == LASBRIGDE)
+plot(las_red, size = 1, color = "RGB", bg = "black")
 
 # Plot classified point cloud---------------------------------------------------
 
