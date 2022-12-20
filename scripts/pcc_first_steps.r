@@ -157,12 +157,12 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first")
+las <- readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first")
 
-if (is.LAScorrupt(las_origin)) {stop("The read LAS file has no colour information, script stops.")}
+if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 
 # Create copy of read LAS to omit loading procedure.
-las <- las_origin
+# las <- las_origin
 
 # Display loaded classes (supposed to be zero)
 # factor(las$Classification)
@@ -294,8 +294,8 @@ blacknoise_tresh <- 6000
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
-# las_noise <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise, size = 1, color = "RGB", bg = "white")
+las_noise <- filter_poi(las, Classification == LASNOISE)
+plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
 
@@ -494,7 +494,22 @@ las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 
 # disable rocks since it does not work properly
 las <- filter_poi(las, Classification != LASWIRECONDUCTOR)
-plot(las, size = 1, color = "Classification", bg = "black", legend = T)
+plot(las, size = 1, color = "Classification", bg = "black")
+
+# Save generated output---------------------------------------------------------
+
+writeLAS(las, file =  r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011_classified.las)")
+
+# Plot separated classes
+las_sky <- filter_poi(las, Classification == LASWIREGUARD)
+plot(las_sky, size = 1, color = "RGB", bg = "black")
+
+las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
+plot(las_veg, size = 1, color = "RGB", bg = "black")
+
+las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
+plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
+
 
 # Outdated stuff----------------------------------------------------------------
 # Point Metrics calculations (untested, heavy duty)
