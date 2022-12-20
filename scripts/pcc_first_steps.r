@@ -40,15 +40,21 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-gen.attribute.plot <- function(input_attr) {
-  filename <- paste("export/", deparse(substitute(input_attr)), "_pre", ".png", sep = "")
+
+gen.attribute.plot <- function(input_attr, post) {
+  # receive attribute name, uncleaned "$" might cause errors.
+  attr_name <- deparse(substitute(input_attr))
+  suffix <- if_else(post == T, "_post", "_pre")
+  filename <- paste("export/", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
     aes(x = input_attr, fill = as.factor(las$Classification)) + 
     geom_density(alpha = 0.5) + 
+    labs(x = attr_name) +
     theme_minimal() +
     theme(legend.position = c(.9, .90),
         legend.title = element_blank())
-  ggsave(filename = filename)
+  ggsave(filename = filename, bg = "white")
+  # alternative print function, which is faster but throws an error.
   # dev.print(file=filename, device=png, width=800)
 }
 
@@ -230,23 +236,26 @@ las$ExR <- (2*las$R-las$G-las$B)
 # las <- add_attribute(las, 0, "NGRDI")
 # las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
 
-xnames <- names(las)
-xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
-xnames
 
-head(las$RGBmean)
+# Generate attribute plots before classification--------------------------------
+# tbd - Starting point for a for loop, piping might be better
+# xnames <- names(las)
+# xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
+# xnames
 
-gen.attribute.plot(las$RGBmean)
-gen.attribute.plot(las$Intensity)
-gen.attribute.plot(las$RtoB)
-gen.attribute.plot(las$RGtoB)
-gen.attribute.plot(las$RBtimesGB)
-gen.attribute.plot(las$GPI)
-gen.attribute.plot(las$ExG)
-gen.attribute.plot(las$ExB)
-gen.attribute.plot(las$GLI)
-gen.attribute.plot(las$RPI)
-gen.attribute.plot(las$ExR)
+las_post = F
+
+gen.attribute.plot(las$RGBmean, las_post)
+gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$RtoB, las_post)
+# gen.attribute.plot(las$RGtoB, las_post)
+# gen.attribute.plot(las$RBtimesGB, las_post)
+gen.attribute.plot(las$GPI, las_post)
+gen.attribute.plot(las$ExG, las_post)
+gen.attribute.plot(las$ExB, las_post)
+gen.attribute.plot(las$GLI, las_post)
+gen.attribute.plot(las$RPI, las_post)
+gen.attribute.plot(las$ExR, las_post)
 
 
 
@@ -457,6 +466,22 @@ RBtimesGB_max <- 1.02
 # las_exb_neg <- filter_poi(las, Classification == LASBRIGDE)
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
+
+
+# Generate attribute plots after classification--------------------------------
+las_post = T
+
+gen.attribute.plot(las$RGBmean, las_post)
+gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$RtoB, las_post)
+# gen.attribute.plot(las$RGtoB, las_post)
+# gen.attribute.plot(las$RBtimesGB, las_post)
+gen.attribute.plot(las$GPI, las_post)
+gen.attribute.plot(las$ExG, las_post)
+gen.attribute.plot(las$ExB, las_post)
+gen.attribute.plot(las$GLI, las_post)
+gen.attribute.plot(las$RPI, las_post)
+gen.attribute.plot(las$ExR, las_post)
 
 # Plot classified point cloud---------------------------------------------------
 
