@@ -60,6 +60,8 @@ gen.attribute.plot <- function(input_attr, post) {
 
 # Globals-----------------------------------------------------------------------
 
+start <- lubridate::now()
+
 user <- Sys.getenv("USERNAME")
 dir_repo <- if_else(user == "gubelyve", 
                     "C:/Daten/math_gubelyve/pcc_standalone",
@@ -440,8 +442,8 @@ RBtimesGB_max <- 1.0433
 
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
-# las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
-# plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
+las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
 
 # Approach with RtoB times GtoB
@@ -510,6 +512,11 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
 plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
 
+end <- lubridate::now()
+end
+
+diff <- end - start
+diff
 
 # Outdated stuff----------------------------------------------------------------
 # Point Metrics calculations (untested, heavy duty)
