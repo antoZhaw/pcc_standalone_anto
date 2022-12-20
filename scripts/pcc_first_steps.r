@@ -23,6 +23,15 @@ is.veg <- function(G) {
   return(list(veg = is_veg))
 }
 
+is.LAScorrupt <- function(las) {
+  has_R <- if_else(mean(las$R) != 0,T,F)
+  has_G <- if_else(mean(las$G) != 0,T,F)
+  has_B <- if_else(mean(las$B) != 0,T,F)
+  valid <- has_R & has_G & has_B
+  corrupt <- !valid
+  return(corrupt)
+}
+
 to.LAScolor <- function(small_RGB) {
   # According to LAS Speciﬁcation 1.4 - R14 of 
   # the American Society for Photogrammetry and Remote Sensing (ASPRS)
@@ -38,13 +47,12 @@ dir_repo <- if_else(user == "gubelyve",
                     "C:/Daten/math_gubelyve/pcc_standalone",
                     "C:/code_wc/pcc_standalone")
 
-dir_subset_2021 <- if_else(user == "gubelyve",
+subset2021 <- if_else(user == "gubelyve",
                     r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)", 
                     r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)")
 
-
-dir_wholeset_2022 <- if_else(user == "gubelyve",
-                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)", 
+wholeset2022 <- if_else(user == "gubelyve",
+                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)",
                     r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)")
 
 
@@ -131,7 +139,9 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(dir_wholeset_2022, select = "xyzRGBc", filter = "-keep_first")
+las_origin = readLAS(wholeset2022, select = "xyzRGBc", filter = "-keep_first")
+
+if (is.LAScorrupt(las_origin)) {stop("The read LAS file has no colour information, script stops.")}
 
 # Create copy of read LAS to omit loading procedure.
 las <- las_origin
@@ -141,7 +151,6 @@ las <- las_origin
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
-
 
 # Create attributes for classification------------------------------------------
 # Add RGBmean attribute
