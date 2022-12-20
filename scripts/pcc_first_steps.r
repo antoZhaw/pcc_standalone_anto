@@ -40,6 +40,18 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
+gen.attribute.plot <- function(input_attr) {
+  filename <- paste("export/", deparse(substitute(input_attr)), "_pre", ".png", sep = "")
+  ggplot(las@data) +
+    aes(x = input_attr, fill = as.factor(las$Classification)) + 
+    geom_density(alpha = 0.5) + 
+    theme_minimal() +
+    theme(legend.position = c(.9, .90),
+        legend.title = element_blank())
+  ggsave(filename = filename)
+  # dev.print(file=filename, device=png, width=800)
+}
+
 # Globals-----------------------------------------------------------------------
 
 user <- Sys.getenv("USERNAME")
@@ -139,7 +151,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(wholeset2022, select = "xyzRGBc", filter = "-keep_first")
+las_origin = readLAS(subset2021, select = "xyzRGBci", filter = "-keep_first")
 
 if (is.LAScorrupt(las_origin)) {stop("The read LAS file has no colour information, script stops.")}
 
@@ -217,6 +229,26 @@ las$ExR <- (2*las$R-las$G-las$B)
 # Throws an error
 # las <- add_attribute(las, 0, "NGRDI")
 # las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
+
+xnames <- names(las)
+xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
+xnames
+
+head(las$RGBmean)
+
+gen.attribute.plot(las$RGBmean)
+gen.attribute.plot(las$Intensity)
+gen.attribute.plot(las$RtoB)
+gen.attribute.plot(las$RGtoB)
+gen.attribute.plot(las$RBtimesGB)
+gen.attribute.plot(las$GPI)
+gen.attribute.plot(las$ExG)
+gen.attribute.plot(las$ExB)
+gen.attribute.plot(las$GLI)
+gen.attribute.plot(las$RPI)
+gen.attribute.plot(las$ExR)
+
+
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
