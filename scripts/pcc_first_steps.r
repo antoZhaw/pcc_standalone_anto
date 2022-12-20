@@ -157,7 +157,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las_origin = readLAS(subset2021, select = "xyzRGBci", filter = "-keep_first")
+las_origin = readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first")
 
 if (is.LAScorrupt(las_origin)) {stop("The read LAS file has no colour information, script stops.")}
 
@@ -256,8 +256,6 @@ gen.attribute.plot(las$ExB, las_post)
 gen.attribute.plot(las$GLI, las_post)
 gen.attribute.plot(las$RPI, las_post)
 gen.attribute.plot(las$ExR, las_post)
-
-
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings

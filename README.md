@@ -13,6 +13,8 @@
 * Welche Scanposition und welches Jahr ist korrupt? 
 
 # to do
+* Timestamp, dataset name in Titel und Filename abbilden.
+* "$" Zeichen im Attributname filtern.
 * Dynamisches ein und ausschalten der Attribute
 * Für Vegetation RGBVI, VARI und NGRDI fixen
 * Sediment index aus Literatur suchen.
