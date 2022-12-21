@@ -3,6 +3,15 @@
 * Ein Ansatz dafür: Punktbeziehungen vergleichen?
 * Braunes bleibt unverwertet, kommt aber auch im Sediment vor.
 
+# Fragen zum Vorgehen
+* globales Filterset versus datasetspezifische Konfigfiles?
+* Konservative Filtereinstellungen versus supertuned.
+
+# Programmierfragen
+* Einlesen von Konfigfiles
+* Aus Attributnamen eine Liste erstellen
+* Funktion pipen
+
 # Fragen
 * Bessere Filtration von grauen Punkten -> Sediment Index?
 * Ansatz für braune Punkte
@@ -13,8 +22,6 @@
 * Welche Scanposition und welches Jahr ist korrupt? 
 
 # to do
-* Timestamp, dataset name in Titel und Filename abbilden.
-* "$" Zeichen im Attributname filtern.
 * Dynamisches ein und ausschalten der Attribute
 * Für Vegetation RGBVI, VARI und NGRDI fixen
 * Sediment index aus Literatur suchen.

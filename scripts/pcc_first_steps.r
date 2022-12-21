@@ -284,7 +284,6 @@ gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 
-
 class_tresh <- if_else(wholeset == T, 0.5, 0.5)
 cloth_res <- if_else(wholeset == T, 0.5, 1)
 rigid <- if_else(wholeset == T, 1, 3)
@@ -376,7 +375,7 @@ summary(las$ExR)
 # Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
-GLI_tresh <- 0.04
+GLI_tresh <- 0.09
 # GLI filters a broad range from greyish and yellowish parts.
 # GLI = 0.15 is conservative, no sediment and cliff is affected
 # GPI = 0.11 is ideal.
