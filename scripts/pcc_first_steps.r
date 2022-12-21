@@ -159,7 +159,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las <- readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first")
+las <- readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first -keep_xy 4343860 542298 4344110 542457")
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 
@@ -245,30 +245,45 @@ las$ExR <- (2*las$R-las$G-las$B)
 # xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
 # xnames
 
-las_post = F
+las_post <- F
 
-gen.attribute.plot(las$RGBmean, las_post)
-gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$RGBmean, las_post)
+# gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$GPI, las_post)
+# gen.attribute.plot(las$ExG, las_post)
+# gen.attribute.plot(las$ExB, las_post)
+# gen.attribute.plot(las$GLI, las_post)
+# gen.attribute.plot(las$RPI, las_post)
+# gen.attribute.plot(las$ExR, las_post)
+
+# to be improved
 # gen.attribute.plot(las$RtoB, las_post)
 # gen.attribute.plot(las$RGtoB, las_post)
 # gen.attribute.plot(las$RBtimesGB, las_post)
-gen.attribute.plot(las$GPI, las_post)
-gen.attribute.plot(las$ExG, las_post)
-gen.attribute.plot(las$ExB, las_post)
-gen.attribute.plot(las$GLI, las_post)
-gen.attribute.plot(las$RPI, las_post)
-gen.attribute.plot(las$ExR, las_post)
+
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
-mycsf <- csf(TRUE, 0.5, 1, rigidness = 3)
+
+wholeset <- T
+#old set: 0.5, 0.5, 3
+
+class_tresh <- if_else(wholeset == T, 0.5, 0.5)
+cloth_res <- if_else(wholeset == T, 0.5, 1)
+rigid <- if_else(wholeset == T, 1, 3)
+
+mycsf <- csf(TRUE, class_threshold = class_tresh, cloth_res, rigidness = rigid)
 # apply ground classification
 las <- classify_ground(las, mycsf)
 # gnd <- filter_ground(las)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
+
+las_gnd <- filter_poi(las, Classification == LASGROUND)
+plot(las_gnd, size = 1, color = "RGB", bg = "white")
+
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
@@ -296,8 +311,8 @@ blacknoise_tresh <- 6000
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
-las_noise <- filter_poi(las, Classification == LASNOISE)
-plot(las_noise, size = 1, color = "RGB", bg = "white")
+# las_noise <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
 
@@ -442,8 +457,8 @@ RBtimesGB_max <- 1.0433
 
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
-las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
-plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
+# las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+# plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
 
 # Approach with RtoB times GtoB
@@ -471,17 +486,20 @@ RBtimesGB_max <- 1.02
 # Generate attribute plots after classification--------------------------------
 las_post = T
 
-gen.attribute.plot(las$RGBmean, las_post)
-gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$RGBmean, las_post)
+# gen.attribute.plot(las$Intensity, las_post)
+# gen.attribute.plot(las$GPI, las_post)
+# gen.attribute.plot(las$ExG, las_post)
+# gen.attribute.plot(las$ExB, las_post)
+# gen.attribute.plot(las$GLI, las_post)
+# gen.attribute.plot(las$RPI, las_post)
+# gen.attribute.plot(las$ExR, las_post)
+
+# unsused
 # gen.attribute.plot(las$RtoB, las_post)
 # gen.attribute.plot(las$RGtoB, las_post)
 # gen.attribute.plot(las$RBtimesGB, las_post)
-gen.attribute.plot(las$GPI, las_post)
-gen.attribute.plot(las$ExG, las_post)
-gen.attribute.plot(las$ExB, las_post)
-gen.attribute.plot(las$GLI, las_post)
-gen.attribute.plot(las$RPI, las_post)
-gen.attribute.plot(las$ExR, las_post)
+
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -503,8 +521,8 @@ plot(las, size = 1, color = "Classification", bg = "black")
 writeLAS(las, file =  r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011_classified.las)")
 
 # Plot separated classes
-las_sky <- filter_poi(las, Classification == LASWIREGUARD)
-plot(las_sky, size = 1, color = "RGB", bg = "black")
+# las_sky <- filter_poi(las, Classification == LASWIREGUARD)
+# plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
