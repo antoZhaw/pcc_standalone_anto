@@ -40,16 +40,17 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-
-gen.attribute.plot <- function(input_attr, post) {
+gen.attribute.plot <- function(input_attr, plot_title, sub_title, post) {
   # receive attribute name, uncleaned "$" might cause errors.
   attr_name <- deparse(substitute(input_attr))
   suffix <- if_else(post == T, "_post", "_pre")
-  filename <- paste("export/", attr_name, suffix, ".png", sep = "")
+  filename <- paste("export/", plot_title, suffix, ".png", sep = "")
   ggplot(las@data) +
     aes(x = input_attr, fill = as.factor(las$Classification)) + 
     geom_density(alpha = 0.5) + 
-    labs(x = attr_name) +
+    labs(title = plot_title, 
+         subtitle = sub_title,
+         x = attr_name) +
     theme_minimal() +
     theme(legend.position = c(.9, .90),
         legend.title = element_blank())
@@ -61,6 +62,21 @@ gen.attribute.plot <- function(input_attr, post) {
 # Globals-----------------------------------------------------------------------
 
 start <- lubridate::now()
+date <- as.Date(start)
+hour <- hour(start)
+minute <- minute(start)
+
+timestamp <- as.character(paste(date, hour, minute, sep = "-"))
+
+perspective <- "tls"
+wholeset <- T
+setname <- if_else(wholeset == T, "wholeset", "subset")
+year <- "2022"
+
+output_id <- as.character(paste(timestamp, perspective, setname, year, sep = "-"))
+output_las_name <- as.character(paste(output_id, ".las", sep = ""))
+output_dir <- r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84)"
+output_las_path <- file.path(output_dir, output_las_name, fsep="\\")
 
 user <- Sys.getenv("USERNAME")
 dir_repo <- if_else(user == "gubelyve", 
@@ -245,21 +261,22 @@ las$ExR <- (2*las$R-las$G-las$B)
 # xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
 # xnames
 
+static_subtitle <- "(0) No class, (3) Veg., (6) Sky, (8) Sediment, (10) Rocks."
 las_post <- F
 
-# gen.attribute.plot(las$RGBmean, las_post)
-# gen.attribute.plot(las$Intensity, las_post)
-# gen.attribute.plot(las$GPI, las_post)
-# gen.attribute.plot(las$ExG, las_post)
-# gen.attribute.plot(las$ExB, las_post)
-# gen.attribute.plot(las$GLI, las_post)
-# gen.attribute.plot(las$RPI, las_post)
-# gen.attribute.plot(las$ExR, las_post)
+gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
 
 # to be improved
-# gen.attribute.plot(las$RtoB, las_post)
-# gen.attribute.plot(las$RGtoB, las_post)
-# gen.attribute.plot(las$RBtimesGB, las_post)
+# gen.attribute.plot(las$RtoB, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$RGtoB, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$RBtimesGB, output_id, static_subtitle, las_post)
 
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
@@ -267,8 +284,6 @@ las_post <- F
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 
-wholeset <- T
-#old set: 0.5, 0.5, 3
 
 class_tresh <- if_else(wholeset == T, 0.5, 0.5)
 cloth_res <- if_else(wholeset == T, 0.5, 1)
@@ -331,9 +346,9 @@ BPI_tresh <- 0.391
 # las_origin <- las
 # las <- las_origin
 
-las <- classify_poi(las, class = LASWIREGUARD, poi = poi_sky_ExB)
-# las <- filter_poi(las, Classification != LASWIREGUARD)
-# las_sky <- filter_poi(las, Classification == LASWIREGUARD)
+las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
+# las <- filter_poi(las, Classification != LASBUILDING)
+# las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Testing-----------------------------------------------------------------------
@@ -456,8 +471,8 @@ RBtimesGB_max <- 1.0433
 # GtoBmax <- 1.04
 
 # Approach with ratios RtoB and GtoB
-las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
-# las_rock_ratios <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
+# las_rock_ratios <- filter_poi(las, Classification == LASRAIL)
 # plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
 
@@ -465,8 +480,8 @@ las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_ratios)
 # Set limits again for rock. If not set, limits of sediment filter is applied.
 RBtimesGB_min <- 0.98
 RBtimesGB_max <- 1.02
-# las <- classify_poi(las, class = LASWIRECONDUCTOR, poi = poi_rock_times)
-# las_rock_times <- filter_poi(las, Classification == LASWIRECONDUCTOR)
+# las <- classify_poi(las, class = LASRAIL, poi = poi_rock_times)
+# las_rock_times <- filter_poi(las, Classification == LASRAIL)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
 
 # Test - Classify band of negative excess blue parts----------------------------
@@ -486,20 +501,23 @@ RBtimesGB_max <- 1.02
 # Generate attribute plots after classification--------------------------------
 las_post = T
 
-# gen.attribute.plot(las$RGBmean, las_post)
-# gen.attribute.plot(las$Intensity, las_post)
-# gen.attribute.plot(las$GPI, las_post)
-# gen.attribute.plot(las$ExG, las_post)
-# gen.attribute.plot(las$ExB, las_post)
-# gen.attribute.plot(las$GLI, las_post)
-# gen.attribute.plot(las$RPI, las_post)
-# gen.attribute.plot(las$ExR, las_post)
+gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
+gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
 
-# unsused
-# gen.attribute.plot(las$RtoB, las_post)
-# gen.attribute.plot(las$RGtoB, las_post)
-# gen.attribute.plot(las$RBtimesGB, las_post)
+# to be improved
+# gen.attribute.plot(las$RtoB, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$RGtoB, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$RBtimesGB, output_id, static_subtitle, las_post)
 
+
+# Save generated output---------------------------------------------------------
+writeLAS(las, file = output_las_path)
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -513,15 +531,11 @@ las <- filter_poi(las, Classification != LASNONCLASSIFIED)
 las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 
 # disable rocks since it does not work properly
-las <- filter_poi(las, Classification != LASWIRECONDUCTOR)
-plot(las, size = 1, color = "Classification", bg = "black")
-
-# Save generated output---------------------------------------------------------
-
-writeLAS(las, file =  r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011_classified.las)")
+# las <- filter_poi(las, Classification != LASRAIL)
+# plot(las, size = 1, color = "Classification", bg = "black")
 
 # Plot separated classes
-# las_sky <- filter_poi(las, Classification == LASWIREGUARD)
+# las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
