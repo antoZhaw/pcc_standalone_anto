@@ -40,9 +40,8 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-gen.attribute.plot <- function(input_attr, plot_title, sub_title, post) {
+gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post) {
   # receive attribute name, uncleaned "$" might cause errors.
-  attr_name <- deparse(substitute(input_attr))
   suffix <- if_else(post == T, "_post", "_pre")
   filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
@@ -257,21 +256,31 @@ las$ExR <- (2*las$R-las$G-las$B)
 
 # Generate attribute plots before classification--------------------------------
 # tbd - Starting point for a for loop, piping might be better
-# xnames <- names(las)
-# xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
-# xnames
+xnames <- names(las)
+xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
+xnames
 
 static_subtitle <- "(0) No class, (3) Veg., (6) Sky, (8) Sediment, (10) Rocks."
 las_post <- F
 
-gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
+names(las)
+
+# mynames <- c("RGBmean","Intensity","GPI","ExG","ExB","GLI","RPI","ExR")
+
+library(purrr)
+
+map(xnames, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+})
+
+# gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
+# gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
 
 # to be improved
 # gen.attribute.plot(las$RtoB, output_id, static_subtitle, las_post)
