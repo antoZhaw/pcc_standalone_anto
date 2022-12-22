@@ -16,8 +16,7 @@ library(knitr) # for pretty tables
 library(RCSF) # for CSF ground classification
 library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
-library(purrr)
-
+library(purrr) # for map function
 
 # Functions---------------------------------------------------------------------
 is.veg <- function(G) {
@@ -199,8 +198,12 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las <- readLAS(data_path, select = "xyzRGBci", filter = "-keep_first")
-# -keep_xy 4343860 542298 4344110 542457
+
+las_filter <- if_else(wholeset == T, "-keep_first -keep_xy 4343860 542298 4344110 542457",
+                      "-keep_first")
+
+las <- readLAS(data_path, select = "xyzRGBci", filter = las_filter)
+
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 
 # Create copy of read LAS to omit loading procedure.
@@ -284,7 +287,8 @@ las$ExR <- (2*las$R-las$G-las$B)
 
 active_attr <- names(las)
 active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
- 
+active_attr
+
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
