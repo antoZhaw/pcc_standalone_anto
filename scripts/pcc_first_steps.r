@@ -40,13 +40,12 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post) {
+gen.attribute.plot <- function(lasdata, input_attr, attr_name, plot_title, sub_title, post) {
   # receive attribute name, uncleaned "$" might cause errors.
   suffix <- if_else(post == T, "_post", "_pre")
   filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
-  ggplot(las@data) +
-    aes(x = input_attr, fill = as.factor(las$Classification)) + 
-    geom_density(alpha = 0.5) + 
+  ggplot(lasdata)  + 
+    geom_density(aes(x = .data[[input_attr]], fill = Classification), alpha = 0.5) + 
     labs(title = plot_title, 
          subtitle = sub_title,
          x = attr_name) +
@@ -68,13 +67,12 @@ minute <- minute(start)
 timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 perspective <- "tls"
-wholeset <- T
-setname <- if_else(wholeset == T, "wholeset", "subset")
-year <- "2022"
+
+year <- "2021"
 
 output_id <- as.character(paste(timestamp, perspective, setname, year, sep = "-"))
 output_las_name <- as.character(paste(output_id, ".las", sep = ""))
-output_dir <- r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84)"
+output_dir <- r"(..\tls_data\2022_WGS84)"
 output_las_path <- file.path(output_dir, output_las_name, fsep="\\")
 
 user <- Sys.getenv("USERNAME")
@@ -82,13 +80,24 @@ dir_repo <- if_else(user == "gubelyve",
                     "C:/Daten/math_gubelyve/pcc_standalone",
                     "C:/code_wc/pcc_standalone")
 
-subset2021 <- if_else(user == "gubelyve",
-                    r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)", 
-                    r"(C:\Daten\math_gubelyve\tls_data\2021\saane_20211013_subsample_onlyRGBpts.las)")
 
-wholeset2022 <- if_else(user == "gubelyve",
-                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)",
-                    r"(C:\Daten\math_gubelyve\tls_data\2022_WGS84\wholeset_221011.las)")
+wholeset <- F
+setname <- if_else(wholeset == T, "wholeset", "subset")
+
+if(user == "gubelyve"){
+  basepath <- "../tls_data/2022_WGS84" 
+}
+
+if(wholeset){
+  dataset <- "wholeset_221011.las"
+} else{
+  dataset <- "saane_20211013_subsample_onlyRGBpts.las"
+}
+
+dataset_inkl_path <- file.path(basepath, dataset)
+
+
+
 
 
 sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
@@ -174,8 +183,8 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las <- readLAS(wholeset2022, select = "xyzRGBci", filter = "-keep_first -keep_xy 4343860 542298 4344110 542457")
-
+las <- readLAS(subset2021, select = "xyzRGBci", filter = "-keep_first")
+# -keep_xy 4343860 542298 4344110 542457
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 
 # Create copy of read LAS to omit loading procedure.
@@ -270,7 +279,7 @@ names(las)
 library(purrr)
 
 map(xnames, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+  gen.attribute.plot(las@data, las[[x]], x, output_id, static_subtitle, las_post)
 })
 
 # gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
