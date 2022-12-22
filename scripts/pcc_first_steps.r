@@ -47,7 +47,24 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
   suffix <- if_else(post == T, "_post", "_pre")
   filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
-    aes(x = input_attr, fill = Classification) + 
+    aes(x = input_attr, fill = fct_recode(as.factor(Classification), 
+                                          "Nonclassified" = "0",
+                                          "Unclassified" = "1",
+                                          "Ground" = "2",
+                                          "Low vegetation" = "3",
+                                          "Mid vegetation" = "4",
+                                          "High vegetation" = "5",
+                                          "Building" = "6",
+                                          "Low Point" = "7",
+                                          "Sediment" = "8",
+                                          "Water" = "9",
+                                          "Rail" = "10",
+                                          "Road" = "11",
+                                          "Wireguard" = "12",
+                                          "Wireconductor" = "13",
+                                          "Tower" = "14",
+                                          "Bridge" = "15",
+                                          "Noise" = "16")) + 
     geom_density(alpha = 0.5) + 
     labs(title = plot_title, 
          subtitle = sub_title,
@@ -61,28 +78,6 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 }
 
 # Globals-----------------------------------------------------------------------
-
-# math_class <- factor()
-# math_class <- forcats::fct_recode(math_class,
-#                                   "0" = "Nonclassified",
-#                                   "1" = "Unclassified",
-#                                   "2" = "Ground",
-#                                   "2" = "Low vegetation",
-#                                   "3" = "Mid vegetation",
-#                                   "4" = "High vegetation",
-#                                   "5" = "Building",
-#                                   "6" = "Low Point",
-#                                   "7" = "Sediment",
-#                                   "8" = "Water",
-#                                   "9" = "Rail",
-#                                   "10" = "Road",
-#                                   "11" = "Wireguard",
-#                                   "12" = "Wireconductor",
-#                                   "13" = "Tower",
-#                                   "14" = "Bridge",
-#                                   "15" = "Noise")
-# 
-# math_class
 
 start <- lubridate::now()
 date <- as.Date(start)
@@ -290,7 +285,7 @@ las$ExR <- (2*las$R-las$G-las$B)
 active_attr <- names(las)
 active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
  
-static_subtitle <- "(0) No class, (3) Veg., (6) Sky, (8) Sediment, (10) Rocks."
+static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
 map(active_attr, function(x){
