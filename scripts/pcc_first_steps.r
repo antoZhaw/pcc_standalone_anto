@@ -16,6 +16,8 @@ library(knitr) # for pretty tables
 library(RCSF) # for CSF ground classification
 library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
+library(purrr)
+
 
 # Functions---------------------------------------------------------------------
 is.veg <- function(G) {
@@ -40,25 +42,25 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-gen.attribute.plot <- function(lasdata, input_attr, attr_name, plot_title, sub_title, post) {
+gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post) {
   # receive attribute name, uncleaned "$" might cause errors.
   suffix <- if_else(post == T, "_post", "_pre")
   filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
-  ggplot(lasdata)  + 
-    geom_density(aes(x = .data[[input_attr]], fill = Classification), alpha = 0.5) + 
+  ggplot(las@data) +
+    aes(x = input_attr, fill = as.factor(las$Classification)) + 
+    geom_density(alpha = 0.5) + 
     labs(title = plot_title, 
          subtitle = sub_title,
          x = attr_name) +
     theme_minimal() +
     theme(legend.position = c(.9, .90),
-        legend.title = element_blank())
-  ggsave(filename = filename, bg = "white")
+          legend.title = element_blank())
+  ggsave(filename = filename, bg = "white", units = "mm")
   # alternative print function, which is faster but throws an error.
   # dev.print(file=filename, device=png, width=800)
 }
 
 # Globals-----------------------------------------------------------------------
-
 start <- lubridate::now()
 date <- as.Date(start)
 hour <- hour(start)
@@ -66,26 +68,20 @@ minute <- minute(start)
 
 timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
-perspective <- "tls"
-
-year <- "2021"
-
-output_id <- as.character(paste(timestamp, perspective, setname, year, sep = "-"))
-output_las_name <- as.character(paste(output_id, ".las", sep = ""))
-output_dir <- r"(..\tls_data\2022_WGS84)"
-output_las_path <- file.path(output_dir, output_las_name, fsep="\\")
-
 user <- Sys.getenv("USERNAME")
-dir_repo <- if_else(user == "gubelyve", 
-                    "C:/Daten/math_gubelyve/pcc_standalone",
-                    "C:/code_wc/pcc_standalone")
-
 
 wholeset <- F
-setname <- if_else(wholeset == T, "wholeset", "subset")
+year <- "2021"
+perspective <- "tls"
+settype <- if_else(wholeset == T, "wholeset", "subset")
 
 if(user == "gubelyve"){
-  basepath <- "../tls_data/2022_WGS84" 
+  dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
+  dir_data <- "C:/Daten/math_gubelyve/tls_data"
+  
+} else{
+  dir_repo <- "C:/code_wc/"
+  dir_data <- "C:/Daten/math_gubelyve/tls_data"
 }
 
 if(wholeset){
@@ -94,11 +90,13 @@ if(wholeset){
   dataset <- "saane_20211013_subsample_onlyRGBpts.las"
 }
 
-dataset_inkl_path <- file.path(basepath, dataset)
+output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
+output_las_name <- as.character(paste(output_id, ".las", sep = ""))
+output_las_path <- file.path(dir_data, year, settype, output_las_name, fsep="/")
 
+data_path <- file.path(dir_data, year, settype, dataset)
 
-
-
+output_las_path
 
 sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
 # 1st Quantile for Blue = 170, 120 takes away more sediment.
@@ -183,7 +181,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-las <- readLAS(subset2021, select = "xyzRGBci", filter = "-keep_first")
+las <- readLAS(data_path, select = "xyzRGBci", filter = "-keep_first")
 # -keep_xy 4343860 542298 4344110 542457
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 
@@ -265,37 +263,16 @@ las$ExR <- (2*las$R-las$G-las$B)
 
 # Generate attribute plots before classification--------------------------------
 # tbd - Starting point for a for loop, piping might be better
-xnames <- names(las)
-xnames <- xnames[! xnames %in% c("X", "Y", "Z", "Classification")]
-xnames
 
+active_attr <- names(las)
+active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
+ 
 static_subtitle <- "(0) No class, (3) Veg., (6) Sky, (8) Sediment, (10) Rocks."
 las_post <- F
 
-names(las)
-
-# mynames <- c("RGBmean","Intensity","GPI","ExG","ExB","GLI","RPI","ExR")
-
-library(purrr)
-
-map(xnames, function(x){
-  gen.attribute.plot(las@data, las[[x]], x, output_id, static_subtitle, las_post)
+map(active_attr, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
 })
-
-# gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
-
-# to be improved
-# gen.attribute.plot(las$RtoB, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$RGtoB, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$RBtimesGB, output_id, static_subtitle, las_post)
-
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -518,20 +495,9 @@ RBtimesGB_max <- 1.02
 # Generate attribute plots after classification--------------------------------
 las_post = T
 
-gen.attribute.plot(las$RGBmean, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$Intensity, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$GPI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExG, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExB, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$GLI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$RPI, output_id, static_subtitle, las_post)
-gen.attribute.plot(las$ExR, output_id, static_subtitle, las_post)
-
-# to be improved
-# gen.attribute.plot(las$RtoB, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$RGtoB, output_id, static_subtitle, las_post)
-# gen.attribute.plot(las$RBtimesGB, output_id, static_subtitle, las_post)
-
+map(active_attr, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+})
 
 # Save generated output---------------------------------------------------------
 writeLAS(las, file = output_las_path)
