@@ -44,7 +44,7 @@ gen.attribute.plot <- function(input_attr, plot_title, sub_title, post) {
   # receive attribute name, uncleaned "$" might cause errors.
   attr_name <- deparse(substitute(input_attr))
   suffix <- if_else(post == T, "_post", "_pre")
-  filename <- paste("export/", plot_title, suffix, ".png", sep = "")
+  filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
     aes(x = input_attr, fill = as.factor(las$Classification)) + 
     geom_density(alpha = 0.5) + 
