@@ -47,7 +47,7 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
   suffix <- if_else(post == T, "_post", "_pre")
   filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
-    aes(x = input_attr, fill = as.factor(las$Classification)) + 
+    aes(x = input_attr, fill = Classification) + 
     geom_density(alpha = 0.5) + 
     labs(title = plot_title, 
          subtitle = sub_title,
@@ -61,6 +61,29 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 }
 
 # Globals-----------------------------------------------------------------------
+
+# math_class <- factor()
+# math_class <- forcats::fct_recode(math_class,
+#                                   "0" = "Nonclassified",
+#                                   "1" = "Unclassified",
+#                                   "2" = "Ground",
+#                                   "2" = "Low vegetation",
+#                                   "3" = "Mid vegetation",
+#                                   "4" = "High vegetation",
+#                                   "5" = "Building",
+#                                   "6" = "Low Point",
+#                                   "7" = "Sediment",
+#                                   "8" = "Water",
+#                                   "9" = "Rail",
+#                                   "10" = "Road",
+#                                   "11" = "Wireguard",
+#                                   "12" = "Wireconductor",
+#                                   "13" = "Tower",
+#                                   "14" = "Bridge",
+#                                   "15" = "Noise")
+# 
+# math_class
+
 start <- lubridate::now()
 date <- as.Date(start)
 hour <- hour(start)
