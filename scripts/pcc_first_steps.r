@@ -1,7 +1,7 @@
 # libraries ---------------------------------------------------------------
 # install packages
 
-library(lidR) # summary tables
+library(lidR) # Point cloud classification
 library(papeR) # summary tables
 library(tidyverse) # tidy essentials (ggplot, purr, tidyr, readr, dplyr)
 library(lubridate) # handling dates and time
@@ -14,6 +14,7 @@ library(forcats) # handling factor levels
 library(raster) # rasterizing vector data
 library(knitr) # for pretty tables
 library(RCSF) # for CSF ground classification
+library(RMCC) # for MCC ground classification
 library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
@@ -78,6 +79,9 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals-----------------------------------------------------------------------
 
+# empty warnings
+assign("last.warning", NULL, envir = baseenv())
+
 start <- lubridate::now()
 date <- as.Date(start)
 hour <- hour(start)
@@ -87,8 +91,8 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
-wholeset <- F
-year <- "2021"
+wholeset <- T
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -104,7 +108,7 @@ if(user == "gubelyve"){
 if(wholeset){
   dataset <- "wholeset_221011.las"
 } else{
-  dataset <- "saane_20211013_subsample_onlyRGBpts.las"
+  dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
 }
 
 output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
@@ -205,6 +209,8 @@ las_filter <- if_else(wholeset == T, "-keep_first -keep_xy 4343860 542298 434411
 las <- readLAS(data_path, select = "xyzRGBci", filter = las_filter)
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
+if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
+
 
 # Create copy of read LAS to omit loading procedure.
 # las <- las_origin
@@ -283,8 +289,8 @@ las$ExR <- (2*las$R-las$G-las$B)
 
 
 # Generate attribute plots before classification--------------------------------
-# tbd - Starting point for a for loop, piping might be better
 
+# Generate list of active attributes 
 active_attr <- names(las)
 active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
 active_attr
@@ -292,9 +298,9 @@ active_attr
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
-map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
-})
+# map(active_attr, function(x){
+#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+# })
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
