@@ -91,8 +91,8 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
-wholeset <- T
-year <- "2022"
+wholeset <- F
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -211,7 +211,6 @@ las <- readLAS(data_path, select = "xyzRGBci", filter = las_filter)
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
 
-
 # Create copy of read LAS to omit loading procedure.
 # las <- las_origin
 
@@ -318,9 +317,11 @@ las <- classify_ground(las, mycsf)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 
-las_gnd <- filter_poi(las, Classification == LASGROUND)
-plot(las_gnd, size = 1, color = "RGB", bg = "white")
+# las_gnd <- filter_poi(las, Classification == LASGROUND)
+# plot(las_gnd, size = 1, color = "RGB", bg = "white")
 
+# Generate DTM of ground points for comparison.
+tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
@@ -519,8 +520,20 @@ RBtimesGB_max <- 1.02
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
 
+# Generate DTM------------------------------------------------------------------
+# TIN: fast and efficient, robust to empty regions. weak at edges.
+# IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
+# Kriging: very slow, not recommended for large areas.
 
-# Generate attribute plots after classification--------------------------------
+# Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
+tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
+
+plot_dtm3d(tin_sed, bg = "white") 
+plot_dtm3d(tin_gnd, bg = "white") 
+
+
+
+# Generate attribute plots after classification---------------------------------
 las_post = T
 
 map(active_attr, function(x){
