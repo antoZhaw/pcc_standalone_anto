@@ -123,7 +123,7 @@ if(perspective == "tls"){
 } else{
   if(wholeset){
     dataset <- "20221007_sarine_rgb_group1_densified_point_cloud.las"
-    las_filter <- "-keep_first"
+    las_filter <- "-keep_first -keep_xy 2575212.5 1178366.7 2575517.4 1178865.7"
   } else{
     dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
     las_filter <- "-keep_first"
@@ -232,23 +232,21 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 
-las <- readLAS(data_path, select = "xyzRGBci", filter = las_filter)
-data_path
-
-summary(las)
-
-if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
-if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
+las_origin <- readLAS(data_path, select = "xyzRGBc", filter = las_filter)
 
 # Create copy of read LAS to omit loading procedure.
-# las <- las_origin
+las <- las_origin
+
+if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
+# if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
+
 
 # Display loaded classes (supposed to be zero)
 # factor(las$Classification)
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
-plot(las, size = 1, color = "RGB", bg = "black")
+# plot(las, size = 1, color = "RGB", bg = "black")
 
 # Create attributes for classification------------------------------------------
 # Add RGBmean attribute
@@ -336,9 +334,9 @@ las_post <- F
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 
-class_tresh <- if_else(wholeset == T, 0.5, 0.5)
-cloth_res <- if_else(wholeset == T, 0.5, 1)
-rigid <- if_else(wholeset == T, 1, 3)
+class_tresh <- if_else(perspective == "tls", 0.5, 0.5)
+cloth_res <- if_else(perspective == "tls", 1, 0.5)
+rigid <- if_else(perspective == "tls", 1, 3)
 
 mycsf <- csf(TRUE, class_threshold = class_tresh, cloth_res, rigidness = rigid)
 # apply ground classification
@@ -347,11 +345,11 @@ las <- classify_ground(las, mycsf)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 
-# las_gnd <- filter_poi(las, Classification == LASGROUND)
-# plot(las_gnd, size = 1, color = "RGB", bg = "white")
+las_gnd <- filter_poi(las, Classification == LASGROUND)
+plot(las_gnd, size = 1, color = "RGB", bg = "white")
 
 # Generate DTM of ground points for comparison.
-tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
+# tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
