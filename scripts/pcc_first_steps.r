@@ -9,6 +9,8 @@ library(lubridate) # handling dates and time
 # library(leaflet) # interactive maps
 library(terra) # handling spatial data
 library(sf) # handling spatial data
+library(rgdal) # export raster objects
+library(ncdf4) # export ncdf files
 library(janitor) # clean and consistent naming
 library(forcats) # handling factor levels
 library(raster) # rasterizing vector data
@@ -79,8 +81,10 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals-----------------------------------------------------------------------
 
-# empty warnings
-assign("last.warning", NULL, envir = baseenv())
+# empty warnings if existing.
+if(length(warnings())!=0){
+  assign("last.warning", NULL, envir = baseenv())
+}
 
 start <- lubridate::now()
 date <- as.Date(start)
@@ -91,8 +95,8 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
-wholeset <- F
-year <- "2021"
+wholeset <- T
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -112,6 +116,13 @@ if(wholeset){
 }
 
 output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
+
+output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
+output_asc_path <- file.path(dir_data, year, settype, output_asc_name, fsep="/")
+
+output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
+output_ncdf_path <- file.path(dir_data, year, settype, output_ncdf_name, fsep="/")
+
 output_las_name <- as.character(paste(output_id, ".las", sep = ""))
 output_las_path <- file.path(dir_data, year, settype, output_las_name, fsep="/")
 
@@ -528,10 +539,15 @@ RBtimesGB_max <- 1.02
 # Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
 tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
 
-plot_dtm3d(tin_sed, bg = "white") 
+plot_dtm3d(tin_sed, bg = "white")
 plot_dtm3d(tin_gnd, bg = "white") 
 
+# Save generated output---------------------------------------------------------
 
+writeCDF(tin_sed, output_ncdf_path, overwrite = T)
+writeRaster(tin_sed, output_asc_path, overwrite = T )
+
+writeLAS(las, file = output_las_path)
 
 # Generate attribute plots after classification---------------------------------
 las_post = T
@@ -539,9 +555,6 @@ las_post = T
 map(active_attr, function(x){
   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
 })
-
-# Save generated output---------------------------------------------------------
-writeLAS(las, file = output_las_path)
 
 # Plot classified point cloud---------------------------------------------------
 
