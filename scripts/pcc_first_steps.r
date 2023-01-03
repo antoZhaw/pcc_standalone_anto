@@ -96,41 +96,55 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
-wholeset <- F
-year <- "2021"
-perspective <- "tls"
+wholeset <- T
+year <- "2022"
+perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 if(user == "gubelyve"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
-  dir_data <- "C:/Daten/math_gubelyve/tls_data"
+  dir_data <- "C:/Daten/math_gubelyve"
   
 } else{
   dir_repo <- "C:/code_wc/"
-  dir_data <- "C:/Daten/math_gubelyve/tls_data"
+  dir_data <- "C:/Daten/math_gubelyve"
 }
 
-if(wholeset){
-  dataset <- "wholeset_221011.las"
+persp <- if_else(perspective == "tls", "tls_data", "uav_data")
+
+if(perspective == "tls"){
+  if(wholeset){
+    dataset <- "wholeset_221011.las"
+    las_filter <- "-keep_first -keep_xy 4343860 542298 4344110 542457"
+  } else{
+    dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
+    las_filter <- "-keep_first"
+  }
 } else{
-  dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
+  if(wholeset){
+    dataset <- "20221007_sarine_rgb_group1_densified_point_cloud.las"
+    las_filter <- "-keep_first"
+  } else{
+    dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
+    las_filter <- "-keep_first"
+  }
 }
 
 output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
-output_asc_path <- file.path(dir_data, year, settype, "output", output_asc_name, fsep="/")
+output_asc_path <- file.path(dir_data, persp, year, settype, "output", output_asc_name, fsep="/")
 
 output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
-output_ncdf_path <- file.path(dir_data, year, settype, "output", output_ncdf_name, fsep="/")
+output_ncdf_path <- file.path(dir_data, persp, year, settype, "output", output_ncdf_name, fsep="/")
 
 output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
-output_las_sed_path <- file.path(dir_data, year, settype, "output", output_las_sed_name, fsep="/")
+output_las_sed_path <- file.path(dir_data, persp, year, settype, "output", output_las_sed_name, fsep="/")
 
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
-output_las_all_path <- file.path(dir_data, year, settype, "output", output_las_all_name, fsep="/")
+output_las_all_path <- file.path(dir_data, persp, year, settype, "output", output_las_all_name, fsep="/")
 
-data_path <- file.path(dir_data, year, settype, dataset)
+data_path <- file.path(dir_data, persp, year, settype, dataset)
 
 output_las_all_path
 
@@ -218,10 +232,10 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 
-las_filter <- if_else(wholeset == T, "-keep_first -keep_xy 4343860 542298 4344110 542457",
-                      "-keep_first")
-
 las <- readLAS(data_path, select = "xyzRGBci", filter = las_filter)
+data_path
+
+summary(las)
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
@@ -234,6 +248,7 @@ if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stop
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
+plot(las, size = 1, color = "RGB", bg = "black")
 
 # Create attributes for classification------------------------------------------
 # Add RGBmean attribute
