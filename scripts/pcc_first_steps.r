@@ -118,17 +118,20 @@ if(wholeset){
 output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
-output_asc_path <- file.path(dir_data, year, settype, output_asc_name, fsep="/")
+output_asc_path <- file.path(dir_data, year, settype, "output", output_asc_name, fsep="/")
 
 output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
-output_ncdf_path <- file.path(dir_data, year, settype, output_ncdf_name, fsep="/")
+output_ncdf_path <- file.path(dir_data, year, settype, "output", output_ncdf_name, fsep="/")
 
-output_las_name <- as.character(paste(output_id, ".las", sep = ""))
-output_las_path <- file.path(dir_data, year, settype, output_las_name, fsep="/")
+output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
+output_las_sed_path <- file.path(dir_data, year, settype, "output", output_las_sed_name, fsep="/")
+
+output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
+output_las_all_path <- file.path(dir_data, year, settype, "output", output_las_all_name, fsep="/")
 
 data_path <- file.path(dir_data, year, settype, dataset)
 
-output_las_path
+output_las_all_path
 
 sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
 # 1st Quantile for Blue = 170, 120 takes away more sediment.
@@ -482,6 +485,7 @@ ExR_tresh_min <- -53000
 # No big difference between -20000 and -53000
 
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ExR_band)
+las_sed <- filter_poi(las, Classification == LASKEYPOINT)
 
 # For an exclusive plot of negative ExR values change to LASBRIDGE as class.
 # las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
@@ -545,9 +549,10 @@ plot_dtm3d(tin_gnd, bg = "white")
 # Save generated output---------------------------------------------------------
 
 writeCDF(tin_sed, output_ncdf_path, overwrite = T)
-writeRaster(tin_sed, output_asc_path, overwrite = T )
+writeRaster(tin_sed, output_asc_path, overwrite = T)
 
-writeLAS(las, file = output_las_path)
+writeLAS(las_sed, file = output_las_sed_path)
+writeLAS(las, file = output_las_all_path)
 
 # Generate attribute plots after classification---------------------------------
 las_post = T
