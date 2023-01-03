@@ -95,8 +95,8 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
-wholeset <- T
-year <- "2022"
+wholeset <- F
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -544,7 +544,7 @@ RBtimesGB_max <- 1.02
 tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
 
 plot_dtm3d(tin_sed, bg = "white")
-plot_dtm3d(tin_gnd, bg = "white") 
+plot_dtm3d(tin_gnd, bg = "white")
 
 # Save generated output---------------------------------------------------------
 
@@ -580,11 +580,10 @@ las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 # las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
+plot(las_sed, size = 1, color = "RGB", bg = "white")
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
 
-las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
-plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
 
 end <- lubridate::now()
 end
