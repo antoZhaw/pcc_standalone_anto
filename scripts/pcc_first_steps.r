@@ -15,6 +15,7 @@ library(janitor) # clean and consistent naming
 library(forcats) # handling factor levels
 library(raster) # rasterizing vector data
 library(knitr) # for pretty tables
+library(rayshader) # for pretty DTMs
 library(RCSF) # for CSF ground classification
 library(RMCC) # for MCC ground classification
 library(geometry) # for raserize_canopy function
@@ -545,6 +546,15 @@ tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, 
 
 plot_dtm3d(tin_sed, bg = "white")
 plot_dtm3d(tin_gnd, bg = "white")
+
+dtm <- raster::raster(tin_sed)
+elmat <- raster_to_matrix(dtm)
+map <- elmat %>%
+  sphere_shade(texture = "imhof1", progbar = FALSE) %>%
+  add_water(detect_water(elmat), color = "imhof1") %>%
+  add_shadow(ray_shade(elmat, progbar = FALSE), 0.5) %>%
+  add_shadow(ambient_shade(elmat, progbar = FALSE), 0)
+
 
 # Save generated output---------------------------------------------------------
 
