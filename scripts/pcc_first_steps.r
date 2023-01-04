@@ -101,7 +101,7 @@ user <- Sys.getenv("USERNAME")
 dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "tls"
+perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
@@ -235,10 +235,11 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # of the first point is loaded only to reduce computational time.
 
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
-
+summary(las)
 data_path
 
 # Create copy of read LAS to omit loading procedure.
+# las_origin <- las
 # las <- las_origin
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
@@ -327,10 +328,10 @@ active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
-
-map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-})
+# 
+# map(active_attr, function(x){
+#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
+# })
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -345,8 +346,8 @@ las <- classify_ground(las, mycsf)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
  
-# las_gnd <- filter_poi(las, Classification == LASGROUND)
-# plot(las_gnd, size = 1, color = "RGB", bg = "white")
+las_gnd <- filter_poi(las, Classification == LASGROUND)
+plot(las_gnd, size = 1, color = "RGB", bg = "white")
 
 # Generate DTM of ground points for comparison.
 # tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
@@ -365,31 +366,34 @@ las$Classification <- LASNONCLASSIFIED
 
 # Classify white noise 
 whitenoise_tresh <- cfg$whitenoise_treshold
-# good thresholds for white noise filter between 40000...(45000)...48000
+# tls: good thresholds for white noise filter between 40000...(45000)...48000
+# uav: good thresholds for white noise filter between 62000...65000
 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 # las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify black noise
 blacknoise_tresh <- cfg$blacknoise_treshold
-# good thresholds for black noise filter between 4000...(6000)...8000
+# tls: good thresholds for black noise filter between 4000...(6000)...8000
+# uav: good thresholds for black noise filter between 8000...(10000)...12000
 
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
-# las_noise <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise, size = 1, color = "RGB", bg = "white")
+las_noise <- filter_poi(las, Classification == LASNOISE)
+plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
 
-ExB_tresh <- cfg$sky_ExB_threshold
-# ExB = 18500, already takes away some cliff parts.
-# ExB = 14500, doubles cliff part but no sediment.
-# ExB = 13500, cliff wall is affected.
-# ExB = 3500, cliff wall is affected on a wide range but still works.
+ExB_tresh <- cfg$sky_ExB_treshold
+# tls: ExB = 18500, already takes away some cliff parts.
+# tls: ExB = 14500, doubles cliff part but no sediment.
+# tls: ExB = 13500, cliff wall is affected.
+# tls: ExB = 3500, cliff wall is affected on a wide range but still works.
+# uav: ExB between 3500 ... 6000, takes away sediment which is not ground = T
 
 # BPI_tresh <- 0.391
 # BPI = 0.391 represents 3rd Qu. and already takes away sediment
@@ -400,18 +404,25 @@ ExB_tresh <- cfg$sky_ExB_threshold
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
 las_sky <- filter_poi(las, Classification == LASBUILDING)
-# plot(las_sky, size = 1, color = "RGB", bg = "black")
+plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
 GLI_tresh <- cfg$veg_GLI_treshold
-# GLI filters a broad range from greyish and yellowish parts.
-# GLI = 0.15 is conservative, no sediment and cliff is affected
-# GPI = 0.11 is ideal.
-# GPI = 0.09 boarder of watercourse is affected entirely.
-# GPI = 0.07 cliff and sediment points are affected.
-# GPI = 0.04 bush and canopy around sediment areas are included, except brown.
+
+las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
+# las <- filter_poi(las, Classification != LASLOWVEGETATION)
+las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
+plot(las_veg, size = 1, color = "RGB", bg = "black")
+
+# tls: GLI filters a broad range from greyish and yellowish parts.
+# tls: GLI = 0.15 is conservative, no sediment and cliff is affected
+# tls: GLI = 0.11 is ideal.
+# tls: GLI = 0.09 boarder of watercourse is affected entirely.
+# tls: GLI = 0.07 cliff and sediment points are affected.
+# tls: GLI = 0.04 bush and canopy around sediment areas are included, except brown.
+# uav: GLI between 0.06 ...(0.08)... 0.09 is ideal.
 
 # GPI_tresh <- 0.35
 # GPI filters a broad range from greyish and yellowish parts.
@@ -432,15 +443,13 @@ GLI_tresh <- cfg$veg_GLI_treshold
 # ExGR = 14000, Point of cliff are affected
 # ExGR = 10000, Parts of cliff are affected
 
-las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
-# las <- filter_poi(las, Classification != LASLOWVEGETATION)
 
 # Classify Red parts of vegetation----------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
 
 ExR_tresh <- cfg$veg_ExR_treshold
-# ExR = 30000, broad vegetation is affected, some sediment parts too.
-# ExR = 20000, first lines of cliff relief is affected.
+# tls & uav: ExR = 30000, broad vegetation is affected, some sediment parts too.
+# tls & uav: ExR = 20000, first lines of cliff relief is affected.
 
 # RPI_tresh <- 0.9
 
@@ -454,6 +463,8 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # plot(las_veg, size = 1, color = "RGB", bg = "black")
 
 # Classify sediment-------------------------------------------------------------
+# las_origin <- las
+# las <- las_origin
 
 # Maximales RtoB: 1.21 in cliff_bright
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
