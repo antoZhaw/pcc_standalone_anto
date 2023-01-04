@@ -21,6 +21,7 @@ library(RMCC) # for MCC ground classification
 library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
+library(rjson) # for JSON generation
 
 # Functions---------------------------------------------------------------------
 is.veg <- function(G) {
@@ -98,8 +99,8 @@ user <- Sys.getenv("USERNAME")
 
 # Choose dataset
 dataset_id <- "1"
-wholeset <- F
-year <- "2021"
+wholeset <- T
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -115,8 +116,8 @@ if(user == "gubelyve"){
 }
 
 dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
+dir_config <-  file.path(dir_repo, "config", fsep="/")
 
-# load dataset specific parameter
 if(perspective == "tls"){
   if(wholeset){
     las_filter <- "-keep_first -keep_xy 4343860 542298 4344110 542457"
@@ -131,9 +132,17 @@ if(perspective == "tls"){
   }
 }
 
-output_id <- as.character(paste(timestamp, year, perspective, settype, dataset_id, sep = "-"))
+config_id <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
+output_id <- as.character(paste(timestamp, config_id, sep = "-"))
 output_path <- file.path(dir_data, dir_persp, year, settype, "output", output_id, fsep="/")
 
+config_json_name <- as.character(paste(config_id, ".json", sep = ""))
+config_json_path <- file.path(dir_config, config_json_name, fsep="/")
+
+# load dataset specific parameter set
+param <- fromJSON(file = config_json_path)
+
+# Create run specific output folder
 dir.create(output_path)
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
@@ -245,7 +254,6 @@ data_path
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
-
 
 # Display loaded classes (supposed to be zero)
 # factor(las$Classification)
@@ -383,8 +391,8 @@ blacknoise_tresh <- 6000
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
-# las_noise <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise, size = 1, color = "RGB", bg = "white")
+las_noise <- filter_poi(las, Classification == LASNOISE)
+plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
 
@@ -397,8 +405,8 @@ ExB_tresh <- 3500
 # ExB = 13500, cliff wall is affected.
 # ExB = 3500, cliff wall is affected on a wide range but still works.
 
-BPI_tresh <- 0.391
-#BPI = 0.391 represents 3rd Qu. and already takes away sediment
+# BPI_tresh <- 0.391
+# BPI = 0.391 represents 3rd Qu. and already takes away sediment
 
 # las_origin <- las
 # las <- las_origin
@@ -426,7 +434,7 @@ las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # Explore them
 # summary(las$RGBmean)
 # summary(las$GtoB)
-summary(las$ExR)
+# summary(las$ExR)
 # hist(las$RGBmean)
 # max(las$RGBmean)
 
@@ -441,21 +449,21 @@ GLI_tresh <- 0.09
 # GPI = 0.07 cliff and sediment points are affected.
 # GPI = 0.04 bush and canopy around sediment areas are included, except brown.
 
-GPI_tresh <- 0.35
+# GPI_tresh <- 0.35
 # GPI filters a broad range from greyish and yellowish parts.
 # GPI = 0.4 is conservative, no sediment and cliff is affected
 # GPI = 0.37 is ideal.
 # GPI = 0.36 boarder of watercourse is affected entirely.
 # GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
 
-ExG_tresh <- 4500
+# ExG_tresh <- 4500
 # ExG filters vegetation in general, neglects rather dark points
 # ExG = 7500, border of watercourse is affected partly.
 # ExG = 6000, border of watercourse is affected almost entirely
 # ExG = 5500, border of watercourse and some sediment is affected.
 # ExG = 4500, lower limit.
 
-ExGR_tresh <- 14000
+# ExGR_tresh <- 14000
 # ExGR filters specially bright green and blue points, yellowish points not
 # ExGR = 14000, Point of cliff are affected
 # ExGR = 10000, Parts of cliff are affected
@@ -465,11 +473,12 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 
 # Classify Red parts of vegetation----------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
+
 ExR_tresh <- 20000
 # ExR = 30000, broad vegetation is affected, some sediment parts too.
 # ExR = 20000, first lines of cliff relief is affected.
 
-RPI_tresh <- 0.9
+# RPI_tresh <- 0.9
 
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # las <- filter_poi(las, Classification != LASBRIGDE)
@@ -563,15 +572,17 @@ RBtimesGB_max <- 1.02
 # Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
 tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
 
-plot_dtm3d(tin_sed, bg = "white")
-# plot_dtm3d(tin_gnd, bg = "white")
-
 # Save generated output---------------------------------------------------------
 
 writeCDF(tin_sed, output_ncdf_path, overwrite = T)
 writeRaster(tin_sed, output_asc_path, overwrite = T)
 
 writeLAS(las_sed, file = output_las_sed_path)
+
+# Filter out noise and unclassified points for a clean output file.
+las <- filter_poi(las, Classification != LASNOISE)
+las <- filter_poi(las, Classification != LASNONCLASSIFIED)
+las <- filter_poi(las, Classification != LASUNCLASSIFIED)
 writeLAS(las, file = output_las_all_path)
 
 # Generate attribute plots after classification---------------------------------
@@ -584,21 +595,21 @@ map(active_attr, function(x){
 # Plot classified point cloud---------------------------------------------------
 
 # Show the unclassified---------------------------------------------------------
+# plot_dtm3d(tin_sed, bg = "white")
+# plot_dtm3d(tin_gnd, bg = "white")
+
 las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
 plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
 
-# Filter out noise and unclassified points for reduced computational time.
-las <- filter_poi(las, Classification != LASNOISE)
-las <- filter_poi(las, Classification != LASNONCLASSIFIED)
-las <- filter_poi(las, Classification != LASUNCLASSIFIED)
+
 
 # disable rocks since it does not work properly
 # las <- filter_poi(las, Classification != LASRAIL)
 # plot(las, size = 1, color = "Classification", bg = "black")
 
 # Plot separated classes
-# las_sky <- filter_poi(las, Classification == LASBUILDING)
-# plot(las_sky, size = 1, color = "RGB", bg = "black")
+las_sky <- filter_poi(las, Classification == LASBUILDING)
+plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 plot(las_sed, size = 1, color = "RGB", bg = "white")
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
