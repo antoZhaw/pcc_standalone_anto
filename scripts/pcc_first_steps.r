@@ -131,19 +131,22 @@ if(perspective == "tls"){
   }
 }
 
-output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
+output_id <- as.character(paste(timestamp, year, perspective, settype, dataset_id, sep = "-"))
+output_path <- file.path(dir_data, dir_persp, year, settype, "output", output_id, fsep="/")
+
+dir.create(output_path)
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
-output_asc_path <- file.path(dir_data, dir_persp, year, settype, "output", output_asc_name, fsep="/")
+output_asc_path <- file.path(output_path, output_asc_name, fsep="/")
 
 output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
-output_ncdf_path <- file.path(dir_data, dir_persp, year, settype, "output", output_ncdf_name, fsep="/")
+output_ncdf_path <- file.path(output_path, output_ncdf_name, fsep="/")
 
 output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
-output_las_sed_path <- file.path(dir_data, dir_persp, year, settype, "output", output_las_sed_name, fsep="/")
+output_las_sed_path <- file.path(output_path, output_las_sed_name, fsep="/")
 
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
-output_las_all_path <- file.path(dir_data, dir_persp, year, settype, "output", output_las_all_name, fsep="/")
+output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
