@@ -159,39 +159,39 @@ darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
 darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
 # Formulas----------------------------------------------------------------------
-poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_tresh, T, F)
+poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_thresh, T, F)
 
-poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_tresh, T, F)
+poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_thresh, T, F)
 
-poi_sky_ExB <- ~if_else(las$ExB >= ExB_tresh & las$ground == F &
+poi_sky_ExB <- ~if_else(las$ExB >= ExB_thresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sky_ExB_band <- ~if_else(las$ExB >= ExB_tresh_min & las$ExB <= ExB_tresh_max &
+poi_sky_ExB_band <- ~if_else(las$ExB >= ExB_thresh_min & las$ExB <= ExB_thresh_max &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sky_BPI <- ~if_else(las$BPI >= BPI_tresh & las$ground == F &
+poi_sky_BPI <- ~if_else(las$BPI >= BPI_thresh & las$ground == F &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_red_ExR <- ~if_else(las$ExR >= ExR_tresh &
+poi_red_ExR <- ~if_else(las$ExR >= ExR_thresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sed_ExR_band <- ~if_else(las$ExR >= ExR_tresh_min & las$ExR <= ExR_tresh_max &
+poi_sed_ExR_band <- ~if_else(las$ExR >= ExR_thresh_min & las$ExR <= ExR_thresh_max &
                           las$ground == T &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_red_RPI <- ~if_else(las$RPI >= RPI_tresh & 
+poi_red_RPI <- ~if_else(las$RPI >= RPI_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_veg_GLI <- ~if_else(las$GLI >= GLI_tresh & 
+poi_veg_GLI <- ~if_else(las$GLI >= GLI_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_veg_GPI <- ~if_else(las$GPI >= GPI_tresh & 
+poi_veg_GPI <- ~if_else(las$GPI >= GPI_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_veg_ExG <- ~if_else(las$ExG >= ExG_tresh & 
+poi_veg_ExG <- ~if_else(las$ExG >= ExG_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_veg_ExGR <- ~if_else(las$ExGR >= ExGR_tresh & 
+poi_veg_ExGR <- ~if_else(las$ExGR >= ExGR_thresh & 
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 poi_rock_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
@@ -338,7 +338,7 @@ las_post <- F
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 
-mycsf <- csf(TRUE, cfg$csf_class_treshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
+mycsf <- csf(TRUE, cfg$csf_class_threshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
 
 # apply ground classification
 las <- classify_ground(las, mycsf)
@@ -365,7 +365,7 @@ las$Classification <- LASNONCLASSIFIED
 # Classify noise----------------------------------------------------------------
 
 # Classify white noise 
-whitenoise_tresh <- cfg$whitenoise_treshold
+whitenoise_thresh <- cfg$whitenoise_threshold
 # tls: good thresholds for white noise filter between 40000...(45000)...48000
 # uav: good thresholds for white noise filter between 62000...65000
 
@@ -373,7 +373,7 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 # las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify black noise
-blacknoise_tresh <- cfg$blacknoise_treshold
+blacknoise_thresh <- cfg$blacknoise_threshold
 # tls: good thresholds for black noise filter between 4000...(6000)...8000
 # uav: good thresholds for black noise filter between 8000...(10000)...12000
 
@@ -388,14 +388,14 @@ las <- filter_poi(las, Classification != LASNOISE)
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
 
-ExB_tresh <- cfg$sky_ExB_treshold
+ExB_thresh <- cfg$sky_ExB_threshold
 # tls: ExB = 18500, already takes away some cliff parts.
 # tls: ExB = 14500, doubles cliff part but no sediment.
 # tls: ExB = 13500, cliff wall is affected.
 # tls: ExB = 3500, cliff wall is affected on a wide range but still works.
 # uav: ExB between 3500 ... 6000, takes away sediment which is not ground = T
 
-# BPI_tresh <- 0.391
+# BPI_thresh <- 0.391
 # BPI = 0.391 represents 3rd Qu. and already takes away sediment
 
 # las_origin <- las
@@ -409,7 +409,7 @@ plot(las_sky, size = 1, color = "RGB", bg = "black")
 # Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
-GLI_tresh <- cfg$veg_GLI_treshold
+GLI_thresh <- cfg$veg_GLI_threshold
 
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # las <- filter_poi(las, Classification != LASLOWVEGETATION)
@@ -424,21 +424,21 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 # tls: GLI = 0.04 bush and canopy around sediment areas are included, except brown.
 # uav: GLI between 0.06 ...(0.08)... 0.09 is ideal.
 
-# GPI_tresh <- 0.35
+# GPI_thresh <- 0.35
 # GPI filters a broad range from greyish and yellowish parts.
 # GPI = 0.4 is conservative, no sediment and cliff is affected
 # GPI = 0.37 is ideal.
 # GPI = 0.36 boarder of watercourse is affected entirely.
 # GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
 
-# ExG_tresh <- 4500
+# ExG_thresh <- 4500
 # ExG filters vegetation in general, neglects rather dark points
 # ExG = 7500, border of watercourse is affected partly.
 # ExG = 6000, border of watercourse is affected almost entirely
 # ExG = 5500, border of watercourse and some sediment is affected.
 # ExG = 4500, lower limit.
 
-# ExGR_tresh <- 14000
+# ExGR_thresh <- 14000
 # ExGR filters specially bright green and blue points, yellowish points not
 # ExGR = 14000, Point of cliff are affected
 # ExGR = 10000, Parts of cliff are affected
@@ -447,11 +447,11 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 # Classify Red parts of vegetation----------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
 
-ExR_tresh <- cfg$veg_ExR_treshold
+ExR_thresh <- cfg$veg_ExR_threshold
 # tls & uav: ExR = 30000, broad vegetation is affected, some sediment parts too.
 # tls & uav: ExR = 20000, first lines of cliff relief is affected.
 
-# RPI_tresh <- 0.9
+# RPI_thresh <- 0.9
 
 las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # las <- filter_poi(las, Classification != LASBRIGDE)
@@ -483,8 +483,8 @@ las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
 
 # Classify band of negative excess red parts------------------------------------
 # Negative ExR values appear to be sediment, ground criteria is set true.
-ExR_tresh_max <- cfg$sed_ExR_max
-ExR_tresh_min <- cfg$sed_ExR_min
+ExR_thresh_max <- cfg$sed_ExR_max
+ExR_thresh_min <- cfg$sed_ExR_min
 # ExR = -53000 ... 1000 seems to affect sediment points more than others
 # No big difference between -20000 and -53000
 
@@ -527,8 +527,8 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 
 # Test - Classify band of negative excess blue parts----------------------------
 # Negative ExB values appear to be sediment, ground criteria is set true.
-# ExB_tresh_max <- 3499
-# ExB_tresh_min <- -8000
+# ExB_thresh_max <- 3499
+# ExB_thresh_min <- -8000
 # ExB = -8000 ... 3499 are greyish points but no distinct classes
 # ExB = -60000 ... -8000 are greenish, greyish points but no distinct classes
 # No big difference between -20000 and -53000
