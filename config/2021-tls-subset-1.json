@@ -20,5 +20,5 @@
   "sed_ExR_max": 1000,
   "sed_ExR_min": -53000,
   "DTM_resolution": 0.45,
-  "DTM_algorithm": "tin()"
+  "DTM_algorithm": "tin"
 }

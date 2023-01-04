@@ -99,8 +99,8 @@ user <- Sys.getenv("USERNAME")
 
 # Choose dataset
 dataset_id <- "1"
-wholeset <- F
-year <- "2021"
+wholeset <- T
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -399,7 +399,7 @@ ExB_tresh <- cfg$sky_ExB_threshold
 
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
-# las_sky <- filter_poi(las, Classification == LASBUILDING)
+las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Classify green parts of vegetation--------------------------------------------
@@ -553,6 +553,9 @@ write(json_report, output_json_path, append = F)
 # Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
 tin_sed <- rasterize_terrain(las, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
 
+# Generate subsets before filtering
+las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
+
 # Save generated output---------------------------------------------------------
 
 writeCDF(tin_sed, output_ncdf_path, overwrite = T)
@@ -579,20 +582,16 @@ map(active_attr, function(x){
 # plot_dtm3d(tin_sed, bg = "white")
 # plot_dtm3d(tin_gnd, bg = "white")
 
-las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
 plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
-
-
 
 # disable rocks since it does not work properly
 # las <- filter_poi(las, Classification != LASRAIL)
 # plot(las, size = 1, color = "Classification", bg = "black")
 
 # Plot separated classes
-las_sky <- filter_poi(las, Classification == LASBUILDING)
 plot(las_sky, size = 1, color = "RGB", bg = "black")
-
 plot(las_sed, size = 1, color = "RGB", bg = "white")
+
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
 
