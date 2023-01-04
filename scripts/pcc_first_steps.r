@@ -45,10 +45,10 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
-gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post) {
+gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post, file_path) {
   # receive attribute name, uncleaned "$" might cause errors.
   suffix <- if_else(post == T, "_post", "_pre")
-  filename <- paste("export/", plot_title, "_", attr_name, suffix, ".png", sep = "")
+  filename <- paste(file_path, "/",  plot_title, "_", attr_name, suffix, ".png", sep = "")
   ggplot(las@data) +
     aes(x = input_attr, fill = fct_recode(as.factor(Classification), 
                                           "Nonclassified" = "0",
@@ -98,8 +98,8 @@ user <- Sys.getenv("USERNAME")
 
 # Choose dataset
 dataset_id <- "1"
-wholeset <- T
-year <- "2022"
+wholeset <- F
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -332,7 +332,7 @@ static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
 map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 })
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
@@ -578,7 +578,7 @@ writeLAS(las, file = output_las_all_path)
 las_post = T
 
 map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 })
 
 # Plot classified point cloud---------------------------------------------------
