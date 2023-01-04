@@ -480,6 +480,8 @@ GtoBmax <- cfg$sed_GtoBmax
 
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
+las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
+plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
 
 # Classify band of negative excess red parts------------------------------------
 # Negative ExR values appear to be sediment, ground criteria is set true.
