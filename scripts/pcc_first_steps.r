@@ -96,36 +96,37 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 user <- Sys.getenv("USERNAME")
 
+# Choose dataset
+dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "uav"
+perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
+
+datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
+dataset <- paste(datasetname, ".las", sep = "")
 
 if(user == "gubelyve"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
-  
 } else{
   dir_repo <- "C:/code_wc/"
   dir_data <- "C:/Daten/math_gubelyve"
 }
 
-persp <- if_else(perspective == "tls", "tls_data", "uav_data")
+dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
 
+# load dataset specific parameter
 if(perspective == "tls"){
   if(wholeset){
-    dataset <- "wholeset_221011.las"
     las_filter <- "-keep_first -keep_xy 4343860 542298 4344110 542457"
   } else{
-    dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
     las_filter <- "-keep_first"
   }
 } else{
   if(wholeset){
-    dataset <- "20221007_sarine_rgb_group1_densified_point_cloud.las"
     las_filter <- "-keep_first -keep_xy 2575212.5 1178366.7 2575517.4 1178865.7"
   } else{
-    dataset <- "saane_20211013_subsample_onlyRGBpts_rescaled.las"
     las_filter <- "-keep_first"
   }
 }
@@ -133,18 +134,18 @@ if(perspective == "tls"){
 output_id <- as.character(paste(timestamp, perspective, settype, year, sep = "-"))
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
-output_asc_path <- file.path(dir_data, persp, year, settype, "output", output_asc_name, fsep="/")
+output_asc_path <- file.path(dir_data, dir_persp, year, settype, "output", output_asc_name, fsep="/")
 
 output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
-output_ncdf_path <- file.path(dir_data, persp, year, settype, "output", output_ncdf_name, fsep="/")
+output_ncdf_path <- file.path(dir_data, dir_persp, year, settype, "output", output_ncdf_name, fsep="/")
 
 output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
-output_las_sed_path <- file.path(dir_data, persp, year, settype, "output", output_las_sed_name, fsep="/")
+output_las_sed_path <- file.path(dir_data, dir_persp, year, settype, "output", output_las_sed_name, fsep="/")
 
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
-output_las_all_path <- file.path(dir_data, persp, year, settype, "output", output_las_all_name, fsep="/")
+output_las_all_path <- file.path(dir_data, dir_persp, year, settype, "output", output_las_all_name, fsep="/")
 
-data_path <- file.path(dir_data, persp, year, settype, dataset)
+data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
 output_las_all_path
 
@@ -232,10 +233,12 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 
-las_origin <- readLAS(data_path, select = "xyzRGBc", filter = las_filter)
+las <- readLAS(data_path, select = "xyzRGBc", filter = las_filter)
+
+data_path
 
 # Create copy of read LAS to omit loading procedure.
-las <- las_origin
+# las <- las_origin
 
 if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
@@ -325,9 +328,9 @@ active_attr
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
-# map(active_attr, function(x){
-#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
-# })
+map(active_attr, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post)
+})
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -558,7 +561,7 @@ RBtimesGB_max <- 1.02
 tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
 
 plot_dtm3d(tin_sed, bg = "white")
-plot_dtm3d(tin_gnd, bg = "white")
+# plot_dtm3d(tin_gnd, bg = "white")
 
 # Save generated output---------------------------------------------------------
 
@@ -598,11 +601,11 @@ plot(las_sed, size = 1, color = "RGB", bg = "white")
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
 
-
 end <- lubridate::now()
 end
 
 diff <- end - start
+dataset
 diff
 
 # Outdated stuff----------------------------------------------------------------
