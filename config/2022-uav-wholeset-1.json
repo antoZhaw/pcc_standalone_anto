@@ -1,0 +1,23 @@
+{
+  "id": 1,
+  "wholeset": "T",
+  "year": "2022",
+  "perspective": "tls",
+  "las_filter": "-keep_first -keep_xy 4343860 542298 4344110 542457",
+  "csf_class_treshold": 0.5,
+  "csf_cloth_resolution": 0.5 ,
+  "csf_rigidness": 3,
+  "whitenoise_treshold": 38000,
+  "blacknoise_treshold": 6000,
+  "sky_ExB_treshold": 3500,
+  "veg_ExR_treshold": 20000,
+  "veg_GLI_treshold": 0.09,
+  "sed_RtoBmin": 0.7222,
+  "sed_RtoBmax": 1.1290,
+  "sed_GtoBmin": 0.7928,
+  "sed_GtoBmax": 1.1613,
+  "sed_ExR_max": 1000,
+  "sed_ExR_min": -53000,
+  "DTM_resolution": 0.45,
+  "DTM_algorithm": "tin"
+}

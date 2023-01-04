@@ -140,7 +140,7 @@ config_json_name <- as.character(paste(config_id, ".json", sep = ""))
 config_json_path <- file.path(dir_config, config_json_name, fsep="/")
 
 # load dataset specific parameter set
-param <- fromJSON(file = config_json_path)
+cfg <- fromJSON(file = config_json_path)
 
 # Create run specific output folder
 dir.create(output_path)
@@ -245,7 +245,7 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 
-las <- readLAS(data_path, select = "xyzRGBc", filter = las_filter)
+las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
 data_path
 
@@ -338,21 +338,18 @@ active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
-
-map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-})
+# 
+# map(active_attr, function(x){
+#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
+# })
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 
-class_tresh <- if_else(perspective == "tls", 0.5, 0.5)
-cloth_res <- if_else(perspective == "tls", 1, 0.5)
-rigid <- if_else(perspective == "tls", 1, 3)
+mycsf <- csf(TRUE, cfg$csf_class_treshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
 
-mycsf <- csf(TRUE, class_threshold = class_tresh, cloth_res, rigidness = rigid)
 # apply ground classification
 las <- classify_ground(las, mycsf)
 # gnd <- filter_ground(las)
@@ -378,14 +375,14 @@ las$Classification <- LASNONCLASSIFIED
 # Classify noise----------------------------------------------------------------
 
 # Classify white noise 
-whitenoise_tresh <- 38000
+whitenoise_tresh <- cfg$whitenoise_treshold
 # good thresholds for white noise filter between 40000...(45000)...48000
 
 las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
 # las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify black noise
-blacknoise_tresh <- 6000
+blacknoise_tresh <- cfg$blacknoise_treshold
 # good thresholds for black noise filter between 4000...(6000)...8000
 
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
@@ -399,7 +396,7 @@ las <- filter_poi(las, Classification != LASNOISE)
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
 
-ExB_tresh <- 3500
+ExB_tresh <- cfg$sky_ExB_threshold
 # ExB = 18500, already takes away some cliff parts.
 # ExB = 14500, doubles cliff part but no sediment.
 # ExB = 13500, cliff wall is affected.
@@ -416,32 +413,10 @@ las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
-# Testing-----------------------------------------------------------------------
-# summary(las$GLI)
-
-# las <- las_origin
-# las <- classify_poi(las, class = LASHIGHVEGETATION, poi = poi_veg_GLI)
-# las <- filter_poi(las, Classification != LASHIGHVEGETATION)
-# las_test <- filter_poi(las, Classification == LASHIGHVEGETATION)
-# plot(las_test, size = 1, color = "RGB", bg = "black")
-
-# plot(las, size = 1, color = "RGB", bg = "black")
-# plot(las, size = 1, color = "ExG", bg = "black")
-# plot(las, size = 1, color = "GPI", bg = "black")
-# plot(las, size = 1, color = "GLI", bg = "black")
-# plot(las, size = 1, color = "ExGR", bg = "black")
- 
-# Explore them
-# summary(las$RGBmean)
-# summary(las$GtoB)
-# summary(las$ExR)
-# hist(las$RGBmean)
-# max(las$RGBmean)
-
 # Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
 
-GLI_tresh <- 0.09
+GLI_tresh <- cfg$veg_GLI_treshold
 # GLI filters a broad range from greyish and yellowish parts.
 # GLI = 0.15 is conservative, no sediment and cliff is affected
 # GPI = 0.11 is ideal.
@@ -474,7 +449,7 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
 # Classify Red parts of vegetation----------------------------------------------
 # Red filter priority: ExR, RPI (some might be deactivated)
 
-ExR_tresh <- 20000
+ExR_tresh <- cfg$veg_ExR_treshold
 # ExR = 30000, broad vegetation is affected, some sediment parts too.
 # ExR = 20000, first lines of cliff relief is affected.
 
@@ -495,21 +470,21 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
 
 #Min: 0.7222 and Max. 1.1290 derived from cliff_dark
-RtoBmin <- 0.7222
-RtoBmax <- 1.1290
+RtoBmin <- cfg$sed_RtoBmin
+RtoBmax <- cfg$sed_RtoBmax
 
 #Min: 0.8333 and Max. 1.1613 derived from cliff_dark
 #Min: 0.7928 from cliff_blue
-GtoBmin <- 0.7928
-GtoBmax <- 1.1613
+GtoBmin <- cfg$sed_GtoBmin
+GtoBmax <- cfg$sed_GtoBmax
 
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
 
 # Classify band of negative excess red parts------------------------------------
 # Negative ExR values appear to be sediment, ground criteria is set true.
-ExR_tresh_max <- 1000
-ExR_tresh_min <- -53000
+ExR_tresh_max <- cfg$sed_ExR_max
+ExR_tresh_min <- cfg$sed_ExR_min
 # ExR = -53000 ... 1000 seems to affect sediment points more than others
 # No big difference between -20000 and -53000
 
@@ -522,8 +497,8 @@ las_sed <- filter_poi(las, Classification == LASKEYPOINT)
 
 # Approach with RtoB times GtoB
 # Set limits for sediment.
-RBtimesGB_min <- 0.9370
-RBtimesGB_max <- 1.0433
+# RBtimesGB_min <- 0.9370
+# RBtimesGB_max <- 1.0433
 # las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
 # las_sed_times <- filter_poi(las, Classification == LASLOWPOINT)
 # plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
@@ -542,11 +517,10 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 # las_rock_ratios <- filter_poi(las, Classification == LASRAIL)
 # plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
 
-
 # Approach with RtoB times GtoB
 # Set limits again for rock. If not set, limits of sediment filter is applied.
-RBtimesGB_min <- 0.98
-RBtimesGB_max <- 1.02
+# RBtimesGB_min <- 0.98
+# RBtimesGB_max <- 1.02
 # las <- classify_poi(las, class = LASRAIL, poi = poi_rock_times)
 # las_rock_times <- filter_poi(las, Classification == LASRAIL)
 # plot(las_rock_times, size = 1, color = "RGB", bg = "black")
@@ -570,7 +544,7 @@ RBtimesGB_max <- 1.02
 # Kriging: very slow, not recommended for large areas.
 
 # Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
-tin_sed <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 8, shape = "convex")
+tin_sed <- rasterize_terrain(las, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
 
 # Save generated output---------------------------------------------------------
 
