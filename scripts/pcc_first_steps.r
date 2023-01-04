@@ -101,7 +101,7 @@ user <- Sys.getenv("USERNAME")
 dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "uav"
+perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
@@ -540,22 +540,6 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
 
-# Generate JSON report----------------------------------------------------------
-end <- as_datetime(lubridate::now())
-timespan <- interval(start, end)
-
-run_time <- end - start
-run_time
-
-report <- cfg
-report$timestamp <- timestamp
-report$run_time_minutes <- as.numeric(timespan, "minutes")
-report$data <- data_path
-report$config_json <- config_json_path
-
-json_report <- toJSON(report, indent = 1)
-write(json_report, output_json_path, append = F)
-
 # Generate DTM------------------------------------------------------------------
 # TIN: fast and efficient, robust to empty regions. weak at edges.
 # IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
@@ -586,6 +570,23 @@ las_post = T
 map(active_attr, function(x){
   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 })
+
+# Generate JSON report----------------------------------------------------------
+end <- as_datetime(lubridate::now())
+timespan <- interval(start, end)
+
+run_time <- end - start
+run_time
+
+report <- cfg
+report$timestamp <- timestamp
+report$run_time_minutes <- as.numeric(timespan, "minutes")
+report$data <- data_path
+report$config_json <- config_json_path
+
+json_report <- toJSON(report, indent = 1)
+write(json_report, output_json_path, append = F)
+
 
 # Plot classified point cloud---------------------------------------------------
 
