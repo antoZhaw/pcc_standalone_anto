@@ -544,16 +544,14 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 end <- as_datetime(lubridate::now())
 timespan <- interval(start, end)
 
-run_time_minutes <- as.numeric(timespan, "minutes")
-run_time_minutes
-
 run_time <- end - start
 run_time
 
-report <- (merge(x = cfg, y = as.data.frame(timestamp), all=TRUE))
-report <- (merge(x = report, y = as.data.frame(run_time_minutes), all=TRUE))
-report <- (merge(x = report, y = as.data.frame(data_path), all=TRUE))
-report <- (merge(x = report, y = as.data.frame(config_json_path), all=TRUE))
+report <- cfg
+report$timestamp <- timestamp
+report$run_time_minutes <- as.numeric(timespan, "minutes")
+report$data <- data_path
+report$config_json <- config_json_path
 
 json_report <- toJSON(report, indent = 1)
 write(json_report, output_json_path, append = F)
