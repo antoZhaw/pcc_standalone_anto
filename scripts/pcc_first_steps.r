@@ -88,7 +88,7 @@ if(length(warnings())!=0){
   assign("last.warning", NULL, envir = baseenv())
 }
 
-start <- lubridate::now()
+start <- as_datetime(lubridate::now())
 date <- as.Date(start)
 hour <- hour(start)
 minute <- minute(start)
@@ -99,8 +99,8 @@ user <- Sys.getenv("USERNAME")
 
 # Choose dataset
 dataset_id <- "1"
-wholeset <- T
-year <- "2022"
+wholeset <- F
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -118,20 +118,6 @@ if(user == "gubelyve"){
 dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
 dir_config <-  file.path(dir_repo, "config", fsep="/")
 
-if(perspective == "tls"){
-  if(wholeset){
-    las_filter <- "-keep_first -keep_xy 4343860 542298 4344110 542457"
-  } else{
-    las_filter <- "-keep_first"
-  }
-} else{
-  if(wholeset){
-    las_filter <- "-keep_first -keep_xy 2575212.5 1178366.7 2575517.4 1178865.7"
-  } else{
-    las_filter <- "-keep_first"
-  }
-}
-
 config_id <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
 output_id <- as.character(paste(timestamp, config_id, sep = "-"))
 output_path <- file.path(dir_data, dir_persp, year, settype, "output", output_id, fsep="/")
@@ -144,6 +130,9 @@ cfg <- fromJSON(file = config_json_path)
 
 # Create run specific output folder
 dir.create(output_path)
+
+output_json_name <- as.character(paste(output_id, ".json", sep = ""))
+output_json_path <- file.path(output_path, output_json_name, fsep="/")
 
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
 output_asc_path <- file.path(output_path, output_asc_name, fsep="/")
@@ -338,10 +327,10 @@ active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
-# 
-# map(active_attr, function(x){
-#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-# })
+
+map(active_attr, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
+})
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -355,9 +344,9 @@ las <- classify_ground(las, mycsf)
 # gnd <- filter_ground(las)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
-
-las_gnd <- filter_poi(las, Classification == LASGROUND)
-plot(las_gnd, size = 1, color = "RGB", bg = "white")
+ 
+# las_gnd <- filter_poi(las, Classification == LASGROUND)
+# plot(las_gnd, size = 1, color = "RGB", bg = "white")
 
 # Generate DTM of ground points for comparison.
 # tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
@@ -388,8 +377,8 @@ blacknoise_tresh <- cfg$blacknoise_treshold
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
-las_noise <- filter_poi(las, Classification == LASNOISE)
-plot(las_noise, size = 1, color = "RGB", bg = "white")
+# las_noise <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
 
@@ -538,6 +527,24 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
 
+# Generate JSON report----------------------------------------------------------
+end <- as_datetime(lubridate::now())
+timespan <- interval(start, end)
+
+run_time_minutes <- as.numeric(timespan, "minutes")
+run_time_minutes
+
+run_time <- end - start
+run_time
+
+report <- (merge(x = cfg, y = as.data.frame(timestamp), all=TRUE))
+report <- (merge(x = report, y = as.data.frame(run_time_minutes), all=TRUE))
+report <- (merge(x = report, y = as.data.frame(data_path), all=TRUE))
+report <- (merge(x = report, y = as.data.frame(config_json_path), all=TRUE))
+
+json_report <- toJSON(report, indent = 1)
+write(json_report, output_json_path, append = F)
+
 # Generate DTM------------------------------------------------------------------
 # TIN: fast and efficient, robust to empty regions. weak at edges.
 # IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
@@ -589,12 +596,6 @@ plot(las_sed, size = 1, color = "RGB", bg = "white")
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
 
-end <- lubridate::now()
-end
-
-diff <- end - start
-dataset
-diff
 
 # Outdated stuff----------------------------------------------------------------
 # Point Metrics calculations (untested, heavy duty)

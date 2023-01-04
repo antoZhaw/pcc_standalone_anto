@@ -1,10 +1,10 @@
 {
   "id": 1,
-  "wholeset": "T",
-  "year": "2022",
+  "wholeset": "F",
+  "year": "2021",
   "perspective": "tls",
   "coord_system": "WGS84",
-  "las_filter": "-keep_first -keep_xy 4343860 542298 4344110 542457",
+  "las_filter": "-keep_first",
   "csf_class_treshold": 0.5,
   "csf_cloth_resolution": 1 ,
   "csf_rigidness": 1,
@@ -20,5 +20,5 @@
   "sed_ExR_max": 1000,
   "sed_ExR_min": -53000,
   "DTM_resolution": 0.45,
-  "DTM_algorithm": "tin"
+  "DTM_algorithm": "tin()"
 }
