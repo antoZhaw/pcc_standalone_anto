@@ -101,7 +101,7 @@ user <- Sys.getenv("USERNAME")
 dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "tls"
+perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
@@ -591,8 +591,8 @@ write(json_report, output_json_path, append = F)
 # Plot classified point cloud---------------------------------------------------
 
 # Show the unclassified---------------------------------------------------------
-# plot_dtm3d(tin_sed, bg = "white")
-# plot_dtm3d(tin_gnd, bg = "white")
+plot_dtm3d(tin_sed, bg = "white")
+plot_dtm3d(tin_gnd, bg = "white")
 
 plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
 
