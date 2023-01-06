@@ -101,7 +101,7 @@ user <- Sys.getenv("USERNAME")
 dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "tls"
+perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
@@ -236,6 +236,8 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 summary(las)
+
+st_crs(las)
 
 data_path
 
