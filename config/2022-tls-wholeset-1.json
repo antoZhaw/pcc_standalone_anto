@@ -5,6 +5,7 @@
   "perspective": "tls",
   "crs_name": "unknown",
   "crs_epsg": null,
+  "area_of_interest": "AOI_final.shp",
   "las_filter": "-keep_first -keep_xy 4343860 542298 4344110 542457",
   "csf_class_threshold": 0.5,
   "csf_cloth_resolution": 1 ,

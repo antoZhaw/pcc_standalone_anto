@@ -91,11 +91,6 @@ year <- "2022"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
-# empty warnings if existing.
-if(length(warnings())!=0){
-  assign("last.warning", NULL, envir = baseenv())
-}
-
 # Internal globals such as paths and IDs----------------------------------------
 # Record start date and time
 start <- as_datetime(lubridate::now())
@@ -211,11 +206,16 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 
+# empty warnings if existing.
+if(length(warnings())!=0){
+  assign("last.warning", NULL, envir = baseenv())
+}
+
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
-summary(las)
 
-
-data_path
+# tbd: filter points which are in the area of interest only--------------------
+# las <- filter_poi(las, )
+# classify_poi = function(las, class, poi = NULL, roi = NULL, inverse_roi = FALSE, by_reference = FALSE)
 
 # Create copy of read LAS to omit loading procedure.
 # las_origin <- las
@@ -234,6 +234,8 @@ if (!is.lasCRScompliant(las, cfg$crs_epsg))
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
 # plot(las, size = 1, color = "RGB", bg = "black")
+summary(las)
+data_path
 
 # Create attributes for classification------------------------------------------
 # Add RGBmean attribute
