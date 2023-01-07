@@ -24,18 +24,20 @@ library(purrr) # for map function
 library(rjson) # for JSON generation
 
 # Functions---------------------------------------------------------------------
-is.veg <- function(G) {
-  is_veg <- G > 120 
-  return(list(veg = is_veg))
-}
 
-is.LAScorrupt <- function(las) {
+has.lasRGB <- function(las) {
   has_R <- if_else(mean(las$R) != 0,T,F)
   has_G <- if_else(mean(las$G) != 0,T,F)
   has_B <- if_else(mean(las$B) != 0,T,F)
   valid <- has_R & has_G & has_B
-  corrupt <- !valid
-  return(corrupt)
+  noRGB <- !valid
+  return(noRGB)
+}
+
+is.lasCRScompliant <- function(las, target_epsg) {
+  las_epsg <- st_crs(las)$epsg
+  compliant <- if_else(las_epsg == target_epsg,T,F)
+  return(compliant)
 }
 
 to.LAScolor <- function(small_RGB) {
@@ -81,32 +83,34 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
   # dev.print(file=filename, device=png, width=800)
 }
 
-# Globals-----------------------------------------------------------------------
-
-# empty warnings if existing.
-if(length(warnings())!=0){
-  assign("last.warning", NULL, envir = baseenv())
-}
-
-start <- as_datetime(lubridate::now())
-date <- as.Date(start)
-hour <- hour(start)
-minute <- minute(start)
-
-timestamp <- as.character(paste(date, hour, minute, sep = "-"))
-
-user <- Sys.getenv("USERNAME")
-
-# Choose dataset
+# Globals for Configuration-----------------------------------------------------
+# Specify dataset
 dataset_id <- "1"
 wholeset <- T
 year <- "2022"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
+# empty warnings if existing.
+if(length(warnings())!=0){
+  assign("last.warning", NULL, envir = baseenv())
+}
+
+# Internal globals such as paths and IDs----------------------------------------
+# Record start date and time
+start <- as_datetime(lubridate::now())
+date <- as.Date(start)
+hour <- hour(start)
+minute <- minute(start)
+# Generate timestamp for this run.
+timestamp <- as.character(paste(date, hour, minute, sep = "-"))
+
+# Build unique datasetname for reporting purposes.
 datasetname <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
 dataset <- paste(datasetname, ".las", sep = "")
 
+# Load environment dependent paths.
+user <- Sys.getenv("USERNAME")
 if(user == "gubelyve"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
@@ -147,16 +151,6 @@ output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
-
-output_las_all_path
-
-sky_upper_RGB <- as.integer(c("150", "175", "250")) %>% to.LAScolor()
-# 1st Quantile for Blue = 170, 120 takes away more sediment.
-sky_lower_RGB <- as.integer(c("25", "50", "120")) %>% to.LAScolor()
-
-# currently unused
-darksky_upper_RGB <- as.integer(c("67", "94", "108")) %>% to.LAScolor()
-darksky_lower_RGB <- as.integer(c("25", "43", "54")) %>% to.LAScolor()
 
 # Formulas----------------------------------------------------------------------
 poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_thresh, T, F)
@@ -208,27 +202,10 @@ poi_rock_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBt
                            las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
-# Maximales RtoB: 1.21 in cliff_bright
-# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-
 poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
                            las$ground == T &
                            las$Classification == LASNONCLASSIFIED, T, F)
 
-
-# Unused formulas---------------------------------------------------------------
-
-# poi_sky <- ~if_else(las$R <= sky_upper_RGB[1] & las$R >= sky_lower_RGB[1] &
-#                       las$G <= sky_upper_RGB[2] & las$G >= sky_lower_RGB[2] &
-#                       las$B <= sky_upper_RGB[3] & las$B >= sky_lower_RGB[3]
-#                     , T, F)
-
-# Factor does not work for some reason.
-# poi_darksky <- ~if_else(las$R <= darksky_upper_RGB[1] & las$R >= darksky_lower_RGB[1] &
-#   las$G <= darksky_upper_RGB[2] & las$G >= darksky_lower_RGB[2] &
-#   las$B <= darksky_upper_RGB[3] & las$B >= darksky_lower_RGB[3] &
-#     as.numeric(las$B/las$R) >= 1.40
-# , T, F)
 
 # Read LAS file-----------------------------------------------------------------
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -237,7 +214,6 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 summary(las)
 
-st_crs(las)
 
 data_path
 
@@ -245,7 +221,11 @@ data_path
 # las_origin <- las
 # las <- las_origin
 
-if (is.LAScorrupt(las)) {stop("The read LAS file has no colour information, script stops.")}
+# Check LAS whether it complies with the required
+if (has.lasRGB(las)) 
+  {stop("The read LAS file has no colour information, script stops.")}
+if (!is.lasCRScompliant(las, cfg$crs_epsg)) 
+  {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
 
 # Display loaded classes (supposed to be zero)
@@ -304,34 +284,18 @@ las$RPI <- (las$R/(las$R+las$G+las$B))
 las <- add_attribute(las, 0, "ExR")
 las$ExR <- (2*las$R-las$G-las$B)
 
-# Buggy Indices-----------------------------------------------------------------
-
-# Add RGB Vegetation Index RGBVI
-# Produces NAs only
-# las <- add_attribute(las, 0, "RGBVI")
-# las$RGBVI <- ((2*las$G-(las$B*las$R))/(2*las$G+(las$B*las$R)))
-
-# Add Visible Atmospherically Resistant Index VARI
-# Ranges from -Inf to Inf
-# las <- add_attribute(las, 0, "VARI")
-# las$VARI <- ((las$G-las$R)/(las$G+las$R-las$B))
-
-# Add Normalised Green Red Difference Index VARI
-# Throws an error
-# las <- add_attribute(las, 0, "NGRDI")
-# las$NGDRI <- ((las$G-las$R)/(las$G+las$R))
-
 
 # Generate attribute plots before classification--------------------------------
 
 # Generate list of active attributes 
 active_attr <- names(las)
+# Exclude some irrelevant attributes manually
 active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
 active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
-# 
+
 # map(active_attr, function(x){
 #   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 # })
@@ -612,40 +576,13 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 
 
 # Outdated stuff----------------------------------------------------------------
-# Point Metrics calculations (untested, heavy duty)
-# Add attribute on point level
-# M <- point_metrics(las, ~is.planar(X,Y,Z), k = 20, filter = ~Classification != LASGROUND)
-# Run metrics computation
-#  un(M <- point_metrics(las, ~is.veg(G), k = 20)
-# merge the output with the point cloud to visualize the result
-
-# Alternative approach for Ground filtration (untested)
-# poi <- ~Classification == 2
-# can <- classify_poi(las, LASHIGHVEGETATION, poi = poi)
-
-# Alternative filter functions--------------------------------------------------------------
-# las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
-
-# Exploration of Colors---------------------------------------------------------
-
-par(mfrow = c(2,1))
-hist(nongnd$RGBmean)
-hist(gnd$RGBmean)
-
-hist(nongnd$R)
-hist(gnd$R)
-
-hist(nongnd$G)
-hist(gnd$G)
-
-hist(nongnd$B)
-hist(gnd$B)
-
 
 # Help lines
 # Negation of attributes is also possible (all except intensity and angle)
 # las = readLAS(LASfile, select = "* -i -a")
+# Alternative filter functions--------------------------------------------------
+# las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
 
 # Prefer filter() befor filter_poi() since it does not read it on C++ level
 # show all available filters
-readLAS(filter = "-help")
+# readLAS(filter = "-help")
