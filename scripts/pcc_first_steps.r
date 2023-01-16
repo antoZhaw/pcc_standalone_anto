@@ -34,6 +34,11 @@ has.lasRGB <- function(las) {
   return(noRGB)
 }
 
+has.lasClassification <- function(las) {
+  classified <- if_else(mean(las$Classification) != 0,T,F)
+  return(classified)
+}
+
 is.lasCRScompliant <- function(las, target_epsg) {
   las_epsg <- st_crs(las)$epsg
   compliant <- if_else(las_epsg == target_epsg,T,F)
@@ -85,10 +90,10 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "1"
+dataset_id <- "2"
 wholeset <- T
 year <- "2022"
-perspective <- "uav"
+perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 # Internal globals such as paths and IDs----------------------------------------
@@ -226,10 +231,12 @@ if (has.lasRGB(las))
   {stop("The read LAS file has no colour information, script stops.")}
 if (!is.lasCRScompliant(las, cfg$crs_epsg)) 
   {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
+if(has.lasClassification(las)){
+  print("LAS file is already classified. Are you sure to continue?")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
 
 # Display loaded classes (supposed to be zero)
-# factor(las$Classification)
+# levels <- factor(las$Classification)
 
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
