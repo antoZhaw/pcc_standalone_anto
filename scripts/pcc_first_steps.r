@@ -147,6 +147,9 @@ output_ncdf_path <- file.path(output_path, output_ncdf_name, fsep="/")
 output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
 output_las_sed_path <- file.path(output_path, output_las_sed_name, fsep="/")
 
+output_las_gnd_name <- as.character(paste(output_id, "-gnd.las", sep = ""))
+output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
+
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
@@ -324,9 +327,6 @@ las$ground <- if_else(las$Classification == LASGROUND, T, F)
  
 las_gnd <- filter_poi(las, Classification == LASGROUND)
 plot(las_gnd, size = 1, color = "RGB", bg = "white")
-
-# Generate DTM of ground points for comparison.
-# tin_gnd <- rasterize_terrain(las, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
@@ -522,6 +522,7 @@ las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
 # Save generated output---------------------------------------------------------
 
 writeLAS(las_sed, file = output_las_sed_path)
+writeLAS(las_gnd, file = output_las_gnd_path)
 
 # Filter out noise and unclassified points for a clean output file.
 las <- filter_poi(las, Classification != LASNOISE)
@@ -558,17 +559,23 @@ write(json_report, output_json_path, append = F)
 # Kriging: very slow, not recommended for large areas.
 
 # Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
-tin_sed <- rasterize_terrain(las_sed, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
+# tin_sed <- rasterize_terrain(las_sed, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
 
-writeCDF(tin_sed, output_ncdf_path, overwrite = T)
-writeRaster(tin_sed, output_asc_path, overwrite = T)
+# Generate DTM of ground points for comparison.
+# tin_gnd <- rasterize_terrain(las_gnd, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
+ 
+# writeCDF(tin_sed, output_ncdf_path, overwrite = T)
+# writeRaster(tin_sed, output_asc_path, overwrite = T)
+
+# writeCDF(tin_gnd, output_ncdf_path, overwrite = T)
+# writeRaster(tin_gnd, output_asc_path, overwrite = T)
 
 
 # Plot classified point cloud---------------------------------------------------
 
 # Show the unclassified---------------------------------------------------------
 plot_dtm3d(tin_sed, bg = "white")
-plot_dtm3d(tin_gnd, bg = "white")
+# plot_dtm3d(tin_gnd, bg = "white")
 
 plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
 
