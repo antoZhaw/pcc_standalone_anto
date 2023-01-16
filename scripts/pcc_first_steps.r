@@ -92,7 +92,7 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 # Specify dataset
 dataset_id <- "2"
 wholeset <- T
-year <- "2022"
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -241,7 +241,7 @@ if(has.lasClassification(las)){
 # Data exploration--------------------------------------------------------------
 # plot(las, size = 1, color = "Intensity", bg = "black")
 # plot(las, size = 1, color = "RGB", bg = "black")
-summary(las)
+# summary(las)
 data_path
 
 # Create attributes for classification------------------------------------------
@@ -516,21 +516,10 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
 
-# Generate DTM------------------------------------------------------------------
-# TIN: fast and efficient, robust to empty regions. weak at edges.
-# IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
-# Kriging: very slow, not recommended for large areas.
-
-# Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
-tin_sed <- rasterize_terrain(las, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
-
 # Generate subsets before filtering
 las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
 
 # Save generated output---------------------------------------------------------
-
-writeCDF(tin_sed, output_ncdf_path, overwrite = T)
-writeRaster(tin_sed, output_asc_path, overwrite = T)
 
 writeLAS(las_sed, file = output_las_sed_path)
 
@@ -563,6 +552,17 @@ report$config_json <- config_json_path
 json_report <- toJSON(report, indent = 1)
 write(json_report, output_json_path, append = F)
 
+# Generate DTM------------------------------------------------------------------
+# TIN: fast and efficient, robust to empty regions. weak at edges.
+# IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
+# Kriging: very slow, not recommended for large areas.
+
+# Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
+tin_sed <- rasterize_terrain(las_sed, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
+
+writeCDF(tin_sed, output_ncdf_path, overwrite = T)
+writeRaster(tin_sed, output_asc_path, overwrite = T)
+
 
 # Plot classified point cloud---------------------------------------------------
 
@@ -582,7 +582,6 @@ plot(las_sed, size = 1, color = "RGB", bg = "white")
 
 las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 plot(las_veg, size = 1, color = "RGB", bg = "black")
-
 
 # Outdated stuff----------------------------------------------------------------
 

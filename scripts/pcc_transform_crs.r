@@ -24,8 +24,8 @@ user <- Sys.getenv("USERNAME")
 
 dir_repo <- if_else(user == "gubelyve", "C:/Daten/math_gubelyve/pcc_standalone", "C:/code_wc/pcc_standalone")
 dir_data <- "C:/Daten/math_gubelyve"
-path_input_data <- file.path(dir_data, "tls_data/2022/wholeset/pointcloud_2022_lv95.las")
-path_output_data <- file.path(dir_data, "tls_data/2022/wholeset/2022-tls-wholeset-2.las")
+path_input_data <- file.path(dir_data, "tls_data/2021/wholeset/pointcloud_2021_lv95_reg.las")
+path_output_data <- file.path(dir_data, "tls_data/2021/wholeset/2021-tls-wholeset-2.las")
 
 
 # read data---------------------------------------------------------------------
