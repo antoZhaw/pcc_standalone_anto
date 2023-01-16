@@ -92,6 +92,7 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 # Specify dataset
 dataset_id <- "2"
 wholeset <- T
+aoi_only <- T
 year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
@@ -153,6 +154,7 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
+aoi_path <- file.path(dir_data, dir_persp, year, settype, "AOI_final.shp")
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
 # Formulas----------------------------------------------------------------------
@@ -220,10 +222,16 @@ if(length(warnings())!=0){
 }
 
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
+# aoi <- vect(x = aoi_path, "polygons")
 
-# tbd: filter points which are in the area of interest only--------------------
+# Filter points which are not within area of interest---------------------------
+# tbd: filter points which are in the area of interest only---------------------
+classify_poi = function(las, class = LASNOISE, poi = NULL, roi = aoi)
+
 # las <- filter_poi(las, )
-# classify_poi = function(las, class, poi = NULL, roi = NULL, inverse_roi = FALSE, by_reference = FALSE)
+
+# Reset class LASGROUND for further procedure
+# las$Classification <- LASNONCLASSIFIED
 
 # Create copy of read LAS to omit loading procedure.
 # las_origin <- las
@@ -248,6 +256,7 @@ if(has.lasClassification(las)){
 data_path
 
 # Create attributes for classification------------------------------------------
+
 # Add RGBmean attribute
 las <- add_attribute(las, 0, "RGBmean")
 las$RGBmean <- (las$R + las$G + las$B)/3
@@ -302,8 +311,8 @@ las$ExR <- (2*las$R-las$G-las$B)
 # Generate list of active attributes 
 active_attr <- names(las)
 # Exclude some irrelevant attributes manually
-active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
-active_attr
+# active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
+# active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
@@ -600,4 +609,4 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 
 # Prefer filter() befor filter_poi() since it does not read it on C++ level
 # show all available filters
-# readLAS(filter = "-help")
+readLAS(filter = "-help")
