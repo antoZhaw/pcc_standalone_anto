@@ -256,14 +256,7 @@ if(has.lasClassification(las)){
 data_path
 
 # las_origin <- las
-las <- las_origin
-las_noise <- classify_noise(las, sor(10,3))
-# plot(las_noise, size = 1, color = "RGB", bg = "white")
-
-noise <- filter_poi(las_noise, Classification %in% c(LASNOISE))
-plot(noise, size = 1, color = "RGB", bg = "white")
-
-factor(las_noise$Classification)
+# las <- las_origin
 
 # Create attributes for classification------------------------------------------
 
@@ -315,7 +308,6 @@ las$RPI <- (las$R/(las$R+las$G+las$B))
 las <- add_attribute(las, 0, "ExR")
 las$ExR <- (2*las$R-las$G-las$B)
 
-
 # Generate attribute plots before classification--------------------------------
 
 # Generate list of active attributes 
@@ -330,6 +322,37 @@ las_post <- F
 # map(active_attr, function(x){
 #   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 # })
+
+# Classify noise----------------------------------------------------------------
+
+# Classify white noise 
+whitenoise_thresh <- cfg$whitenoise_threshold
+# tls: good thresholds for white noise filter between 40000...(45000)...48000
+# uav: good thresholds for white noise filter between 62000...65000
+
+las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
+
+# Classify black noise
+blacknoise_thresh <- cfg$blacknoise_threshold
+# tls: good thresholds for black noise filter between 4000...(6000)...8000
+# uav: good thresholds for black noise filter between 8000...(10000)...12000
+
+las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
+
+# Plot filtered noise
+las_noise <- filter_poi(las, Classification == LASNOISE)
+plot(las_noise, size = 1, color = "RGB", bg = "white")
+
+las <- filter_poi(las, Classification != LASNOISE)
+
+# Classify outliers as noise----------------------------------------------------
+# k does not have much impact on filteration, m works between 6 to 10.
+las <- classify_noise(las, sor(200,6))
+# noise <- filter_poi(las_noise, Classification %in% c(LASNOISE))
+# plot(noise, size = 1, color = "RGB", bg = "white")
+las <- filter_poi(las, Classification != LASNOISE)
+
+
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -356,29 +379,6 @@ las$Classification <- LASNONCLASSIFIED
 
 # Check whether classes are reset (Levels are supposed to be zero)
 # factor(las$Classification)
-
-# Classify noise----------------------------------------------------------------
-
-# Classify white noise 
-whitenoise_thresh <- cfg$whitenoise_threshold
-# tls: good thresholds for white noise filter between 40000...(45000)...48000
-# uav: good thresholds for white noise filter between 62000...65000
-
-las <- classify_poi(las, class = LASNOISE, poi = poi_whitenoise)
-# las <- filter_poi(las, Classification != LASNOISE)
-
-# Classify black noise
-blacknoise_thresh <- cfg$blacknoise_threshold
-# tls: good thresholds for black noise filter between 4000...(6000)...8000
-# uav: good thresholds for black noise filter between 8000...(10000)...12000
-
-las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
-
-# Plot filtered noise
-las_noise <- filter_poi(las, Classification == LASNOISE)
-plot(las_noise, size = 1, color = "RGB", bg = "white")
-
-las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
