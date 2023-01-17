@@ -325,6 +325,13 @@ las_post <- F
 
 # Classify noise----------------------------------------------------------------
 
+# Classify outliers as noise
+# k does not have much impact on filteration, m works between 6 to 10.
+las <- classify_noise(las, sor(200,5))
+noise <- filter_poi(las, Classification %in% c(LASNOISE))
+plot(noise, size = 1, color = "RGB", bg = "white")
+las <- filter_poi(las, Classification != LASNOISE)
+
 # Classify white noise 
 whitenoise_thresh <- cfg$whitenoise_threshold
 # tls: good thresholds for white noise filter between 40000...(45000)...48000
@@ -344,15 +351,6 @@ las_noise <- filter_poi(las, Classification == LASNOISE)
 plot(las_noise, size = 1, color = "RGB", bg = "white")
 
 las <- filter_poi(las, Classification != LASNOISE)
-
-# Classify outliers as noise----------------------------------------------------
-# k does not have much impact on filteration, m works between 6 to 10.
-las <- classify_noise(las, sor(200,6))
-# noise <- filter_poi(las_noise, Classification %in% c(LASNOISE))
-# plot(noise, size = 1, color = "RGB", bg = "white")
-las <- filter_poi(las, Classification != LASNOISE)
-
-
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
