@@ -90,8 +90,8 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "2"
-wholeset <- T
+dataset_id <- "1"
+wholeset <- F
 aoi_only <- T
 year <- "2021"
 perspective <- "tls"
@@ -226,7 +226,7 @@ las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
 # Filter points which are not within area of interest---------------------------
 # tbd: filter points which are in the area of interest only---------------------
-classify_poi = function(las, class = LASNOISE, poi = NULL, roi = aoi)
+# classify_poi = function(las, class = LASNOISE, poi = NULL, roi = aoi)
 
 # las <- filter_poi(las, )
 
@@ -240,8 +240,8 @@ classify_poi = function(las, class = LASNOISE, poi = NULL, roi = aoi)
 # Check LAS whether it complies with the required
 if (has.lasRGB(las)) 
   {stop("The read LAS file has no colour information, script stops.")}
-if (!is.lasCRScompliant(las, cfg$crs_epsg)) 
-  {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
+# if (!is.lasCRScompliant(las, cfg$crs_epsg)) 
+#   {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
 if(has.lasClassification(las)){
   print("LAS file is already classified. Are you sure to continue?")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
@@ -254,6 +254,16 @@ if(has.lasClassification(las)){
 # plot(las, size = 1, color = "RGB", bg = "black")
 # summary(las)
 data_path
+
+# las_origin <- las
+las <- las_origin
+las_noise <- classify_noise(las, sor(10,3))
+# plot(las_noise, size = 1, color = "RGB", bg = "white")
+
+noise <- filter_poi(las_noise, Classification %in% c(LASNOISE))
+plot(noise, size = 1, color = "RGB", bg = "white")
+
+factor(las_noise$Classification)
 
 # Create attributes for classification------------------------------------------
 
