@@ -130,6 +130,9 @@ output_path <- file.path(dir_data, dir_persp, year, settype, "output", output_id
 config_json_name <- as.character(paste(config_id, ".json", sep = ""))
 config_json_path <- file.path(dir_config, config_json_name, fsep="/")
 
+aoi_path <- file.path(dir_repo, "data/area_of_interest_final", "AOI_final.shp", fsep="/")
+aoi_dir <- file.path(dir_repo, "data/area_of_interest_final", fsep="/")
+
 # load dataset specific parameter set
 cfg <- fromJSON(file = config_json_path)
 
@@ -154,7 +157,6 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
-aoi_path <- file.path(dir_data, dir_persp, year, settype, "AOI_final.shp")
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
 # Formulas----------------------------------------------------------------------
@@ -212,26 +214,36 @@ poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBti
                            las$Classification == LASNONCLASSIFIED, T, F)
 
 
-# Read LAS file-----------------------------------------------------------------
-# Intensity (i), color information (RGB), number of Returns (r), classification (c)
-# of the first point is loaded only to reduce computational time.
+# Read files--------------------------------------------------------------------
 
 # empty warnings if existing.
 if(length(warnings())!=0){
   assign("last.warning", NULL, envir = baseenv())
 }
 
+# Read LAS
+# Intensity (i), color information (RGB), number of Returns (r), classification (c)
+# of the first point is loaded only to reduce computational time.
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
-# aoi <- vect(x = aoi_path, "polygons")
+
+# Read Shapefile of area of interest
+# aoi <- vect(x = aoi_path)
+# 
+# 
+# shp <- system.file(aoi_dir, "AOI_final", package = "lidR")
+# lakes <- sf::st_read(shp)
+# 
+# shp     <- system.file("data/area_of_interest_final", "AOI_final.shp", package = "lidR")
+
+aoi_shp <- read_sf(dsn = aoi_path)
 
 # Filter points which are not within area of interest---------------------------
-# tbd: filter points which are in the area of interest only---------------------
-# classify_poi = function(las, class = LASNOISE, poi = NULL, roi = aoi)
-
-# las <- filter_poi(las, )
+las <- classify_poi(las, class = LASNOISE, roi = aoi_shp)
+las <- filter_poi(las, Classification != LASNOISE)
+plot(las, size = 1, color = "RGB", bg = "white")
 
 # Reset class LASGROUND for further procedure
-# las$Classification <- LASNONCLASSIFIED
+las$Classification <- LASNONCLASSIFIED
 
 # Create copy of read LAS to omit loading procedure.
 # las_origin <- las
@@ -325,12 +337,13 @@ las_post <- F
 
 # Classify noise----------------------------------------------------------------
 
-# Classify outliers as noise
-
+# Classify outliers as noise. Can be skipped since it has high computational time.
+if(cfg$outlier_already_filtered==F){
 las <- classify_noise(las, sor(150,5))
 # las_outliers <- filter_poi(las, Classification %in% c(LASNOISE))
 # plot(las_outliers, size = 1, color = "RGB", bg = "white")
 las <- filter_poi(las, Classification != LASNOISE)
+}
 
 # Classify white noise 
 whitenoise_thresh <- cfg$whitenoise_threshold
