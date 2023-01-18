@@ -326,10 +326,10 @@ las_post <- F
 # Classify noise----------------------------------------------------------------
 
 # Classify outliers as noise
-# k does not have much impact on filteration, m works between 6 to 10.
-las <- classify_noise(las, sor(200,5))
-las_outliers <- filter_poi(las, Classification %in% c(LASNOISE))
-plot(las_outliers, size = 1, color = "RGB", bg = "white")
+
+las <- classify_noise(las, sor(150,5))
+# las_outliers <- filter_poi(las, Classification %in% c(LASNOISE))
+# plot(las_outliers, size = 1, color = "RGB", bg = "white")
 las <- filter_poi(las, Classification != LASNOISE)
 
 # Classify white noise 
