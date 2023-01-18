@@ -90,10 +90,10 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "1"
-wholeset <- F
+dataset_id <- "2"
+wholeset <- T
 aoi_only <- T
-year <- "2021"
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -238,11 +238,11 @@ las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 aoi_shp <- read_sf(dsn = aoi_path)
 
 # Filter points which are not within area of interest---------------------------
-las <- classify_poi(las, class = LASNOISE, roi = aoi_shp)
+las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 las <- filter_poi(las, Classification != LASNOISE)
-plot(las, size = 1, color = "RGB", bg = "white")
+# plot(las, size = 1, color = "RGB", bg = "white")
 
-# Reset class LASGROUND for further procedure
+# Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
 
 # Create copy of read LAS to omit loading procedure.
@@ -252,8 +252,8 @@ las$Classification <- LASNONCLASSIFIED
 # Check LAS whether it complies with the required
 if (has.lasRGB(las)) 
   {stop("The read LAS file has no colour information, script stops.")}
-# if (!is.lasCRScompliant(las, cfg$crs_epsg)) 
-#   {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
+if (!is.lasCRScompliant(las, cfg$crs_epsg))
+  {stop("The read LAS file does not comply with the expected coordinate reference system, script stops.")}
 if(has.lasClassification(las)){
   print("LAS file is already classified. Are you sure to continue?")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
