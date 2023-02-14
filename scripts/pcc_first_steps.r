@@ -141,6 +141,12 @@ dir.create(output_path)
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
 
+output_las_inp_name <- as.character(paste(output_id, "-inp.txt", sep = ""))
+output_las_inp_path <- file.path(output_path, output_las_inp_name, fsep="/")
+
+output_las_aoi_name <- as.character(paste(output_id, "-aoi.txt", sep = ""))
+output_las_aoi_path <- file.path(output_path, output_las_aoi_name, fsep="/")
+
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
 output_asc_path <- file.path(output_path, output_asc_name, fsep="/")
 
@@ -235,13 +241,20 @@ las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 # shp     <- system.file("data/area_of_interest_final", "AOI_final.shp", package = "lidR")
 
 aoi_shp <- read_sf(dsn = aoi_path)
-
+# Save relevant information about the whole dataset.
+sink(output_las_inp_path)
 summary(las)
+sink(append = T)
+
 # Filter points which are not within area of interest---------------------------
 las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 las <- filter_poi(las, Classification != LASNOISE)
 # plot(las, size = 1, color = "RGB", bg = "white")
+
+# Save relevant information about the area of interest.
+sink(output_las_aoi_path)
 summary(las)
+sink(append = T)
 
 # Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
