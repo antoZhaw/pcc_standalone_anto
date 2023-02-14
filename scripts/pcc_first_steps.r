@@ -90,10 +90,10 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "3"
+dataset_id <- "1"
 wholeset <- T
 year <- "2022"
-perspective <- "tls"
+perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
 # Internal globals such as paths and IDs----------------------------------------
