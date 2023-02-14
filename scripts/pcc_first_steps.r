@@ -342,15 +342,15 @@ las$ExR <- (2*las$R-las$G-las$B)
 # Generate list of active attributes 
 active_attr <- names(las)
 # Exclude some irrelevant attributes manually
-# active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
-# active_attr
+active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
+active_attr
 
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
-# map(active_attr, function(x){
-#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-# })
+map(active_attr, function(x){
+  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
+})
 
 # Classify noise----------------------------------------------------------------
 
@@ -388,6 +388,7 @@ las <- filter_poi(las, Classification != LASNOISE)
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 mycsf <- csf(TRUE, cfg$csf_class_threshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
+# las_origin <- las
 
 # apply ground classification
 las <- classify_ground(las, mycsf)
