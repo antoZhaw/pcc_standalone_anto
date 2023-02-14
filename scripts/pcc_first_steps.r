@@ -426,7 +426,7 @@ ExB_thresh <- cfg$sky_ExB_threshold
 
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
-# las_sky <- filter_poi(las, Classification == LASBUILDING)
+las_sky <- filter_poi(las, Classification == LASBUILDING)
 # plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Classify green parts of vegetation--------------------------------------------
@@ -573,6 +573,8 @@ print("Classified LAS in total:")
 summary(las)
 print("Classified black and white noise:")
 summary(las_noise)
+print("Classified sky points:")
+summary(las_sky)
 print("Classified ground points:")
 summary(las_gnd)
 print("Classified sediment points:")
