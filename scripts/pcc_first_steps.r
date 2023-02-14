@@ -90,9 +90,8 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "2"
+dataset_id <- "3"
 wholeset <- T
-aoi_only <- T
 year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
@@ -237,10 +236,12 @@ las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
 aoi_shp <- read_sf(dsn = aoi_path)
 
+summary(las)
 # Filter points which are not within area of interest---------------------------
 las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 las <- filter_poi(las, Classification != LASNOISE)
 # plot(las, size = 1, color = "RGB", bg = "white")
+summary(las)
 
 # Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
@@ -339,7 +340,7 @@ las_post <- F
 
 # Classify outliers as noise. Can be skipped since it has high computational time.
 if(cfg$outlier_already_filtered==F){
-las <- classify_noise(las, sor(150,5))
+las <- classify_noise(las, sor(50,5))
 # las_outliers <- filter_poi(las, Classification %in% c(LASNOISE))
 # plot(las_outliers, size = 1, color = "RGB", bg = "white")
 las <- filter_poi(las, Classification != LASNOISE)

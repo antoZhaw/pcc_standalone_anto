@@ -12,12 +12,14 @@ library(sf) # handling spatial data
 # globals-----------------------------------------------------------------------
 user <- Sys.getenv("USERNAME")
 start <- as_datetime(lubridate::now())
+start
 
 dir_repo <- if_else(user == "gubelyve", "C:/Daten/math_gubelyve/pcc_standalone", "C:/code_wc/pcc_standalone")
 dir_data <- "C:/Daten/math_gubelyve"
 
-path_input_data <- file.path(dir_data, "tls_data/2022/wholeset/2022-tls-wholeset-2.las")
-path_output_data <- file.path(dir_data, "tls_data/2022/wholeset/2022-tls-wholeset-3.las")
+path_input_data <- file.path(dir_data, "tls_data/2021/wholeset/2021-tls-wholeset-2.las")
+path_output_data <- file.path(dir_data, "tls_data/2021/wholeset/2021-tls-wholeset-3.las")
+path_output_outlier <- file.path(dir_data, "tls_data/2021/wholeset/2021-tls-wholeset-outlier.las")
 
 # path_input_data <- file.path(dir_data, "tls_data/2021/wholeset/pointcloud_2021_lv95_reg.las")
 # path_output_data <- file.path(dir_data, "tls_data/2021/wholeset/2021-tls-wholeset-2.las")
@@ -39,8 +41,10 @@ las <- classify_noise(las, sor(k, m))
 las_outliers <- filter_poi(las, Classification %in% c(LASNOISE))
 plot(las_outliers, size = 1, color = "RGB", bg = "white")
 las <- filter_poi(las, Classification != LASNOISE)
+# plot(las, size = 1, color = "RGB", bg = "white")
 
 writeLAS(las, file = path_output_data)
+writeLAS(las_outliers, file = path_output_outlier)
 
 end <- as_datetime(lubridate::now())
 
