@@ -386,7 +386,7 @@ las <- filter_poi(las, Classification != LASNOISE)
 # setup csf filter settings
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
-
+# If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 mycsf <- csf(TRUE, cfg$csf_class_threshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
 
 # apply ground classification
@@ -518,7 +518,7 @@ las_sed <- filter_poi(las, Classification == LASKEYPOINT)
 
 # For an exclusive plot of negative ExR values change to LASBRIDGE as class.
 # las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
-# plot(las_sed_ratios, size = 1, color = "RGB", bg = "white")
+plot(las_sed, size = 1, color = "RGB", bg = "white")
 
 # Approach with RtoB times GtoB
 # Set limits for sediment.
