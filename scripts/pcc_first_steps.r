@@ -147,6 +147,9 @@ output_las_inp_path <- file.path(output_path, output_las_inp_name, fsep="/")
 output_las_aoi_name <- as.character(paste(output_id, "-aoi.txt", sep = ""))
 output_las_aoi_path <- file.path(output_path, output_las_aoi_name, fsep="/")
 
+output_las_class_name <- as.character(paste(output_id, "-classified.txt", sep = ""))
+output_las_class_path <- file.path(output_path, output_las_class_name, fsep="/")
+
 output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
 output_asc_path <- file.path(output_path, output_asc_name, fsep="/")
 
@@ -423,8 +426,8 @@ ExB_thresh <- cfg$sky_ExB_threshold
 
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
-las_sky <- filter_poi(las, Classification == LASBUILDING)
-plot(las_sky, size = 1, color = "RGB", bg = "black")
+# las_sky <- filter_poi(las, Classification == LASBUILDING)
+# plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Classify green parts of vegetation--------------------------------------------
 # Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
@@ -501,7 +504,7 @@ GtoBmax <- cfg$sed_GtoBmax
 # Approach with ratios RtoB and GtoB
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
 las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
-plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
+# plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
 
 # Classify band of negative excess red parts------------------------------------
 # Negative ExR values appear to be sediment, ground criteria is set true.
@@ -560,8 +563,26 @@ las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
 # plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
 # summary(las$ExB)
 
+
 # Generate subsets before filtering
 las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
+
+# Generate report of classification
+sink(output_las_class_path)
+print("Classified LAS in total:")
+summary(las)
+print("Classified black and white noise:")
+summary(las_noise)
+print("Classified ground points:")
+summary(las_gnd)
+print("Classified sediment points:")
+summary(las_sed)
+print("Classified vegetation points:")
+summary(las_veg)
+print("Remaining unclassified points:")
+summary(las_foreveralone)
+
+sink(append = T)
 
 # Save generated output---------------------------------------------------------
 
