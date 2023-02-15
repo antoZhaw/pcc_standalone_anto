@@ -92,7 +92,7 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 # Specify dataset
 dataset_id <- "1"
 wholeset <- T
-year <- "2022"
+year <- "2021"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -244,6 +244,7 @@ las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 # shp     <- system.file("data/area_of_interest_final", "AOI_final.shp", package = "lidR")
 
 aoi_shp <- read_sf(dsn = aoi_path)
+
 # Save relevant information about the whole dataset.
 sink(output_las_inp_path)
 summary(las)
@@ -252,7 +253,7 @@ sink(append = T)
 # Filter points which are not within area of interest---------------------------
 las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 las <- filter_poi(las, Classification != LASNOISE)
-# plot(las, size = 1, color = "RGB", bg = "white")
+plot(las, size = 1, color = "RGB", bg = "white")
 
 # Save relevant information about the area of interest.
 sink(output_las_aoi_path)
