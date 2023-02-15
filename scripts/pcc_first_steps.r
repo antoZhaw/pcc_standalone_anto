@@ -349,9 +349,9 @@ active_attr
 static_subtitle <- "Derivat aus Klassifikation"
 las_post <- F
 
-map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-})
+# map(active_attr, function(x){
+#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
+# })
 
 # Classify noise----------------------------------------------------------------
 
@@ -379,9 +379,12 @@ las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
 # Plot filtered noise
 las_noise <- filter_poi(las, Classification == LASNOISE)
-plot(las_noise, size = 1, color = "RGB", bg = "white")
+# plot(las_noise, size = 1, color = "RGB", bg = "black")
 
 las <- filter_poi(las, Classification != LASNOISE)
+
+las_origin <- las
+# las <- las_origin
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -390,6 +393,8 @@ las <- filter_poi(las, Classification != LASNOISE)
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 mycsf <- csf(TRUE, cfg$csf_class_threshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
 # las_origin <- las
+
+# las <- las_origin
 
 # apply ground classification
 las <- classify_ground(las, mycsf)

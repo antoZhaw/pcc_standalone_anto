@@ -12,7 +12,7 @@
   "csf_cloth_resolution": 2.7,
   "csf_rigidness": 2,
   "whitenoise_threshold": null,
-  "blacknoise_threshold": 12000,
+  "blacknoise_threshold": null,
   "sky_ExB_threshold": 4000,
   "veg_ExR_threshold": 20000,
   "veg_GLI_threshold": 0.08,
