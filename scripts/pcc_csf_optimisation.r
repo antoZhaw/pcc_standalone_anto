@@ -298,10 +298,9 @@ class_thres_i <- c(0.9, 0.7, 0.5, 0.3)
 cloth_res_i <- c(0.9, 0.7, 0.5, 0.3)
 
 # plot(las, size = 1, color = "RGB", bg = "white")
-
+n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
-    n <- 1L
     status <- as.character(paste("RGL", n, ": class threshold ", i, " and cloth resolution ", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, 2)
