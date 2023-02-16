@@ -22,6 +22,7 @@ library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
+library(rgl)
 
 # Functions---------------------------------------------------------------------
 
@@ -81,7 +82,7 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 
 classify_gnd <- function(las, class_thres, cloth_res, rigid) {
-  mycsf <- csf(TRUE, class_thres, cloth_res, rigid)
+  mycsf <- csf(F, class_thres, cloth_res, rigid)
   las <- classify_ground(las, mycsf)
   las_gnd <- filter_poi(las, Classification == LASGROUND)
   # plot(las_gnd, size = 1, color = "RGB", bg = "white")
@@ -239,7 +240,7 @@ aoi_shp <- read_sf(dsn = aoi_path)
 # Filter points which are not within area of interest---------------------------
 # las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 # las <- filter_poi(las, Classification != LASNOISE)
-plot(las, size = 1, color = "RGB", bg = "white", axis = F)
+# plot(las, size = 1, color = "RGB", bg = "white", axis = F)
 
 # Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
@@ -293,23 +294,23 @@ las_origin <- las
 # class_thres_i <- c(0.1,0.3,0.5,0.7,0.9)
 # cloth_res_i <- c(0.1,0.3,0.5,0.7,0.9)
 
-class_thres_i <- c(0.5, 0.7, 1.2)
-cloth_res_i <- c(3.0, 2.5, 2.0, 1.5, 1)
+class_thres_i <- c(0.3, 0.5, 0.7)
+cloth_res_i <- c(3.5, 3.0, 2.8, 2.3)
 
 n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     rigid_n <- 2
-    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, "class thres. ", i, " and cloth res. ", j, sep = ""))
+    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
+    view3d( theta = 0, phi = 0, zoom = 0.8)
     las$Classification <- LASNONCLASSIFIED
     n <- n + 1
   }
 }
-
 
 # apply ground classification
 las <- classify_ground(las, mycsf)
