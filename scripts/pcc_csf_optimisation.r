@@ -84,8 +84,8 @@ classify_gnd <- function(las, class_thres, cloth_res, rigid) {
   mycsf <- csf(TRUE, class_thres, cloth_res, rigid)
   las <- classify_ground(las, mycsf)
   las_gnd <- filter_poi(las, Classification == LASGROUND)
-  plot(las_gnd, size = 1, color = "RGB", bg = "white")
-  return(T)
+  # plot(las_gnd, size = 1, color = "RGB", bg = "white")
+  return(las_gnd)
 }
 
 # Globals for Configuration-----------------------------------------------------
@@ -291,12 +291,23 @@ las_origin <- las
 # las <- las_origin
 
 rigid_i <- 1:3
-class_thres_i <- c(0.1,0.3,0.5,0.7,0.9)
-cloth_res_i <- c(0.1,0.3,0.5,0.7,0.9)
+# class_thres_i <- c(0.1,0.3,0.5,0.7,0.9)
+# cloth_res_i <- c(0.1,0.3,0.5,0.7,0.9)
+
+class_thres_i <- c(0.9, 0.7, 0.5, 0.3)
+cloth_res_i <- c(0.9, 0.7, 0.5, 0.3)
+
+# plot(las, size = 1, color = "RGB", bg = "white")
 
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
-    classify_gnd(las, i, j, 2)
+    status <- as.character(paste("Classify with threshold ", i, " and cloth resolution ", j, sep = ""))
+    print(status)
+    las_ij <- classify_gnd(las, i, j, 2)
+    print("plot...")
+    plot(las_ij, size = 1, color = "RGB", bg = "white")
+    las$Classification <- LASNONCLASSIFIED
+    
   }
 }
 
