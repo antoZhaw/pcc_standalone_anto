@@ -301,13 +301,14 @@ cloth_res_i <- c(0.9, 0.7, 0.5, 0.3)
 
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
-    status <- as.character(paste("Classify with threshold ", i, " and cloth resolution ", j, sep = ""))
+    n <- 1L
+    status <- as.character(paste("RGL", n, ": class threshold ", i, " and cloth resolution ", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, 2)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
     las$Classification <- LASNONCLASSIFIED
-    
+    n <- n + 1
   }
 }
 
