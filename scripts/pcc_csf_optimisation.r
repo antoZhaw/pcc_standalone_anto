@@ -239,7 +239,7 @@ aoi_shp <- read_sf(dsn = aoi_path)
 # Filter points which are not within area of interest---------------------------
 # las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 # las <- filter_poi(las, Classification != LASNOISE)
-# plot(las, size = 1, color = "RGB", bg = "white")
+plot(las, size = 1, color = "RGB", bg = "white", axis = F)
 
 # Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
@@ -293,7 +293,7 @@ las_origin <- las
 # class_thres_i <- c(0.1,0.3,0.5,0.7,0.9)
 # cloth_res_i <- c(0.1,0.3,0.5,0.7,0.9)
 
-class_thres_i <- c(1.2, 0.7, 0.5)
+class_thres_i <- c(0.5, 0.7, 1.2)
 cloth_res_i <- c(3.0, 2.5, 2.0, 1.5, 1)
 
 n <- 1L
