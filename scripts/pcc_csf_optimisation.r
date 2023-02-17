@@ -297,42 +297,57 @@ n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     rigid_n <- 1
-    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
+    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d( theta = 0, phi = 0, zoom = 0.8)
+    view3d(theta = 0, phi = 0, zoom = 0.8)
+    par3d(windowRect = c(30, 30, 1100, 1100))
+    output_png_name <- as.character(paste(status, ".png", sep = ""))
+    output_png_path <- file.path(output_path, output_png_name, fsep="/")
+    rgl.snapshot(output_png_path)
+    rgl.close()    # close current device
     las$Classification <- LASNONCLASSIFIED
-    n <- n + 1
   }
 }
 
+n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     rigid_n <- 2
-    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
+    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d( theta = 0, phi = 0, zoom = 0.8)
+    view3d(theta = 0, phi = 0, zoom = 0.8)
+    par3d(windowRect = c(30, 30, 1100, 1100))
+    output_png_name <- as.character(paste(status, ".png", sep = ""))
+    output_png_path <- file.path(output_path, output_png_name, fsep="/")
+    rgl.snapshot(output_png_path)
+    rgl.close()    # close current device
     las$Classification <- LASNONCLASSIFIED
-    n <- n + 1
   }
 }
 
+
+n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     rigid_n <- 3
-    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
+    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d( theta = 0, phi = 0, zoom = 0.8)
+    view3d(theta = 0, phi = 0, zoom = 0.8)
+    par3d(windowRect = c(30, 30, 1100, 1100))
+    output_png_name <- as.character(paste(status, ".png", sep = ""))
+    output_png_path <- file.path(output_path, output_png_name, fsep="/")
+    rgl.snapshot(output_png_path)
+    rgl.close()    # close current device
     las$Classification <- LASNONCLASSIFIED
-    n <- n + 1
   }
 }
 
