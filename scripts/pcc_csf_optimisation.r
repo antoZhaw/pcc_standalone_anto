@@ -288,16 +288,26 @@ las_origin <- las
 
 
 # las_origin <- las
-
 # las <- las_origin
 
-# class_thres_i <- c(0.1,0.3,0.5,0.7,0.9)
-# cloth_res_i <- c(0.1,0.3,0.5,0.7,0.9)
-
-class_thres_i <- c(0.3, 0.5, 0.7)
-cloth_res_i <- c(3.5, 3.0, 2.8, 2.3)
+class_thres_i <- c(0.3, 0.25, 0.2)
+cloth_res_i <- c(3.6, 3.5, 3.4, 3.3)
 
 n <- 1L
+for (i in class_thres_i) {
+  for (j in cloth_res_i) {
+    rigid_n <- 1
+    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
+    print(status)
+    las_ij <- classify_gnd(las, i, j, rigid_n)
+    print("plot...")
+    plot(las_ij, size = 1, color = "RGB", bg = "white")
+    view3d( theta = 0, phi = 0, zoom = 0.8)
+    las$Classification <- LASNONCLASSIFIED
+    n <- n + 1
+  }
+}
+
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     rigid_n <- 2
@@ -311,6 +321,21 @@ for (i in class_thres_i) {
     n <- n + 1
   }
 }
+
+for (i in class_thres_i) {
+  for (j in cloth_res_i) {
+    rigid_n <- 3
+    status <- as.character(paste("RGL", n, ": rigid. ", rigid_n, " class thres. ", i, " and cloth res. ", j, sep = ""))
+    print(status)
+    las_ij <- classify_gnd(las, i, j, rigid_n)
+    print("plot...")
+    plot(las_ij, size = 1, color = "RGB", bg = "white")
+    view3d( theta = 0, phi = 0, zoom = 0.8)
+    las$Classification <- LASNONCLASSIFIED
+    n <- n + 1
+  }
+}
+
 
 # apply ground classification
 las <- classify_ground(las, mycsf)
