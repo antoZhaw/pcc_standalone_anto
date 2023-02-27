@@ -5,7 +5,7 @@
   "perspective": "uav",
   "crs_name": "CH1903+ / LV95",
   "crs_epsg": 2056,
-  "area_of_interest": "AOI_final.shp",
+  "area_of_interest": "aoi_uav_230227",
   "outlier_already_filtered": "T",
   "las_filter": "-keep_first -keep_xy 2575011 1178366.7 2575517.4 1178993 -drop_z_below 572.0",
   "csf_class_threshold": 0.5,

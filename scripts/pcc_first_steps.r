@@ -129,14 +129,14 @@ output_path <- file.path(dir_data, dir_persp, year, settype, "output", output_id
 config_json_name <- as.character(paste(config_id, ".json", sep = ""))
 config_json_path <- file.path(dir_config, config_json_name, fsep="/")
 
-aoi_path <- file.path(dir_repo, "data/area_of_interest_final", "AOI_final.shp", fsep="/")
-aoi_dir <- file.path(dir_repo, "data/area_of_interest_final", fsep="/")
-
 # load dataset specific parameter set
 cfg <- fromJSON(file = config_json_path)
 
 # Create run specific output folder
 dir.create(output_path)
+
+aoi_shp <- as.character(paste(cfg$area_of_interest, ".shp", sep = ""))
+aoi_path <- file.path(dir_repo, "data", cfg$area_of_interest, aoi_shp, fsep="/")
 
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
@@ -233,15 +233,6 @@ if(length(warnings())!=0){
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
-
-# Read Shapefile of area of interest
-# aoi <- vect(x = aoi_path)
-# 
-# 
-# shp <- system.file(aoi_dir, "AOI_final", package = "lidR")
-# lakes <- sf::st_read(shp)
-# 
-# shp     <- system.file("data/area_of_interest_final", "AOI_final.shp", package = "lidR")
 
 aoi_shp <- read_sf(dsn = aoi_path)
 
@@ -353,8 +344,8 @@ las_post <- F
 #   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
 # })
 
-# Classify noise----------------------------------------------------------------
-
+# Classify noise in tls data----------------------------------------------------
+if(perspective=="tls"){
 # Classify outliers as noise. Can be skipped since it has high computational time.
 if(cfg$outlier_already_filtered==F){
 las <- classify_noise(las, sor(50,5))
@@ -382,8 +373,8 @@ las_noise <- filter_poi(las, Classification == LASNOISE)
 # plot(las_noise, size = 1, color = "RGB", bg = "black")
 
 las <- filter_poi(las, Classification != LASNOISE)
-
-las_origin <- las
+}
+# las_origin <- las
 # las <- las_origin
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------

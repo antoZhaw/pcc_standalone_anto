@@ -285,13 +285,17 @@ las_origin <- las
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
+# plot(las, size = 1, color = "RGB", bg = "white")
 
 
 # las_origin <- las
 # las <- las_origin
 
-class_thres_i <- c(0.3, 0.25, 0.2)
-cloth_res_i <- c(3.6, 3.5, 3.4, 3.3)
+# class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
+# cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
+
+class_thres_i <- c(0.9)
+cloth_res_i <- c(1.5)
 
 n <- 1L
 for (i in class_thres_i) {
@@ -302,7 +306,7 @@ for (i in class_thres_i) {
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d(theta = 0, phi = 0, zoom = 0.8)
+    view3d(theta = 0, phi = 0, zoom = 0.6)
     par3d(windowRect = c(30, 30, 1100, 1100))
     output_png_name <- as.character(paste(status, ".png", sep = ""))
     output_png_path <- file.path(output_path, output_png_name, fsep="/")
@@ -312,24 +316,28 @@ for (i in class_thres_i) {
   }
 }
 
-n <- 1L
-for (i in class_thres_i) {
-  for (j in cloth_res_i) {
-    rigid_n <- 2
-    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
-    print(status)
-    las_ij <- classify_gnd(las, i, j, rigid_n)
-    print("plot...")
-    plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d(theta = 0, phi = 0, zoom = 0.8)
-    par3d(windowRect = c(30, 30, 1100, 1100))
-    output_png_name <- as.character(paste(status, ".png", sep = ""))
-    output_png_path <- file.path(output_path, output_png_name, fsep="/")
-    rgl.snapshot(output_png_path)
-    rgl.close()    # close current device
-    las$Classification <- LASNONCLASSIFIED
-  }
-}
+# writeLAS(las_ij, file = output_las_gnd_path)
+
+
+# 
+# n <- 1L
+# for (i in class_thres_i) {
+#   for (j in cloth_res_i) {
+#     rigid_n <- 2
+#     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
+#     print(status)
+#     las_ij <- classify_gnd(las, i, j, rigid_n)
+#     print("plot...")
+#     plot(las_ij, size = 1, color = "RGB", bg = "white")
+#     view3d(theta = 0, phi = 0, zoom = 0.6)
+#     par3d(windowRect = c(30, 30, 1100, 1100))
+#     output_png_name <- as.character(paste(status, ".png", sep = ""))
+#     output_png_path <- file.path(output_path, output_png_name, fsep="/")
+#     rgl.snapshot(output_png_path)
+#     rgl.close()    # close current device
+#     las$Classification <- LASNONCLASSIFIED
+#   }
+# }
 
 
 n <- 1L
@@ -341,7 +349,7 @@ for (i in class_thres_i) {
     las_ij <- classify_gnd(las, i, j, rigid_n)
     print("plot...")
     plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d(theta = 0, phi = 0, zoom = 0.8)
+    view3d(theta = 0, phi = 0, zoom = 0.6)
     par3d(windowRect = c(30, 30, 1100, 1100))
     output_png_name <- as.character(paste(status, ".png", sep = ""))
     output_png_path <- file.path(output_path, output_png_name, fsep="/")
