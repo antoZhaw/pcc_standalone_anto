@@ -22,6 +22,7 @@ library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
+library(rgl) # for RGL Viewer control functions
 
 # Functions---------------------------------------------------------------------
 
