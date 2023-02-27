@@ -184,9 +184,11 @@ poi_sky_BPI <- ~if_else(las$BPI >= BPI_thresh & las$ground == F &
 poi_red_ExR <- ~if_else(las$ExR >= ExR_thresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sed_ExR_band <- ~if_else(las$ExR >= ExR_thresh_min & las$ExR <= ExR_thresh_max &
-                          las$ground == T &
+poi_sed <- ~if_else(las$ground == T &
                           las$Classification == LASNONCLASSIFIED, T, F)
+
+poi_water <- ~if_else(las$water == T &
+                      las$Classification == LASNONCLASSIFIED, T, F)
 
 poi_red_RPI <- ~if_else(las$RPI >= RPI_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
@@ -208,20 +210,9 @@ poi_rock_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
                               las$ground == F &
                               las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sed_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
-                             las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
-                             las$ground == T &
-                             las$Classification == LASNONCLASSIFIED, T, F)
-
 poi_rock_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
                            las$ground == F &
                            las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
-                           las$ground == T &
-                           las$Classification == LASNONCLASSIFIED, T, F)
-
-
 # Read files--------------------------------------------------------------------
 
 # empty warnings if existing.
@@ -238,16 +229,6 @@ aoi_shp <- read_sf(dsn = aoi_path)
 
 # Save relevant information about the whole dataset.
 sink(output_las_inp_path)
-summary(las)
-sink(append = T)
-
-# Filter points which are not within area of interest---------------------------
-las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
-las <- filter_poi(las, Classification != LASNOISE)
-plot(las, size = 1, color = "RGB", bg = "white")
-
-# Save relevant information about the area of interest.
-sink(output_las_aoi_path)
 summary(las)
 sink(append = T)
 
@@ -382,29 +363,61 @@ las <- filter_poi(las, Classification != LASNOISE)
 # rigidness: does not seem to have much impact.
 # class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
-mycsf <- csf(TRUE, cfg$csf_class_threshold, cfg$csf_cloth_resolution, cfg$csf_rigidness)
+csf_gnd <- csf(cfg$csf_gnd_sloop_smooth, cfg$csf_gnd_class_threshold, cfg$csf_gnd_cloth_resolution, cfg$csf_gnd_rigidness)
+
 # las_origin <- las
 
 # las <- las_origin
 
-# apply ground classification
-las <- classify_ground(las, mycsf)
+# Apply ground classification for tls and uav data
+las <- classify_ground(las, csf_gnd)
 # gnd <- filter_ground(las)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
- 
 las_gnd <- filter_poi(las, Classification == LASGROUND)
 plot(las_gnd, size = 1, color = "RGB", bg = "white")
+view3d(theta = 0, phi = 0, zoom = 0.6)
+par3d(windowRect = c(30, 30, 1100, 1100))
+
+# Reset class LASGROUND for further procedure
+las$Classification <- LASNONCLASSIFIED
+
+# Apply water classification for uav data
+if(perspective=="uav"){
+  csf_water <- csf(cfg$csf_water_sloop_smooth, cfg$csf_water_class_threshold, cfg$csf_water_cloth_resolution, cfg$csf_water_rigidness)
+  las <- classify_ground(las, csf_water)
+  las <- add_attribute(las, FALSE, "water")
+  las$water <- if_else(las$Classification == LASGROUND, T, F)
+  las_water <- filter_poi(las, Classification == LASGROUND)
+  plot(las_water, size = 1, color = "RGB", bg = "white")
+  view3d(theta = 0, phi = 0, zoom = 0.6)
+  par3d(windowRect = c(30, 30, 1100, 1100))
+  # Classify water
+  las <- classify_poi(las, class = LASWATER, poi = poi_water)
+}
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
 # plot(nongnd, size = 3, color = "RGB", bg = "white")
 
-# Reset class LASGROUND for further procedure
-las$Classification <- LASNONCLASSIFIED
-
 # Check whether classes are reset (Levels are supposed to be zero)
 # factor(las$Classification)
+
+# Filter points which are not within area of interest---------------------------
+las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
+las <- filter_poi(las, Classification != LASNOISE)
+plot(las, size = 1, color = "RGB", bg = "white")
+
+# Save relevant information about the area of interest.
+sink(output_las_aoi_path)
+summary(las)
+sink(append = T)
+
+# Classify sediment-------------------------------------------------------------
+# This step assumes that water classification is already done for uav data.
+las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed)
+las_sed <- filter_poi(las, Classification == LASKEYPOINT)
+# plot(las_sed, size = 1, color = "RGB", bg = "black")
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
@@ -482,50 +495,6 @@ las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
 # Plot vegetation
 # las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
 # plot(las_veg, size = 1, color = "RGB", bg = "black")
-
-# Classify sediment-------------------------------------------------------------
-# las_origin <- las
-# las <- las_origin
-
-# Maximales RtoB: 1.21 in cliff_bright
-# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-
-#Min: 0.7222 and Max. 1.1290 derived from cliff_dark
-RtoBmin <- cfg$sed_RtoBmin
-RtoBmax <- cfg$sed_RtoBmax
-
-#Min: 0.8333 and Max. 1.1613 derived from cliff_dark
-#Min: 0.7928 from cliff_blue
-GtoBmin <- cfg$sed_GtoBmin
-GtoBmax <- cfg$sed_GtoBmax
-
-# Approach with ratios RtoB and GtoB
-las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
-las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
-# plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
-
-# Classify band of negative excess red parts------------------------------------
-# Negative ExR values appear to be sediment, ground criteria is set true.
-ExR_thresh_max <- cfg$sed_ExR_max
-ExR_thresh_min <- cfg$sed_ExR_min
-# ExR = -53000 ... 1000 seems to affect sediment points more than others
-# No big difference between -20000 and -53000
-
-las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ExR_band)
-las_sed <- filter_poi(las, Classification == LASKEYPOINT)
-
-# For an exclusive plot of negative ExR values change to LASBRIDGE as class.
-# las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
-plot(las_sed, size = 1, color = "RGB", bg = "white")
-
-# Approach with RtoB times GtoB
-# Set limits for sediment.
-# RBtimesGB_min <- 0.9370
-# RBtimesGB_max <- 1.0433
-# las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
-# las_sed_times <- filter_poi(las, Classification == LASLOWPOINT)
-# plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
-
 
 # Classify rocks and cliffs-----------------------------------------------------
 
