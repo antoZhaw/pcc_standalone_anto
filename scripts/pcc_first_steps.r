@@ -22,6 +22,7 @@ library(geometry) # for raserize_canopy function
 library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
+library(rgl) # for RGL Viewer control functions
 
 # Functions---------------------------------------------------------------------
 
@@ -417,7 +418,9 @@ sink(append = T)
 # This step assumes that water classification is already done for uav data.
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed)
 las_sed <- filter_poi(las, Classification == LASKEYPOINT)
-# plot(las_sed, size = 1, color = "RGB", bg = "black")
+plot(las_sed, size = 1, color = "RGB", bg = "black")
+view3d(theta = 0, phi = 0, zoom = 0.6)
+par3d(windowRect = c(30, 30, 1100, 1100))
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
