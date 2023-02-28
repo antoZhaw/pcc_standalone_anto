@@ -115,7 +115,7 @@ if(user == "gubelyve"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
-  dir_repo <- "C:/code_wc/"
+  dir_repo <- "C:/code_wc/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 }
 
