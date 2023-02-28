@@ -190,8 +190,9 @@ poi_sky_BPI <- ~if_else(las$BPI >= BPI_thresh & las$ground == F &
 poi_red_ExR <- ~if_else(las$ExR >= ExR_thresh &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_sed <- ~if_else(las$ground == T &
-                          las$Classification == LASNONCLASSIFIED, T, F)
+poi_sed <- ~if_else(las$water == F & las$Classification == LASGROUND, T, F)
+
+poi_gnd <- ~if_else(las$ground == T, T, F)
 
 poi_water <- ~if_else(las$water == T, T, F)
 
@@ -380,8 +381,8 @@ las <- classify_ground(las, csf_gnd)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 las_gnd <- filter_poi(las, Classification == LASGROUND)
-plot(las_gnd, size = 1, color = "RGB", bg = "white")
-set.RGLtopview()
+# plot(las_gnd, size = 1, color = "RGB", bg = "white")
+# set.RGLtopview()
 
 # Reset class LASGROUND for further procedure
 las$Classification <- LASNONCLASSIFIED
@@ -392,15 +393,10 @@ if(perspective=="uav"){
   las <- classify_ground(las, csf_water)
   las <- add_attribute(las, FALSE, "water")
   las$water <- if_else(las$Classification == LASGROUND, T, F)
-  las_water <- filter_poi(las, Classification == LASGROUND)
-  plot(las_water, size = 1, color = "RGB", bg = "white")
-  set.RGLtopview()
-  # Classify water
-  las <- classify_poi(las, class = LASWATER, poi = poi_water)
 }
-las_water2 <- filter_poi(las, Classification == LASWATER)
-plot(las_water2, size = 1, color = "RGB", bg = "white")
-set.RGLtopview()
+
+# Reset class LASGROUND for further procedure
+las$Classification <- LASNONCLASSIFIED
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
@@ -410,23 +406,38 @@ set.RGLtopview()
 # factor(las$Classification)
 
 # Filter points which are not within area of interest---------------------------
-las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
-las <- filter_poi(las, Classification != LASNOISE)
-plot(las, size = 1, color = "RGB", bg = "white")
-set.RGLtopview()
+# las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
+# las <- filter_poi(las, Classification != LASNOISE)
+# plot(las, size = 1, color = "RGB", bg = "white")
+# set.RGLtopview()
 
 # Save relevant information about the area of interest.
 sink(output_las_aoi_path)
 summary(las)
 sink(append = T)
 
+# Classify ground---------------------------------------------------------------
+las <- classify_poi(las, class = LASGROUND, poi = poi_gnd)
+las_gnd <- filter_poi(las, Classification == LASGROUND)
+plot(las_gnd, size = 1, color = "RGB", bg = "white")
+set.RGLtopview()
+
+# Classify water----------------------------------------------------------------
+las <- classify_poi(las, class = LASWATER, poi = poi_water)
+las_water <- filter_poi(las, Classification == LASWATER)
+plot(las_water, size = 1, color = "RGB", bg = "white")
+set.RGLtopview()
+
+# las_uncl <- filter_poi(las, Classification == LASNONCLASSIFIED)
+# plot(las_uncl, size = 1, color = "RGB", bg = "white")
+# set.RGLtopview()
+
 # Classify sediment-------------------------------------------------------------
 # This step assumes that water classification is already done for uav data.
-las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed)
-las_sed <- filter_poi(las, Classification == LASKEYPOINT)
+las <- classify_poi(las_gnd, class = LASKEYPOINT, poi = poi_sed)
+las_sed <- filter_poi(las_gnd, Classification == LASKEYPOINT)
 plot(las_sed, size = 1, color = "RGB", bg = "white")
-view3d(theta = 0, phi = 0, zoom = 0.6)
-par3d(windowRect = c(30, 30, 1100, 1100))
+set.RGLtopview()
 
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
