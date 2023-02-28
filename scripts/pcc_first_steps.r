@@ -54,6 +54,11 @@ to.LAScolor <- function(small_RGB) {
   return(as.integer(LAScolor))
 }
 
+set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
+  view3d(theta = 0, phi = 0, zoom = 0.6)
+  par3d(windowRect = c(30, 30, x_scale, y_scale))
+}
+
 gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, post, file_path) {
   # receive attribute name, uncleaned "$" might cause errors.
   suffix <- if_else(post == T, "_post", "_pre")
@@ -188,8 +193,7 @@ poi_red_ExR <- ~if_else(las$ExR >= ExR_thresh &
 poi_sed <- ~if_else(las$ground == T &
                           las$Classification == LASNONCLASSIFIED, T, F)
 
-poi_water <- ~if_else(las$water == T &
-                      las$Classification == LASNONCLASSIFIED, T, F)
+poi_water <- ~if_else(las$water == T, T, F)
 
 poi_red_RPI <- ~if_else(las$RPI >= RPI_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
@@ -377,8 +381,7 @@ las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 las_gnd <- filter_poi(las, Classification == LASGROUND)
 plot(las_gnd, size = 1, color = "RGB", bg = "white")
-view3d(theta = 0, phi = 0, zoom = 0.6)
-par3d(windowRect = c(30, 30, 1100, 1100))
+set.RGLtopview()
 
 # Reset class LASGROUND for further procedure
 las$Classification <- LASNONCLASSIFIED
@@ -391,11 +394,13 @@ if(perspective=="uav"){
   las$water <- if_else(las$Classification == LASGROUND, T, F)
   las_water <- filter_poi(las, Classification == LASGROUND)
   plot(las_water, size = 1, color = "RGB", bg = "white")
-  view3d(theta = 0, phi = 0, zoom = 0.6)
-  par3d(windowRect = c(30, 30, 1100, 1100))
+  set.RGLtopview()
   # Classify water
   las <- classify_poi(las, class = LASWATER, poi = poi_water)
 }
+las_water2 <- filter_poi(las, Classification == LASWATER)
+plot(las_water2, size = 1, color = "RGB", bg = "white")
+set.RGLtopview()
 
 # filter non-ground part from classified las
 # nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
@@ -408,6 +413,7 @@ if(perspective=="uav"){
 las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
 las <- filter_poi(las, Classification != LASNOISE)
 plot(las, size = 1, color = "RGB", bg = "white")
+set.RGLtopview()
 
 # Save relevant information about the area of interest.
 sink(output_las_aoi_path)
@@ -418,7 +424,7 @@ sink(append = T)
 # This step assumes that water classification is already done for uav data.
 las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed)
 las_sed <- filter_poi(las, Classification == LASKEYPOINT)
-plot(las_sed, size = 1, color = "RGB", bg = "black")
+plot(las_sed, size = 1, color = "RGB", bg = "white")
 view3d(theta = 0, phi = 0, zoom = 0.6)
 par3d(windowRect = c(30, 30, 1100, 1100))
 
