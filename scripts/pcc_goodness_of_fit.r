@@ -220,11 +220,28 @@ aoi_shp <- read_sf(dsn = aoi_path)
 # Intersect target with area of interest
 mctar_bb <- st_intersection(mctar_all, bounding_box)
 
-# Separate targets
+# Separate targets filtered by class
 mctar_water <- mctar_bb %>%  filter(Id == 1)
 mctar_sed <- mctar_bb %>%  filter(Id == 2)
 mctar_veg <- mctar_bb %>%  filter(Id == 3)
 mctar_rock <- mctar_bb %>%  filter(Id == 5)
+
+targeted_class <- mctar_water
+
+# Generate target---------------------------------------------------------------
+# Calculate number of rows and columns of target, based on extent
+# This calculation results in a resolution of 0.5
+tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
+tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
+
+# Generate target. This is done beforehand since it is required only once.
+tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
+target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
+
+# Information about rasterized target
+target$layer
+# st_crs(target)
+
 
 # Plot features on one plot
 # ggplot() + 
@@ -314,20 +331,8 @@ col <- height.colors(15)
 DEM_ij <- rasterize_canopy(las_ij, res = 0.5, p2r())
 plot(DEM_ij, col = col)
 
-# Gain number of rows and columns
-tar_nrow <- nrow(DEM_ij)
-tar_ncol <- ncol(DEM_ij)
-
-tar_raw <- raster(as(mctar_water, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
-target <- rasterize(as(mctar_water, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
-
-# Information about rasterized items
 # DEM_ij$Z
 # st_crs(DEM_ij)
-# target$layer
-# st_crs(target)
-
-plot(DEM_ij)
 plot(target)
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
