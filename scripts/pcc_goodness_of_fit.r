@@ -234,9 +234,9 @@ mctar_rock <- mctar_bb %>%  filter(Id == 5)
 
 # test <- st_intersection(mctar_sed, AOI_xy)
 
-ggplot() + 
-  geom_sf(data = mcdut, mapping = aes()) +
-  coord_sf(crs = st_crs(2056))
+# ggplot() +
+#   geom_sf(data = mcdut, mapping = aes()) +
+#   coord_sf(crs = st_crs(2056))
 
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -270,8 +270,8 @@ data_path
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 # plot(las, size = 1, color = "RGB", bg = "white")
 
-
 las_origin <- las
+
 las <- las_origin
 par(mfrow=c(1,1))
 
@@ -310,12 +310,25 @@ las_ij <- filter_poi(las_ij, Classification != LASNOISE)
 plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
 set.RGLtopview()
 
-# las_ij$Classification <- LASNONCLASSIFIED
-
-DEM_ij <- rasterize_canopy(las_ij, res = 1, algorithm = p2r())
 col <- height.colors(15)
-chm <- rasterize_canopy(las_ij, res = 0.5, p2r(0.2))
-plot(chm, col = col)
+DEM_ij <- rasterize_canopy(las_ij, res = 0.5, p2r())
+plot(DEM_ij, col = col)
+
+# Gain number of rows and columns
+tar_nrow <- nrow(DEM_ij)
+tar_ncol <- ncol(DEM_ij)
+
+tar_raw <- raster(as(mctar_water, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
+target <- rasterize(as(mctar_water, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
+
+# Information about rasterized items
+# DEM_ij$Z
+# st_crs(DEM_ij)
+# target$layer
+# st_crs(target)
+
+plot(DEM_ij)
+plot(target)
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
 # 
