@@ -45,6 +45,11 @@ classify.gnd <- function(las, class_thres, cloth_res, rigid) {
   return(las_gnd)
 }
 
+set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
+  view3d(theta = 0, phi = 0, zoom = 0.6)
+  par3d(windowRect = c(30, 30, x_scale, y_scale))
+}
+
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
 dataset_id <- "1"
@@ -266,8 +271,10 @@ data_path
 # plot(las, size = 1, color = "RGB", bg = "white")
 
 
-# las_origin <- las
-# las <- las_origin
+las_origin <- las
+las <- las_origin
+par(mfrow=c(1,1))
+
 
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
@@ -282,36 +289,46 @@ for (i in class_thres_i) {
     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify.gnd(las, i, j, rigid_n)
-    print("plot...")
-    plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d(theta = 0, phi = 0, zoom = 0.6)
-    par3d(windowRect = c(30, 30, 1100, 1100))
-    output_png_name <- as.character(paste(status, ".png", sep = ""))
-    output_png_path <- file.path(output_path, output_png_name, fsep="/")
+    las_ij <- add_attribute(las_ij, FALSE, "ground")
+    las_ij$ground <- if_else(las_ij$Classification == LASGROUND, T, F)
+    # set.RGLtopview()
+    # output_png_name <- as.character(paste(status, ".png", sep = ""))
+    # output_png_path <- file.path(output_path, output_png_name, fsep="/")
     # rgl.snapshot(output_png_path)
     # rgl.close()
-    las$Classification <- LASNONCLASSIFIED
+    # las$Classification <- LASNONCLASSIFIED
   }
 }
 
+las_ij <- filter_poi(las_ij, Classification == LASGROUND)
+# plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
+# set.RGLtopview()
+
 # Filter points which are not within area of interest---------------------------
 las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
-las_ij <- filter_poi(las, Classification != LASNOISE)
+las_ij <- filter_poi(las_ij, Classification != LASNOISE)
 plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
+set.RGLtopview()
+
+# las_ij$Classification <- LASNONCLASSIFIED
 
 DEM_ij <- rasterize_canopy(las_ij, res = 1, algorithm = p2r())
+col <- height.colors(15)
+chm <- rasterize_canopy(las_ij, res = 0.5, p2r(0.2))
+plot(chm, col = col)
 
-DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
-
-rs_DEM2 <- resample(DEM1, DEM2)
-DEM3 <- rs_DEM2 - DEM2
-
-col <- height.colors(30)
-par(mfrow=c(1,3))
-
-plot(DEM1, col = col, main = "TLS 2021")
-plot(DEM2, col = col, main = "TLS 2022")
-plot(DEM3, col = col, main = "DEM of difference")
+# DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
+# 
+# rs_DEM2 <- resample(DEM1, DEM2)
+# DEM3 <- rs_DEM2 - DEM2
+# 
+# col <- height.colors(30)
+# 
+# summary(las_ij)
+# 
+# plot(DEM_ij, col = col, main = "TLS 2021")
+# plot(DEM2, col = col, main = "TLS 2022")
+# plot(DEM3, col = col, main = "DEM of difference")
 
 
 # writeLAS(las_ij, file = output_las_gnd_path)
