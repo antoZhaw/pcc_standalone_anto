@@ -98,6 +98,9 @@ dir.create(output_path)
 mctar_shp_name <- as.character(paste(cfg$mapcurve_target_shp, sep = ""))
 mctar_path <- file.path(dir_repo, mctar_shp_name, fsep="/")
 
+mcdut_shp_name <- as.character(paste(cfg$mapcurve_dut_shp, sep = ""))
+mcdut_path <- file.path(dir_repo, mcdut_shp_name, fsep="/")
+
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
 
@@ -206,6 +209,10 @@ bounding_box <- gen_xy %>%
 
 # Read Shapefiles
 mctar_all <- read_sf(dsn = mctar_path) 
+mcdut <- read_sf(dsn = mcdut_path) 
+aoi_shp <- read_sf(dsn = aoi_path)
+
+# Intersect target with area of interest
 mctar_bb <- st_intersection(mctar_all, bounding_box)
 
 # Separate targets
@@ -223,16 +230,13 @@ mctar_rock <- mctar_bb %>%  filter(Id == 5)
 # test <- st_intersection(mctar_sed, AOI_xy)
 
 ggplot() + 
-  geom_sf(data = mctar_water, mapping = aes()) +
+  geom_sf(data = mcdut, mapping = aes()) +
   coord_sf(crs = st_crs(2056))
-
-aoi_shp <- read_sf(dsn = aoi_path)
 
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
-
 
 # Filter points which are not within area of interest---------------------------
 # las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
@@ -253,29 +257,6 @@ if(has.lasClassification(las)){
 
 # Data exploration--------------------------------------------------------------
 data_path
-
-# las_origin <- las
-# las <- las_origin
-
-# Create attributes for classification------------------------------------------
-
-
-# Generate list of active attributes 
-active_attr <- names(las)
-# Exclude some irrelevant attributes manually
-active_attr <- active_attr[! active_attr %in% c("X","Y","Z","Classification", "RtoB", "RGtoB", "RBtimesGB", "Intensity" )]
-active_attr
-
-static_subtitle <- "Derivat aus Klassifikation"
-las_post <- F
-
-# map(active_attr, function(x){
-#   gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-# })
-
-
-las_origin <- las
-# las <- las_origin
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # setup csf filter settings
@@ -307,11 +288,31 @@ for (i in class_thres_i) {
     par3d(windowRect = c(30, 30, 1100, 1100))
     output_png_name <- as.character(paste(status, ".png", sep = ""))
     output_png_path <- file.path(output_path, output_png_name, fsep="/")
-    rgl.snapshot(output_png_path)
-    rgl.close()    # close current device
+    # rgl.snapshot(output_png_path)
+    # rgl.close()
     las$Classification <- LASNONCLASSIFIED
   }
 }
+
+# Filter points which are not within area of interest---------------------------
+las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
+las_ij <- filter_poi(las, Classification != LASNOISE)
+plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
+
+DEM_ij <- rasterize_canopy(las_ij, res = 1, algorithm = p2r())
+
+DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
+
+rs_DEM2 <- resample(DEM1, DEM2)
+DEM3 <- rs_DEM2 - DEM2
+
+col <- height.colors(30)
+par(mfrow=c(1,3))
+
+plot(DEM1, col = col, main = "TLS 2021")
+plot(DEM2, col = col, main = "TLS 2022")
+plot(DEM3, col = col, main = "DEM of difference")
+
 
 # writeLAS(las_ij, file = output_las_gnd_path)
 

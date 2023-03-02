@@ -9,6 +9,7 @@
   "outlier_already_filtered": true,
   "las_filter": "-keep_first -keep_xy 2575011 1178366.7 2575517.4 1178993 -drop_z_below 572.0",
   "mapcurve_target_shp": "",
+  "mapcurve_dut_shp": "data/dut_filter_230302/dut_filter_230302.shp",
   "csf_gnd_sloop_smooth": false,
   "csf_gnd_class_threshold": 0.9,
   "csf_gnd_cloth_resolution": 1.5,
