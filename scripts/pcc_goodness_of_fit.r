@@ -23,6 +23,7 @@ library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
 library(rgl) # for RGL Viewer control functions
+library(sabre) # for mapcurves (goodness-of-fit function)
 
 # Functions---------------------------------------------------------------------
 
@@ -334,6 +335,9 @@ plot(DEM_ij, col = col)
 # DEM_ij$Z
 # st_crs(DEM_ij)
 plot(target)
+
+partitions_mc <- mapcurves_calc(x = DEM_ij, y = target)
+partitions_mc
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
 # 
