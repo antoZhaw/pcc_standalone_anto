@@ -189,18 +189,42 @@ if(length(warnings())!=0){
   assign("last.warning", NULL, envir = baseenv())
 }
 
+# Generate rectangular polygon of area of interest
+gen_xy <- structure(list(dat = c("BURR-1-1-1", "BURR-1-1-1", 
+                                 "BURR-1-1-1", "BURR-1-1-1"),
+                         Longitude = c(2575011, 2575011, 
+                                      2575517.4, 2575517.4),
+                         Latitude = c(1178366.7, 1178993, 
+                                       1178993, 1178366.7)),
+                    class = "data.frame", row.names = c(NA,-4L))
+
+bounding_box <- gen_xy %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
+  group_by(dat) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("POLYGON")
+
 # Read Shapefiles
-mctar_all <- read_sf(dsn = mctar_path)
+mctar_all <- read_sf(dsn = mctar_path) 
+mctar_bb <- st_intersection(mctar_all, bounding_box)
 
 # Separate targets
-mctar_water <- mctar_all %>%  filter(Id == 1)
-mctar_sed <- mctar_all %>%  filter(Id == 2)
-mctar_veg <- mctar_all %>%  filter(Id == 3)
-mctar_rock <- mctar_all %>%  filter(Id == 5)
+mctar_water <- mctar_bb %>%  filter(Id == 1)
+mctar_sed <- mctar_bb %>%  filter(Id == 2)
+mctar_veg <- mctar_bb %>%  filter(Id == 3)
+mctar_rock <- mctar_bb %>%  filter(Id == 5)
 
-plot(mctar_veg)
+# Plot features on one plot
+# ggplot() + 
+#   geom_sf(data = AOI_xy, mapping = aes()) +
+#   geom_sf(data = mctar_sed, mapping = aes()) +
+#   coord_sf(crs = st_crs(2056))
 
+# test <- st_intersection(mctar_sed, AOI_xy)
 
+ggplot() + 
+  geom_sf(data = mctar_water, mapping = aes()) +
+  coord_sf(crs = st_crs(2056))
 
 aoi_shp <- read_sf(dsn = aoi_path)
 
