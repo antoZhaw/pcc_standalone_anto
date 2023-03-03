@@ -112,6 +112,9 @@ mcdut_path <- file.path(dir_repo, mcdut_shp_name, fsep="/")
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
 
+output_target_name <- as.character(paste(output_id, ".png", sep = ""))
+output_target_path <- file.path(output_path, output_target_name, fsep="/")
+
 output_csv_name <- as.character(paste(output_id, ".csv", sep = ""))
 output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 
@@ -301,17 +304,16 @@ par(mfrow=c(1,1))
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
 # 
-# class_thres_i <- c(0.9)
-# cloth_res_i <- c(1.5)
-
+# class_thres_i <- c(0.22)
+# cloth_res_i <- c(3.5)
 
 # good values for sediment (rigidness=1)
-class_thres_i <- c(0.2, 0.22, 0.26, 0.3)
-cloth_res_i <- c(3.6, 3,5, 3.4, 3.3, 3.2, 3.1, 3.0)
+class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31)
+cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
 
 col <- height.colors(15)
 raster_res <- 0.2
-class <- targeted_class$Id
+class_id <- targeted_class$Id
 # 
 # record <- data.frame(names(c("class", "rigidness", "class threshold",
 #                              "cloth resolution", "steep slope", "extent", "n_obs",
@@ -319,12 +321,14 @@ class <- targeted_class$Id
 
 
 df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
-                  clothresolution=c(""), steepslope=c(""), n_obs=c(""), kappa=c(""))
+                  clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
+                 kappa=c(""), comp_time_sec=c(""))
 
 n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
-    rigid_n <- 1
+    start_ij <- as_datetime(lubridate::now())
+        rigid_n <- 1
     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify.gnd(las, i, j, rigid_n)
@@ -364,13 +368,18 @@ for (i in class_thres_i) {
     
     kap <- cohen.kappa(x=cbind(rater1,rater2))
 
-    obs <- c(status, "water", rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa)
+    end_ij <- as_datetime(lubridate::now())
+    timespan_ij <- interval(start_ij, end_ij)
+    delta_t <- as.numeric(timespan_ij, "seconds")
+    obs <- c(status, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t)
     df <- rbind(df, obs)
     
     n <- n + 1
   }
 }
-write_delim(df, file=output_csv_path)
+write_delim(df, file=output_csv_path, delim = ";")
+
+plot(target, legend =F)
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
