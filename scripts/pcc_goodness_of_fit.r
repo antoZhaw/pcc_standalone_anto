@@ -330,25 +330,31 @@ set.RGLtopview()
 
 col <- height.colors(15)
 raster_res <- 0.5
-DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r())
-plot(DEM_ij, col = col)
-raster_ext <- extent(DEM_ij)
-DEM_ij$Z
 
-tar_raw <- raster(nrows=180, ncols=360, crs=2056,
+DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
+# plot(DEM_ij, col = col)
+raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
+
+
+tar_raw <- raster(nrows=nrow(DEM_ij), ncols=ncols(DEM_ij), crs=2056,
                   ext=raster_ext, resolution=raster_res, vals=NULL)
-
-# tar_raw <- raster(targeted_class, res = raster_res)
 target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
-plot(target)
 
+plot(DEM_ij)
+extent(target)
+extent(DEM_ij)
 
+DEM_ij[DEM_ij != 0] <- 1
+
+plot(DEM_ij)
 # DEM_ij$Z
 # st_crs(DEM_ij)
 plot(target)
 
-partitions_mc <- mapcurves_calc(x = DEM_ij, y = target)
-partitions_mc
+mc <- mapcurves_calc(x = target, y = DEM_ij)
+plot(mc$map1)
+plot(mc$map2)
+mc$gof
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
 # 
