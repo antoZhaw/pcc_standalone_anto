@@ -352,8 +352,10 @@ plot(DEM_ij)
 plot(target)
 
 mc <- mapcurves_calc(x = target, y = DEM_ij)
-plot(mc$map1)
-plot(mc$map2)
+par(mfrow=c(1,2))
+
+plot(mc$map1, legend = F)
+plot(mc$map2, legend = F)
 mc$gof
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
