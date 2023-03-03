@@ -24,6 +24,7 @@ library(purrr) # for map function
 library(rjson) # for JSON generation
 library(rgl) # for RGL Viewer control functions
 library(sabre) # for mapcurves (goodness-of-fit function)
+library(fasterize) # for faster rasterization
 
 # Functions---------------------------------------------------------------------
 
@@ -232,15 +233,15 @@ targeted_class <- mctar_water
 # Generate target---------------------------------------------------------------
 # Calculate number of rows and columns of target, based on extent
 # This calculation results in a resolution of 0.5
-tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
-tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
+# tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
+# tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
 
 # Generate target. This is done beforehand since it is required only once.
-tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
-target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
+# tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
+# target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
 
 # Information about rasterized target
-target$layer
+# target$layer
 # st_crs(target)
 
 
@@ -331,6 +332,12 @@ set.RGLtopview()
 col <- height.colors(15)
 DEM_ij <- rasterize_canopy(las_ij, res = 0.5, p2r())
 plot(DEM_ij, col = col)
+
+
+# Generate target. This is done beforehand since it is required only once.
+# tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
+# target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
+
 
 # DEM_ij$Z
 # st_crs(DEM_ij)
