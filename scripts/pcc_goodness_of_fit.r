@@ -49,7 +49,7 @@ classify.gnd <- function(las, class_thres, cloth_res, rigid) {
 }
 
 set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
-  view3d(theta = 0, phi = 0, zoom = 0.6)
+  view3d(theta = 0, phi = 0, zoom = 0.8)
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
@@ -111,6 +111,9 @@ mcdut_path <- file.path(dir_repo, mcdut_shp_name, fsep="/")
 
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
+
+output_csv_name <- as.character(paste(output_id, ".csv", sep = ""))
+output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 
 output_las_inp_name <- as.character(paste(output_id, "-inp.txt", sep = ""))
 output_las_inp_path <- file.path(output_path, output_las_inp_name, fsep="/")
@@ -294,24 +297,29 @@ las_origin <- las
 las <- las_origin
 par(mfrow=c(1,1))
 
-
+# good values for sediment (rigidness=1)
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
+# 
+# class_thres_i <- c(0.9)
+# cloth_res_i <- c(1.5)
 
-class_thres_i <- c(0.9)
-cloth_res_i <- c(1.5)
+
+# good values for sediment (rigidness=1)
+class_thres_i <- c(0.2, 0.22, 0.26, 0.3)
+cloth_res_i <- c(3.6, 3,5, 3.4, 3.3, 3.2, 3.1, 3.0)
+
 col <- height.colors(15)
-raster_res <- 0.5
+raster_res <- 0.2
+class <- targeted_class$Id
 # 
 # record <- data.frame(names(c("class", "rigidness", "class threshold",
 #                              "cloth resolution", "steep slope", "extent", "n_obs",
 #                              "kappa_low","kappa_upper", "kappa")))
 
-df <- data.frame(names(c("name", "class", "rigidness", "class threshold",
-                             "cloth resolution", 
-                             "steep slope", "n_obs", "kappa")))
 
-
+df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
+                  clothresolution=c(""), steepslope=c(""), n_obs=c(""), kappa=c(""))
 
 n <- 1L
 for (i in class_thres_i) {
@@ -356,245 +364,13 @@ for (i in class_thres_i) {
     
     kap <- cohen.kappa(x=cbind(rater1,rater2))
 
-    obs <- data.frame(x=c(status, "water", rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa))
-    df_old <- df
-    df <- rbind(df_old, obs)
+    obs <- c(status, "water", rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa)
+    df <- rbind(df, obs)
+    
     n <- n + 1
   }
 }
-
-# DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
-# 
-# rs_DEM2 <- resample(DEM1, DEM2)
-# DEM3 <- rs_DEM2 - DEM2
-# 
-# col <- height.colors(30)
-# 
-# summary(las_ij)
-# 
-# plot(DEM_ij, col = col, main = "TLS 2021")
-# plot(DEM2, col = col, main = "TLS 2022")
-# plot(DEM3, col = col, main = "DEM of difference")
-
-
-# writeLAS(las_ij, file = output_las_gnd_path)
-
-
-
-# apply ground classification
-las <- classify_ground(las, mycsf)
-# gnd <- filter_ground(las)
-las <- add_attribute(las, FALSE, "ground")
-las$ground <- if_else(las$Classification == LASGROUND, T, F)
- 
-las_gnd <- filter_poi(las, Classification == LASGROUND)
-plot(las_gnd, size = 1, color = "RGB", bg = "white")
-
-# filter non-ground part from classified las
-# nongnd <- filter_poi(las, Classification %in% c(LASNONCLASSIFIED, LASUNCLASSIFIED))
-# plot(nongnd, size = 3, color = "RGB", bg = "white")
-
-# Reset class LASGROUND for further procedure
-las$Classification <- LASNONCLASSIFIED
-
-# Check whether classes are reset (Levels are supposed to be zero)
-# factor(las$Classification)
-
-# Classify sky------------------------------------------------------------------
-# Vegetation filter priority: ExB, BPI (some might be deactivated)
-
-ExB_thresh <- cfg$sky_ExB_threshold
-# tls: ExB = 18500, already takes away some cliff parts.
-# tls: ExB = 14500, doubles cliff part but no sediment.
-# tls: ExB = 13500, cliff wall is affected.
-# tls: ExB = 3500, cliff wall is affected on a wide range but still works.
-# uav: ExB between 3500 ... 6000, takes away sediment which is not ground = T
-
-# BPI_thresh <- 0.391
-# BPI = 0.391 represents 3rd Qu. and already takes away sediment
-
-# las_origin <- las
-# las <- las_origin
-
-las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
-# las <- filter_poi(las, Classification != LASBUILDING)
-las_sky <- filter_poi(las, Classification == LASBUILDING)
-# plot(las_sky, size = 1, color = "RGB", bg = "black")
-
-# Classify green parts of vegetation--------------------------------------------
-# Vegetation filter priority: GLI, ExG or GPI, ExGR (some might be deactivated)
-
-GLI_thresh <- cfg$veg_GLI_threshold
-
-las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_veg_GLI)
-# las <- filter_poi(las, Classification != LASLOWVEGETATION)
-las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
-plot(las_veg, size = 1, color = "RGB", bg = "black")
-
-# tls: GLI filters a broad range from greyish and yellowish parts.
-# tls: GLI = 0.15 is conservative, no sediment and cliff is affected
-# tls: GLI = 0.11 is ideal.
-# tls: GLI = 0.09 boarder of watercourse is affected entirely.
-# tls: GLI = 0.07 cliff and sediment points are affected.
-# tls: GLI = 0.04 bush and canopy around sediment areas are included, except brown.
-# uav: GLI between 0.06 ...(0.08)... 0.09 is ideal.
-
-# GPI_thresh <- 0.35
-# GPI filters a broad range from greyish and yellowish parts.
-# GPI = 0.4 is conservative, no sediment and cliff is affected
-# GPI = 0.37 is ideal.
-# GPI = 0.36 boarder of watercourse is affected entirely.
-# GPI = 0.35 is already the lower limit, cliff and sediment points are affected.
-
-# ExG_thresh <- 4500
-# ExG filters vegetation in general, neglects rather dark points
-# ExG = 7500, border of watercourse is affected partly.
-# ExG = 6000, border of watercourse is affected almost entirely
-# ExG = 5500, border of watercourse and some sediment is affected.
-# ExG = 4500, lower limit.
-
-# ExGR_thresh <- 14000
-# ExGR filters specially bright green and blue points, yellowish points not
-# ExGR = 14000, Point of cliff are affected
-# ExGR = 10000, Parts of cliff are affected
-
-
-# Classify Red parts of vegetation----------------------------------------------
-# Red filter priority: ExR, RPI (some might be deactivated)
-
-ExR_thresh <- cfg$veg_ExR_threshold
-# tls & uav: ExR = 30000, broad vegetation is affected, some sediment parts too.
-# tls & uav: ExR = 20000, first lines of cliff relief is affected.
-
-# RPI_thresh <- 0.9
-
-las <- classify_poi(las, class = LASLOWVEGETATION, poi = poi_red_ExR)
-# las <- filter_poi(las, Classification != LASBRIGDE)
-# las_red <- filter_poi(las, Classification == LASBRIGDE)
-# plot(las_red, size = 1, color = "RGB", bg = "black")
-
-# Plot vegetation
-# las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
-# plot(las_veg, size = 1, color = "RGB", bg = "black")
-
-# Classify sediment-------------------------------------------------------------
-# las_origin <- las
-# las <- las_origin
-
-# Maximales RtoB: 1.21 in cliff_bright
-# Minimales RtoB: 0.722 in cliff_dark kann aber zu sky zugeordnet werden.
-
-#Min: 0.7222 and Max. 1.1290 derived from cliff_dark
-RtoBmin <- cfg$sed_RtoBmin
-RtoBmax <- cfg$sed_RtoBmax
-
-#Min: 0.8333 and Max. 1.1613 derived from cliff_dark
-#Min: 0.7928 from cliff_blue
-GtoBmin <- cfg$sed_GtoBmin
-GtoBmax <- cfg$sed_GtoBmax
-
-# Approach with ratios RtoB and GtoB
-las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ratios)
-las_sed_ratios <- filter_poi(las, Classification == LASKEYPOINT)
-# plot(las_sed_ratios, size = 1, color = "RGB", bg = "black")
-
-# Classify band of negative excess red parts------------------------------------
-# Negative ExR values appear to be sediment, ground criteria is set true.
-ExR_thresh_max <- cfg$sed_ExR_max
-ExR_thresh_min <- cfg$sed_ExR_min
-# ExR = -53000 ... 1000 seems to affect sediment points more than others
-# No big difference between -20000 and -53000
-
-las <- classify_poi(las, class = LASKEYPOINT, poi = poi_sed_ExR_band)
-las_sed <- filter_poi(las, Classification == LASKEYPOINT)
-
-# For an exclusive plot of negative ExR values change to LASBRIDGE as class.
-# las_sed_ratios <- filter_poi(las, Classification == LASBRIGDE)
-plot(las_sed, size = 1, color = "RGB", bg = "white")
-
-# Approach with RtoB times GtoB
-# Set limits for sediment.
-# RBtimesGB_min <- 0.9370
-# RBtimesGB_max <- 1.0433
-# las <- classify_poi(las, class = LASLOWPOINT, poi = poi_sed_times)
-# las_sed_times <- filter_poi(las, Classification == LASLOWPOINT)
-# plot(las_sed_nar, size = 1, color = "RGB", bg = "black")
-
-
-# Classify rocks and cliffs-----------------------------------------------------
-
-# Set narrow thresholds to filter only very grey points. Only active in poi_rock_ratios
-# RtoBmin <- 0.96
-# RtoBmax <- 1.04
-# GtoBmin <- 0.96
-# GtoBmax <- 1.04
-
-# Approach with ratios RtoB and GtoB
-las <- classify_poi(las, class = LASRAIL, poi = poi_rock_ratios)
-# las_rock_ratios <- filter_poi(las, Classification == LASRAIL)
-# plot(las_rock_ratios, size = 1, color = "RGB", bg = "black")
-
-# Approach with RtoB times GtoB
-# Set limits again for rock. If not set, limits of sediment filter is applied.
-# RBtimesGB_min <- 0.98
-# RBtimesGB_max <- 1.02
-# las <- classify_poi(las, class = LASRAIL, poi = poi_rock_times)
-# las_rock_times <- filter_poi(las, Classification == LASRAIL)
-# plot(las_rock_times, size = 1, color = "RGB", bg = "black")
-
-# Test - Classify band of negative excess blue parts----------------------------
-# Negative ExB values appear to be sediment, ground criteria is set true.
-# ExB_thresh_max <- 3499
-# ExB_thresh_min <- -8000
-# ExB = -8000 ... 3499 are greyish points but no distinct classes
-# ExB = -60000 ... -8000 are greenish, greyish points but no distinct classes
-# No big difference between -20000 and -53000
-
-# las <- classify_poi(las, class = LASBRIGDE, poi = poi_sky_ExB_band)
-# las_exb_neg <- filter_poi(las, Classification == LASBRIGDE)
-# plot(las_exb_neg, size = 1, color = "RGB", bg = "white")
-# summary(las$ExB)
-
-
-# Generate subsets before filtering
-las_foreveralone <- filter_poi(las, Classification == LASNONCLASSIFIED)
-
-# Generate report of classification
-sink(output_las_class_path)
-print("Classified LAS in total:")
-summary(las)
-print("Classified black and white noise:")
-summary(las_noise)
-print("Classified sky points:")
-summary(las_sky)
-print("Classified ground points:")
-summary(las_gnd)
-print("Classified sediment points:")
-summary(las_sed)
-print("Classified vegetation points:")
-summary(las_veg)
-print("Remaining unclassified points:")
-summary(las_foreveralone)
-
-sink(append = T)
-
-# Save generated output---------------------------------------------------------
-
-writeLAS(las_sed, file = output_las_sed_path)
-writeLAS(las_tmp, file = output_las_gnd_path)
-
-# Filter out noise and unclassified points for a clean output file.
-las <- filter_poi(las, Classification != LASNOISE)
-las <- filter_poi(las, Classification != LASNONCLASSIFIED)
-las <- filter_poi(las, Classification != LASUNCLASSIFIED)
-writeLAS(las, file = output_las_all_path)
-
-# Generate attribute plots after classification---------------------------------
-las_post = T
-
-map(active_attr, function(x){
-  gen.attribute.plot(las[[x]], x, output_id, static_subtitle, las_post, output_path)
-})
+write_delim(df, file=output_csv_path)
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
@@ -611,60 +387,3 @@ report$config_json <- config_json_path
 
 json_report <- toJSON(report, indent = 1)
 write(json_report, output_json_path, append = F)
-
-# Generate DTM------------------------------------------------------------------
-# TIN: fast and efficient, robust to empty regions. weak at edges.
-# IDW: fast, not very realistic but good at edges. Compromise between TIN and Kriging.
-# Kriging: very slow, not recommended for large areas.
-
-# Class Nr. 8: LASKEYPOINT, here sediment. use "sfc" in shape for specific polygon boundaries.
-# tin_sed <- rasterize_terrain(las_sed, res = cfg$DTM_resolution, algorithm = tin(), use_class = 8, shape = "convex")
-
-# Generate DTM of ground points for comparison.
-# tin_gnd <- rasterize_terrain(las_gnd, res = 0.45, algorithm = tin(), use_class = 2, shape = "convex")
- 
-# writeCDF(tin_sed, output_ncdf_path, overwrite = T)
-# writeRaster(tin_sed, output_asc_path, overwrite = T)
-
-# writeCDF(tin_gnd, output_ncdf_path, overwrite = T)
-# writeRaster(tin_gnd, output_asc_path, overwrite = T)
-
-
-# Plot classified point cloud---------------------------------------------------
-
-# Show the unclassified---------------------------------------------------------
-plot_dtm3d(tin_sed, bg = "white")
-# plot_dtm3d(tin_gnd, bg = "white")
-
-plot(las_foreveralone, size = 1, color = "RGB", bg = "black")
-
-# disable rocks since it does not work properly
-# las <- filter_poi(las, Classification != LASRAIL)
-# plot(las, size = 1, color = "Classification", bg = "black")
-
-# Plot separated classes
-plot(las_sky, size = 1, color = "RGB", bg = "black")
-plot(las_sed, size = 1, color = "RGB", bg = "white")
-
-las_veg <- filter_poi(las, Classification == LASLOWVEGETATION)
-plot(las_veg, size = 1, color = "RGB", bg = "black")
-
-# Outdated stuff----------------------------------------------------------------
-
-# Help lines
-# Negation of attributes is also possible (all except intensity and angle)
-# las = readLAS(LASfile, select = "* -i -a")
-# Alternative filter functions--------------------------------------------------
-# las_sub = filter_poi(las, Classification %in% c(LASGROUND, LASWATER))
-
-# Prefer filter() befor filter_poi() since it does not read it on C++ level
-# show all available filters
-readLAS(filter = "-help")
-
-# Calculate goodness of fit with mapcurves (does not work)
-# mc <- mapcurves_calc(x = target, y = DEM_ij)
-# par(mfrow=c(1,2))
-# 
-# plot(mc$map1, legend = F)
-# plot(mc$map2, legend = F)
-# mc$gof
