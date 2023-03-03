@@ -25,6 +25,7 @@ library(rjson) # for JSON generation
 library(rgl) # for RGL Viewer control functions
 library(sabre) # for mapcurves (goodness-of-fit function)
 library(fasterize) # for faster rasterization
+library(psych) # for cohen's kappa
 
 # Functions---------------------------------------------------------------------
 
@@ -299,6 +300,18 @@ par(mfrow=c(1,1))
 
 class_thres_i <- c(0.9)
 cloth_res_i <- c(1.5)
+col <- height.colors(15)
+raster_res <- 0.5
+# 
+# record <- data.frame(names(c("class", "rigidness", "class threshold",
+#                              "cloth resolution", "steep slope", "extent", "n_obs",
+#                              "kappa_low","kappa_upper", "kappa")))
+
+df <- data.frame(names(c("name", "class", "rigidness", "class threshold",
+                             "cloth resolution", 
+                             "steep slope", "n_obs", "kappa")))
+
+
 
 n <- 1L
 for (i in class_thres_i) {
@@ -309,54 +322,46 @@ for (i in class_thres_i) {
     las_ij <- classify.gnd(las, i, j, rigid_n)
     las_ij <- add_attribute(las_ij, FALSE, "ground")
     las_ij$ground <- if_else(las_ij$Classification == LASGROUND, T, F)
-    # set.RGLtopview()
-    # output_png_name <- as.character(paste(status, ".png", sep = ""))
-    # output_png_path <- file.path(output_path, output_png_name, fsep="/")
-    # rgl.snapshot(output_png_path)
-    # rgl.close()
+
     # las$Classification <- LASNONCLASSIFIED
+
+    las_ij <- filter_poi(las_ij, Classification == LASGROUND)
+    # plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
+    
+    # Filter points which are not within area of interest
+    las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
+    las_ij <- filter_poi(las_ij, Classification != LASNOISE)
+    plot(las_ij, size = 1, color = "RGB", bg = "black", axis = F)
+    set.RGLtopview()
+    output_png_name <- as.character(paste(status, ".png", sep = ""))
+    output_png_path <- file.path(output_path, output_png_name, fsep="/")
+    rgl.snapshot(output_png_path)
+    rgl.close()
+
+    # Rasterize point cloud    
+    DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
+
+    raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
+    tar_raw <- raster(nrows=nrow(DEM_ij), ncols=ncols(DEM_ij), crs=2056,
+                      ext=raster_ext, resolution=raster_res, vals=NULL)
+    target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
+    
+    # Normalise raster features
+    rater1 <- values(target)
+    rater1[rater1 != 0] <- 1
+    rater1[is.na(rater1)] <- 0
+    rater2 <- values(DEM_ij)
+    rater2[rater2 != 0] <- 1
+    rater2[is.na(rater2)] <- 0
+    
+    kap <- cohen.kappa(x=cbind(rater1,rater2))
+
+    obs <- data.frame(x=c(status, "water", rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa))
+    df_old <- df
+    df <- rbind(df_old, obs)
+    n <- n + 1
   }
 }
-
-las_ij <- filter_poi(las_ij, Classification == LASGROUND)
-# plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
-# set.RGLtopview()
-
-# Filter points which are not within area of interest---------------------------
-las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
-las_ij <- filter_poi(las_ij, Classification != LASNOISE)
-plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
-set.RGLtopview()
-
-col <- height.colors(15)
-raster_res <- 0.5
-
-DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
-# plot(DEM_ij, col = col)
-raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
-
-
-tar_raw <- raster(nrows=nrow(DEM_ij), ncols=ncols(DEM_ij), crs=2056,
-                  ext=raster_ext, resolution=raster_res, vals=NULL)
-target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
-
-plot(DEM_ij)
-extent(target)
-extent(DEM_ij)
-
-DEM_ij[DEM_ij != 0] <- 1
-
-plot(DEM_ij)
-# DEM_ij$Z
-# st_crs(DEM_ij)
-plot(target)
-
-mc <- mapcurves_calc(x = target, y = DEM_ij)
-par(mfrow=c(1,2))
-
-plot(mc$map1, legend = F)
-plot(mc$map2, legend = F)
-mc$gof
 
 # DEM_tar <- rasterize_canopy(las2, res = 1, algorithm = p2r())
 # 
@@ -374,46 +379,6 @@ mc$gof
 
 # writeLAS(las_ij, file = output_las_gnd_path)
 
-
-# 
-# n <- 1L
-# for (i in class_thres_i) {
-#   for (j in cloth_res_i) {
-#     rigid_n <- 2
-#     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
-#     print(status)
-#     las_ij <- classify.gnd(las, i, j, rigid_n)
-#     print("plot...")
-#     plot(las_ij, size = 1, color = "RGB", bg = "white")
-#     view3d(theta = 0, phi = 0, zoom = 0.6)
-#     par3d(windowRect = c(30, 30, 1100, 1100))
-#     output_png_name <- as.character(paste(status, ".png", sep = ""))
-#     output_png_path <- file.path(output_path, output_png_name, fsep="/")
-#     rgl.snapshot(output_png_path)
-#     rgl.close()    # close current device
-#     las$Classification <- LASNONCLASSIFIED
-#   }
-# }
-
-
-n <- 1L
-for (i in class_thres_i) {
-  for (j in cloth_res_i) {
-    rigid_n <- 3
-    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
-    print(status)
-    las_ij <- classify.gnd(las, i, j, rigid_n)
-    print("plot...")
-    plot(las_ij, size = 1, color = "RGB", bg = "white")
-    view3d(theta = 0, phi = 0, zoom = 0.6)
-    par3d(windowRect = c(30, 30, 1100, 1100))
-    output_png_name <- as.character(paste(status, ".png", sep = ""))
-    output_png_path <- file.path(output_path, output_png_name, fsep="/")
-    rgl.snapshot(output_png_path)
-    rgl.close()    # close current device
-    las$Classification <- LASNONCLASSIFIED
-  }
-}
 
 
 # apply ground classification
@@ -695,3 +660,11 @@ plot(las_veg, size = 1, color = "RGB", bg = "black")
 # Prefer filter() befor filter_poi() since it does not read it on C++ level
 # show all available filters
 readLAS(filter = "-help")
+
+# Calculate goodness of fit with mapcurves (does not work)
+# mc <- mapcurves_calc(x = target, y = DEM_ij)
+# par(mfrow=c(1,2))
+# 
+# plot(mc$map1, legend = F)
+# plot(mc$map2, legend = F)
+# mc$gof
