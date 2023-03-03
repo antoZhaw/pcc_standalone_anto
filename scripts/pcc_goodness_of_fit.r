@@ -230,12 +230,11 @@ mctar_rock <- mctar_bb %>%  filter(Id == 5)
 
 targeted_class <- mctar_water
 
-# Generate target---------------------------------------------------------------
+# Generate target beforehand with raster----------------------------------------
 # Calculate number of rows and columns of target, based on extent
 # This calculation results in a resolution of 0.5
 # tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
 # tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
-
 # Generate target. This is done beforehand since it is required only once.
 # tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
 # target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
@@ -330,13 +329,18 @@ plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
 set.RGLtopview()
 
 col <- height.colors(15)
-DEM_ij <- rasterize_canopy(las_ij, res = 0.5, p2r())
+raster_res <- 0.5
+DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r())
 plot(DEM_ij, col = col)
+raster_ext <- extent(DEM_ij)
+DEM_ij$Z
 
+tar_raw <- raster(nrows=180, ncols=360, crs=2056,
+                  ext=raster_ext, resolution=raster_res, vals=NULL)
 
-# Generate target. This is done beforehand since it is required only once.
-# tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
-# target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
+# tar_raw <- raster(targeted_class, res = raster_res)
+target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
+plot(target)
 
 
 # DEM_ij$Z
