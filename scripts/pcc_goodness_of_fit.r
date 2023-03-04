@@ -312,7 +312,7 @@ class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.
 cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
 
 col <- height.colors(15)
-raster_res <- 0.2
+raster_res <- 0.5
 class_id <- targeted_class$Id
 # 
 # record <- data.frame(names(c("class", "rigidness", "class threshold",
