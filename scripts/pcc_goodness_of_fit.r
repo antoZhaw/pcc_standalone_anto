@@ -308,8 +308,10 @@ par(mfrow=c(1,1))
 # cloth_res_i <- c(3.5)
 
 # good values for sediment (rigidness=1)
-class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31)
-cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
+# class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31)
+# cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
+cloth_res_i <- seq(from = 1.5, to = 3.9, by = 0.1)
+class_thres_i <- seq(from = 0.1, to = 0.5, by = 0.01)
 
 col <- height.colors(15)
 raster_res <- 0.5
@@ -322,13 +324,13 @@ class_id <- targeted_class$Id
 
 df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
                   clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
-                 kappa=c(""), comp_time_sec=c(""))
+                 kappa=c(""), comp_time_sec=c(""), rasterresolution=c(""))
 
 n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     start_ij <- as_datetime(lubridate::now())
-        rigid_n <- 1
+    rigid_n <- 1
     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify.gnd(las, i, j, rigid_n)
@@ -371,9 +373,8 @@ for (i in class_thres_i) {
     end_ij <- as_datetime(lubridate::now())
     timespan_ij <- interval(start_ij, end_ij)
     delta_t <- as.numeric(timespan_ij, "seconds")
-    obs <- c(status, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t)
+    obs <- c(status, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t, raster_res)
     df <- rbind(df, obs)
-    
     n <- n + 1
   }
 }
