@@ -295,6 +295,8 @@ data_path
 # If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 # plot(las, size = 1, color = "RGB", bg = "white")
 
+
+
 las_origin <- las
 
 las <- las_origin
@@ -316,11 +318,6 @@ class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
 col <- height.colors(15)
 raster_res <- 0.5
 class_id <- targeted_class$Id
-# 
-# record <- data.frame(names(c("class", "rigidness", "class threshold",
-#                              "cloth resolution", "steep slope", "extent", "n_obs",
-#                              "kappa_low","kappa_upper", "kappa")))
-
 
 df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
                   clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
