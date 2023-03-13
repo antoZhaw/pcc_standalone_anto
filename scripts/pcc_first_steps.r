@@ -361,20 +361,12 @@ las <- filter_poi(las, Classification != LASNOISE)
 # las_origin <- las
 # las <- las_origin
 
-# Segment Ground with Cloth Simulation Filter-----------------------------------
-# setup csf filter settings
-# rigidness: does not seem to have much impact.
-# class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
-# If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
-csf_gnd <- csf(cfg$csf_gnd_sloop_smooth, cfg$csf_gnd_class_threshold, cfg$csf_gnd_cloth_resolution, cfg$csf_gnd_rigidness)
-
-# las_origin <- las
-
-# las <- las_origin
+# Cloth Simulation Filtration for ground and watercourse------------------------
 
 # Apply ground classification for tls and uav data
+csf_gnd <- csf(cfg$csf_gnd_sloop_smooth, cfg$csf_gnd_class_threshold, 
+               cfg$csf_gnd_cloth_resolution, cfg$csf_gnd_rigidness)
 las <- classify_ground(las, csf_gnd)
-# gnd <- filter_ground(las)
 las <- add_attribute(las, FALSE, "ground")
 las$ground <- if_else(las$Classification == LASGROUND, T, F)
 las_gnd <- filter_poi(las, Classification == LASGROUND)
@@ -386,7 +378,8 @@ las$Classification <- LASNONCLASSIFIED
 
 # Apply watercourse classification for uav data
 if(perspective=="uav"){
-  csf_water <- csf(cfg$csf_water_sloop_smooth, cfg$csf_water_class_threshold, cfg$csf_water_cloth_resolution, cfg$csf_water_rigidness)
+  csf_water <- csf(cfg$csf_water_sloop_smooth, cfg$csf_water_class_threshold, 
+                   cfg$csf_water_cloth_resolution, cfg$csf_water_rigidness)
   las <- classify_ground(las, csf_water)
   las <- add_attribute(las, FALSE, "water")
   las$water <- if_else(las$Classification == LASGROUND, T, F)
