@@ -298,22 +298,30 @@ raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
                     max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
                     min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
                     max(c(ymax(t0_DEM_water), ymax(t1_DEM_water))))
-raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_water), crs=2056,
-                  ext=raster_ext, resolution=raster_res, vals=NULL)
-plot(DEM_water)
+raster_ext
 
-mask_water <- DEM_water
-mask_water[mask_water != 0] <- 0
-mask_water[is.na(mask_water)] <- 1
+# t0_raster_water <- raster(nrows=nrow(t0_DEM_water), ncols=ncols(t0_DEM_water), crs=2056,
+#                   ext=raster_ext, resolution=raster_res, vals=NULL)
+# t1_raster_water <- raster(nrows=nrow(t1_DEM_water), ncols=ncols(t1_DEM_water), crs=2056,
+#                        ext=raster_ext, resolution=raster_res, vals=NULL)
 
-plot(mask_water)
+plot(t0_DEM_water)
+plot(t1_DEM_water)
+
+t0_mask_water <- t0_DEM_water
+t0_mask_water[t0_mask_water != 0] <- 0
+t0_mask_water[is.na(t0_mask_water)] <- 1
+
+t1_mask_water <- t1_DEM_water
+t1_mask_water[t1_mask_water != 0] <- 0
+t1_mask_water[is.na(t1_mask_water)] <- 1
+
+plot(t0_mask_water)
+plot(t1_mask_water)
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # plot(las, size = 1, color = "RGB", bg = "white")
 
-las_origin <- las
-
-las <- las_origin
 par(mfrow=c(1,1))
 
 # good values for sediment (rigidness=1)
