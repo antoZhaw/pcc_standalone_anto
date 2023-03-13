@@ -143,65 +143,7 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
-output_water_png_name <- as.character(paste(status_water, ".png", sep = ""))
-output_water_png_path <- file.path(output_path, output_water_png_name, fsep="/")
-
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
-
-# Formulas----------------------------------------------------------------------
-poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_thresh, T, F)
-
-poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_thresh, T, F)
-
-poi_sky_ExB <- ~if_else(las$ExB >= ExB_thresh & las$ground == F &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sky_ExB_band <- ~if_else(las$ExB >= ExB_thresh_min & las$ExB <= ExB_thresh_max &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sky_BPI <- ~if_else(las$BPI >= BPI_thresh & las$ground == F &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_red_ExR <- ~if_else(las$ExR >= ExR_thresh &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sed_ExR_band <- ~if_else(las$ExR >= ExR_thresh_min & las$ExR <= ExR_thresh_max &
-                          las$ground == T &
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_red_RPI <- ~if_else(las$RPI >= RPI_thresh & 
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_veg_GLI <- ~if_else(las$GLI >= GLI_thresh & 
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_veg_GPI <- ~if_else(las$GPI >= GPI_thresh & 
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_veg_ExG <- ~if_else(las$ExG >= ExG_thresh & 
-                          las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_veg_ExGR <- ~if_else(las$ExGR >= ExGR_thresh & 
-                           las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_rock_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
-                              las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
-                              las$ground == F &
-                              las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sed_ratios <- ~if_else(las$RtoB >= RtoBmin & las$RtoB <= RtoBmax &
-                             las$GtoB >= GtoBmin & las$GtoB <= GtoBmax &
-                             las$ground == T &
-                             las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_rock_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
-                           las$ground == F &
-                           las$Classification == LASNONCLASSIFIED, T, F)
-
-poi_sed_times <- ~if_else(las$RBtimesGB >= RBtimesGB_min & las$RBtimesGB <= RBtimesGB_max &
-                           las$ground == T &
-                           las$Classification == LASNONCLASSIFIED, T, F)
-
 
 # Read files--------------------------------------------------------------------
 
@@ -311,6 +253,9 @@ las_water <- classify_poi(las_water, class = LASNOISE, roi = mcdut, inverse_roi 
 las_water <- filter_poi(las_water, Classification != LASNOISE)
 plot(las_water, size = 1, color = "RGB", bg = "black", axis = F)
 set.RGLtopview()
+output_water_png_name <- as.character(paste(status_water, ".png", sep = ""))
+output_water_png_path <- file.path(output_path, output_water_png_name, fsep="/")
+
 rgl.snapshot(output_water_png_path)
 rgl.close()
 
@@ -318,10 +263,15 @@ rgl.close()
 DEM_water <- rasterize_canopy(las_water, res = raster_res, p2r(), pkg = "raster")
 
 raster_ext <- extent(xmin(DEM_water), xmax(DEM_water), ymin(DEM_water), ymax(DEM_water))
-raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_ij), crs=2056,
+raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_water), crs=2056,
                   ext=raster_ext, resolution=raster_res, vals=NULL)
+plot(DEM_water)
 
+mask_water <- DEM_water
+mask_water[mask_water != 0] <- 0
+mask_water[is.na(mask_water)] <- 1
 
+plot(mask_water)
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # plot(las, size = 1, color = "RGB", bg = "white")
@@ -335,8 +285,8 @@ par(mfrow=c(1,1))
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
 # 
-class_thres_i <- c(0.22)
-cloth_res_i <- c(3.5)
+class_thres_i <- c(0.4, 0.85)
+cloth_res_i <- c(5.0, 1.7)
 
 # good values for sediment (rigidness=1)
 # cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
@@ -378,8 +328,12 @@ for (i in class_thres_i) {
     # Rasterize point cloud    
     DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
 
-    raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
-    tar_raw <- raster(nrows=nrow(DEM_ij), ncols=ncols(DEM_ij), crs=2056,
+    # Subtract water course
+    sed_ij <- DEM_ij * mask_water
+    plot(sed_ij, legend =F)
+    # Not used here, since static water raster is used.
+    # raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
+    tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
                       ext=raster_ext, resolution=raster_res, vals=NULL)
     target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
     
@@ -387,7 +341,7 @@ for (i in class_thres_i) {
     rater1 <- values(target)
     rater1[rater1 != 0] <- 1
     rater1[is.na(rater1)] <- 0
-    rater2 <- values(DEM_ij)
+    rater2 <- values(sed_ij)
     rater2[rater2 != 0] <- 1
     rater2[is.na(rater2)] <- 0
     
@@ -401,9 +355,14 @@ for (i in class_thres_i) {
     n <- n + 1
   }
 }
+
 write_delim(df, file=output_csv_path, delim = ";")
 
 plot(target, legend =F)
+
+png('file4.png', height=nrow(sed_ij), width=ncol(sed_ij)) 
+plot(sed_ij, maxpixels=ncell(sed_ij), legend =T)
+dev.off()
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
