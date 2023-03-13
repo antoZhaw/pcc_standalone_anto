@@ -241,7 +241,7 @@ data_path
 rigid_n_water <- 1
 class_thres_water <- 0.2
 cloth_res_water <- 3.9
-status_water <- as.character(paste("static", "_rigid", rigid_n_water,
+status_water <- as.character(paste("00_water", "_rigid", rigid_n_water,
                                    "_clthres", class_thres_water,
                                    "clothres", cloth_res_water, sep = ""))
 las_water <- classify.gnd(las, class_thres_water, cloth_res_water, rigid_n_water)
@@ -288,12 +288,14 @@ par(mfrow=c(1,1))
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
 # 
-class_thres_i <- c(0.4, 0.85)
-cloth_res_i <- c(5.0, 1.7)
+# class_thres_i <- c(0.4, 0.85)
+# cloth_res_i <- c(5.0, 1.7)
 
 # good values for sediment (rigidness=1)
 # cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
 # class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
+cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.3)
+class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.05)
 
 col <- height.colors(15)
 class_id <- targeted_class$Id
