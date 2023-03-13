@@ -308,7 +308,7 @@ for (i in class_thres_i) {
     start_ij <- as_datetime(lubridate::now())
     rigid_n <- 1
     status_sed <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
-    print(status)
+    print(status_sed)
     las_ij <- classify.gnd(las, i, j, rigid_n)
     las_ij <- add_attribute(las_ij, FALSE, "ground")
     las_ij$ground <- if_else(las_ij$Classification == LASGROUND, T, F)
@@ -323,7 +323,7 @@ for (i in class_thres_i) {
     las_ij <- filter_poi(las_ij, Classification != LASNOISE)
     plot(las_ij, size = 1, color = "RGB", bg = "black", axis = F)
     set.RGLtopview()
-    output_png_name <- as.character(paste(status, ".png", sep = ""))
+    output_png_name <- as.character(paste(status_sed, ".png", sep = ""))
     output_png_path <- file.path(output_path, output_png_name, fsep="/")
     rgl.snapshot(output_png_path)
     rgl.close()
@@ -360,7 +360,7 @@ for (i in class_thres_i) {
     end_ij <- as_datetime(lubridate::now())
     timespan_ij <- interval(start_ij, end_ij)
     delta_t <- as.numeric(timespan_ij, "seconds")
-    obs <- c(status, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t, raster_res)
+    obs <- c(status_sed, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t, raster_res)
     df <- rbind(df, obs)
     n <- n + 1
   }
