@@ -293,8 +293,11 @@ rgl.close()
 t0_DEM_water <- rasterize_canopy(t0_las_water, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "raster")
 
-# tbd
-raster_ext <- extent(xmin(DEM_water), xmax(DEM_water), ymin(DEM_water), ymax(DEM_water))
+# Determine convex hull of both DEM
+raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
+                    max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
+                    min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
+                    max(c(ymax(t0_DEM_water), ymax(t1_DEM_water))))
 raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_water), crs=2056,
                   ext=raster_ext, resolution=raster_res, vals=NULL)
 plot(DEM_water)
