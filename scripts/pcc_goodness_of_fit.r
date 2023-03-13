@@ -310,8 +310,8 @@ par(mfrow=c(1,1))
 # good values for sediment (rigidness=1)
 # class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31)
 # cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
-cloth_res_i <- seq(from = 3.5, to = 7.0, by = 0.1)
-class_thres_i <- seq(from = 0.3, to = 0.8, by = 0.01)
+cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
+class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
 
 col <- height.colors(15)
 raster_res <- 0.5
@@ -330,7 +330,7 @@ n <- 1L
 for (i in class_thres_i) {
   for (j in cloth_res_i) {
     start_ij <- as_datetime(lubridate::now())
-    rigid_n <- 3
+    rigid_n <- 1
     status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify.gnd(las, i, j, rigid_n)
