@@ -60,6 +60,7 @@ wholeset <- T
 year <- "2021"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
+raster_res <- 0.5
 
 # Internal globals such as paths and IDs----------------------------------------
 # Record start date and time
@@ -141,6 +142,9 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
+
+output_water_png_name <- as.character(paste(status_water, ".png", sep = ""))
+output_water_png_path <- file.path(output_path, output_water_png_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
@@ -235,7 +239,7 @@ mctar_sed <- mctar_bb %>%  filter(Id == 2)
 mctar_veg <- mctar_bb %>%  filter(Id == 3)
 mctar_rock <- mctar_bb %>%  filter(Id == 5)
 
-targeted_class <- mctar_water
+targeted_class <- mctar_sed
 
 # Generate target beforehand with raster----------------------------------------
 # Calculate number of rows and columns of target, based on extent
@@ -288,14 +292,39 @@ if(has.lasClassification(las)){
 # Data exploration--------------------------------------------------------------
 data_path
 
+# Segment Water with Cloth Simulation Filter-----------------------------------
+rigid_n_water <- 1
+class_thres_water <- 0.2
+cloth_res_water <- 3.9
+status_water <- as.character(paste("static", "_rigid", rigid_n_water,
+                                   "_clthres", class_thres_water,
+                                   "clothres", cloth_res_water, sep = ""))
+las_water <- classify.gnd(las, class_thres_water, cloth_res_water, rigid_n_water)
+las_water <- add_attribute(las_water, FALSE, "water")
+las_water$water <- if_else(las_water$Classification == LASGROUND, T, F)
+
+las_water <- filter_poi(las_water, Classification == LASGROUND)
+# plot(las_water, size = 1, color = "RGB", bg = "white", axis = F)
+
+# Filter points which are not within area of interest
+las_water <- classify_poi(las_water, class = LASNOISE, roi = mcdut, inverse_roi = T)
+las_water <- filter_poi(las_water, Classification != LASNOISE)
+plot(las_water, size = 1, color = "RGB", bg = "black", axis = F)
+set.RGLtopview()
+rgl.snapshot(output_water_png_path)
+rgl.close()
+
+# Rasterize water point cloud    
+DEM_water <- rasterize_canopy(las_water, res = raster_res, p2r(), pkg = "raster")
+
+raster_ext <- extent(xmin(DEM_water), xmax(DEM_water), ymin(DEM_water), ymax(DEM_water))
+raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_ij), crs=2056,
+                  ext=raster_ext, resolution=raster_res, vals=NULL)
+
+
+
 # Segment Ground with Cloth Simulation Filter-----------------------------------
-# setup csf filter settings
-# rigidness: does not seem to have much impact.
-# class_threshold and cloth_resolution influence each other. 0.5 x 0.5 is more conservative compared to 0.5 x 1.
-# If sharper watercourse desired: increase threshold to 0.7 (leads to more canopy in ground points)
 # plot(las, size = 1, color = "RGB", bg = "white")
-
-
 
 las_origin <- las
 
@@ -306,17 +335,14 @@ par(mfrow=c(1,1))
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
 # cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
 # 
-# class_thres_i <- c(0.22)
-# cloth_res_i <- c(3.5)
+class_thres_i <- c(0.22)
+cloth_res_i <- c(3.5)
 
 # good values for sediment (rigidness=1)
-# class_thres_i <- c(0.19, 0.2, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.3, 0.31)
-# cloth_res_i <- c(3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.0)
-cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
-class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
+# cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
+# class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
 
 col <- height.colors(15)
-raster_res <- 0.5
 class_id <- targeted_class$Id
 
 df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
