@@ -230,8 +230,8 @@ aoi_shp <- read_sf(dsn = aoi_path)
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-t0_las <- readLAS(data_path, select = "xyzRGBc", filter = t0_cfg$las_filter)
-t1_las <- readLAS(data_path, select = "xyzRGBc", filter = t1_cfg$las_filter)
+t0_las <- readLAS(t0_data_path, select = "xyzRGBc", filter = t0_cfg$las_filter)
+t1_las <- readLAS(t1_data_path, select = "xyzRGBc", filter = t1_cfg$las_filter)
 
 # Filter points which are not within area of interest---------------------------
 # las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
