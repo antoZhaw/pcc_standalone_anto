@@ -294,8 +294,8 @@ par(mfrow=c(1,1))
 # good values for sediment (rigidness=1)
 # cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
 # class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
-cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.3)
-class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.05)
+cloth_res_i <- seq(from = 1.9, to = 6.5, by = 0.2)
+class_thres_i <- seq(from = 0.3, to = 0.9, by = 0.03)
 
 col <- height.colors(15)
 class_id <- targeted_class$Id
