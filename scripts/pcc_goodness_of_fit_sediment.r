@@ -143,6 +143,9 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
+output_target_rast_name <- as.character(paste(output_id, "-target.png", sep = ""))
+output_target_rast_path <- file.path(output_path, output_target_rast_name, fsep="/")
+
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
 # Read files--------------------------------------------------------------------
@@ -304,7 +307,7 @@ for (i in class_thres_i) {
   for (j in cloth_res_i) {
     start_ij <- as_datetime(lubridate::now())
     rigid_n <- 1
-    status <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
+    status_sed <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
     print(status)
     las_ij <- classify.gnd(las, i, j, rigid_n)
     las_ij <- add_attribute(las_ij, FALSE, "ground")
@@ -330,7 +333,14 @@ for (i in class_thres_i) {
 
     # Subtract water course
     sed_ij <- DEM_ij * mask_water
-    plot(sed_ij, legend =F)
+    
+    # Save plot of raster
+    output_sed_rast_name <- as.character(paste(status_sed, ".png", sep = ""))
+    output_sed_rast_path <- file.path(output_path, output_sed_rast_name, fsep="/")
+    png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij)) 
+    plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
+    dev.off()
+    
     # Not used here, since static water raster is used.
     # raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
     tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
@@ -358,11 +368,10 @@ for (i in class_thres_i) {
 
 write_delim(df, file=output_csv_path, delim = ";")
 
-plot(target, legend =F)
-
-png('file4.png', height=nrow(sed_ij), width=ncol(sed_ij)) 
-plot(sed_ij, maxpixels=ncell(sed_ij), legend =T)
+png(output_target_rast_path, height=nrow(target), width=ncol(target)) 
+plot(target, maxpixels=ncell(target), legend =F)
 dev.off()
+
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
