@@ -143,8 +143,11 @@ output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
 output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
 output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
 
-output_target_rast_name <- as.character(paste(output_id, "-target.png", sep = ""))
-output_target_rast_path <- file.path(output_path, output_target_rast_name, fsep="/")
+output_target_wat_name <- as.character(paste(output_id, "-target-wat.png", sep = ""))
+output_target_wat_path <- file.path(output_path, output_target_wat_name, fsep="/")
+
+output_target_sed_name <- as.character(paste(output_id, "-target-sed.png", sep = ""))
+output_target_sed_path <- file.path(output_path, output_target_sed_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
@@ -253,14 +256,17 @@ par(mfrow=c(1,1))
 # good values for sediment (rigidness=1)
 # clr_wat_j <- seq(from = 2.5, to = 7.0, by = 0.1)
 # ct_wat_i <- seq(from = 0.14, to = 0.8, by = 0.01)
-clr_wat_j <- seq(from = 1.9, to = 6.5, by = 0.2)
-ct_wat_i <- seq(from = 0.3, to = 0.9, by = 0.03)
+clr_wat_j <- seq(from = 6.0, to = 6.5, by = 0.5)
+ct_wat_i <- seq(from = 0.3, to = 0.9, by = 0.3)
 # rig_wat_h <- c(1,2,3)
 rig_wat_h <- c(1)
 
 # tbd: tune
-clr_sed_o <- seq(from = 1.9, to = 6.5, by = 0.2)
-ct_sed_n <- seq(from = 0.3, to = 0.9, by = 0.03)
+# clr_sed_o <- seq(from = 1.9, to = 6.5, by = 0.2)
+# ct_sed_n <- seq(from = 0.3, to = 0.9, by = 0.03)
+clr_sed_o <- c(5.5)
+ct_sed_n <- c(1.2)
+
 # rig_sed_m <- c(1,2,3)
 rig_sed_m <- c(1)
 
@@ -368,8 +374,12 @@ for (m in rig_sed_m) {
 }
 write_delim(df, file=output_csv_path, delim = ";")
 
-png(output_target_rast_path, height=nrow(target), width=ncol(target)) 
-plot(target, maxpixels=ncell(target), legend =F)
+png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
+plot(tar_sed, maxpixels=ncell(tar_sed), legend =F)
+dev.off()
+
+png(output_target_wat_path, height=nrow(tar_wat), width=ncol(tar_wat)) 
+plot(tar_wat, maxpixels=ncell(tar_wat), legend =F)
 dev.off()
 
 
