@@ -275,11 +275,14 @@ rig_sed_m <- c(1)
 col <- height.colors(15)
 class_id <- mctar_wat$Id
 
-df <- data.frame(sed_name=c(""), sed_rigidness=c(""), sed_classthreshold=c(""),
-                 sed_clothresolution=c(""), sed_steepslope=c(""), sed_kappa=c(""),
-                 wat_name=c(""), wat_rigidness=c(""), wat_classthreshold=c(""),
-                 wat_clothresolution=c(""), wat_steepslope=c(""), wat_kappa=c(""),
-                 n_obs=c(""), comp_time_sec=c(""), rasterresolution=c(""))
+df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
+                 "sed_clothresolution", "sed_steepslope", "sed_kappa",
+                 "wat_name", "wat_rigidness", "wat_classthreshold",
+                 "wat_clothresolution", "wat_steepslope", "wat_kappa",
+                 "n_obs", "comp_time_sec", "rasterresolution", sep =";"))
+
+
+write(df, file=output_csv_path, append = T)
 
 g <- 1L
 for (m in rig_sed_m) {
@@ -364,8 +367,9 @@ for (m in rig_sed_m) {
             end_ij <- as_datetime(lubridate::now())
             timespan_ij <- interval(start_ij, end_ij)
             delta_t <- as.numeric(timespan_ij, "seconds")
-            obs <- c(msg_sed, m, n, o, "FALSE", kap_sed$kappa, msg_wat, h, i, j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res)
-            df <- rbind(df, obs)
+            
+            obs <- as.character(paste(msg_sed, m, n, o, "FALSE", kap_sed$kappa, msg_wat, h, i, j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
+            write(obs, file=output_csv_path, append = T)
             g <- g + 1
           }
         }
@@ -373,7 +377,6 @@ for (m in rig_sed_m) {
     }
   }
 }
-write_delim(df, file=output_csv_path, delim = ";")
 
 png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
 plot(tar_sed, maxpixels=ncell(tar_sed), legend =F)
