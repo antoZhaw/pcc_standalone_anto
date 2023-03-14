@@ -275,9 +275,11 @@ rig_sed_m <- c(1)
 col <- height.colors(15)
 class_id <- mctar_wat$Id
 
-df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
-                  clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
-                 kappa=c(""), comp_time_sec=c(""), rasterresolution=c(""))
+df <- data.frame(sed_name=c(""), sed_rigidness=c(""), sed_classthreshold=c(""),
+                 sed_clothresolution=c(""), sed_steepslope=c(""), sed_kappa=c(""),
+                 wat_name=c(""), wat_rigidness=c(""), wat_classthreshold=c(""),
+                 wat_clothresolution=c(""), wat_steepslope=c(""), wat_kappa=c(""),
+                 n_obs=c(""), comp_time_sec=c(""), rasterresolution=c(""))
 
 g <- 1L
 for (m in rig_sed_m) {
@@ -358,11 +360,11 @@ for (m in rig_sed_m) {
             rater4[rater4 != 0] <- 1
             rater4[is.na(rater4)] <- 0
             kap_wat <- cohen.kappa(x=cbind(rater3,rater4))
-        
+            
             end_ij <- as_datetime(lubridate::now())
             timespan_ij <- interval(start_ij, end_ij)
             delta_t <- as.numeric(timespan_ij, "seconds")
-            obs <- c(msg_sed, class_id, rig_wat_h, i, j, "FALSE", kap_wat$n.obs, kap_wat$kappa, delta_t, raster_res)
+            obs <- c(msg_sed, m, n, o, "FALSE", kap_sed$kappa, msg_wat, h, i, j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res)
             df <- rbind(df, obs)
             g <- g + 1
           }
