@@ -288,30 +288,29 @@ for (m in rig_sed_m) {
           for (j in clr_wat_j) {
             start_ij <- as_datetime(lubridate::now())
             # classify ground
-            msg_sed <- as.character(paste("SED", g, "_rig", m, "_ct", n, "_clr", o, sep = ""))
+            msg_sed <- as.character(paste(g, "_rig", m, "_ct", n, "_clr", o, sep = ""))
             print(msg_sed)
             las_sed_ij <- classify.gnd(las, n, o, m)
             las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
             las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
-            plot(las_sed_ij, size = 1, color = "RGB", bg = "black", axis = F)
-            set.RGLtopview()
-            output_sed_png_name <- as.character(paste(msg_sed, ".png", sep = ""))
-            output_sed_png_path <- file.path(output_path, output_sed_png_name, fsep="/")
-            rgl.snapshot(output_sed_png_path)
-            rgl.close()
             # classify water surface
-            msg_wat <- as.character(paste("WAT", g, "_rig", h, "_ct", i, "_clr", j, sep = ""))
+            msg_wat <- as.character(paste(g, "_rig", h, "_ct", i, "_clr", j, sep = ""))
             print(msg_wat)
             las_wat_ij <- classify.gnd(las, i, j, h)
             las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
             las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
-            
+            plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
+            set.RGLtopview()
+            output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
+            output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
+            rgl.snapshot(output_wat_png_path)
+            rgl.close()            
             # Rasterize both point clouds    
             DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
             DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
 
             # Save plot of water raster
-            output_wat_rast_name <- as.character(paste(msg_wat, ".png", sep = ""))
+            output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
             output_wat_rast_path <- file.path(output_path, output_wat_rast_name, fsep="/")
             png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
             plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
@@ -325,12 +324,12 @@ for (m in rig_sed_m) {
             sed_ij <- DEM_sed_ij * msk_wat_ij
             
             # Save plot of masked raster
-            output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
+            output_sed_rast_name <- as.character(paste("SED", msg_sed, ".png", sep = ""))
             output_sed_rast_path <- file.path(output_path, output_sed_rast_name, fsep="/")
-            png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij)) 
+            png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij))
             plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
             dev.off()
-            
+
             # Determine bounding box for both rasterized DEM
             raster_ext <- extent(min(c(xmin(DEM_sed_ij), xmin(DEM_wat_ij))),
                                  max(c(xmax(DEM_sed_ij), xmax(DEM_wat_ij))),
