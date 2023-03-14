@@ -57,17 +57,16 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
 
 cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
                             rig_sed_m, ct_sed_n, clr_sed_o, 
-                            rig_wat_h, ct_wat_i, clr_wat_j) {
-  raster_res <- 0.5
+                            rig_wat_h, ct_wat_i, clr_wat_j, raster_res) {
   start_ij <- as_datetime(lubridate::now())
   # classify ground
-  msg_sed <- as.character(paste("rig", rig_sed_m, "_ct", ct_sed_n, "_clr", clr_sed_o, sep = ""))
+  msg_sed <- as.character(paste("rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
   las_sed_ij <- classify.gnd(las, ct_sed_n, clr_sed_o, rig_sed_m)
   las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
   las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
   # classify water surface
-  msg_wat <- as.character(paste("_rig", rig_wat_h, "_ct", ct_wat_i, "_clr", clr_wat_j, sep = ""))
+  msg_wat <- as.character(paste("rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
   print(msg_wat)
   las_wat_ij <- classify.gnd(las, ct_wat_i, clr_wat_j, rig_wat_h)
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
@@ -139,10 +138,12 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
   end_ij <- as_datetime(lubridate::now())
   timespan_ij <- interval(start_ij, end_ij)
   delta_t <- as.numeric(timespan_ij, "seconds")
-  print(delta_t)
-  obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$ct_sed_n.obs, delta_t, raster_res, sep =";"))
-  write(obs, file=output_csv_path, append = T)
   total_kappa <- kap_sed$kappa + kap_wat$kappa
+  iter_msg <- as.character(paste("Total Kappa (sed+wat): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
+  print(iter_msg)
+  obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
+  write(obs, file=output_csv_path, append = T)
+
   return(total_kappa)
 }
 
@@ -378,9 +379,9 @@ write(df, file=output_csv_path, append = T)
 
 GA <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, mcdut, mctar_bb, output_csv_path,
-                                                 x[1], x[2], x[3], x[4], x[5], x[6]),
-         lower = c(1, 0.2, 2.5, 1, 0.2, 2.5), upper = c(3, 4, 4, 3, 4, 7), 
-         suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
+                                                 x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
+         lower = c(1, 0.2, 2.5, 1, 0.2, 2.5, 0.2), upper = c(3, 4, 4, 3, 4, 7, 0.5), 
+         # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
          popSize = 50, maxiter = 1000, run = 100,
          optim = TRUE)
 
