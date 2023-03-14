@@ -256,8 +256,8 @@ par(mfrow=c(1,1))
 # good values for sediment (rigidness=1)
 # clr_wat_j <- seq(from = 2.5, to = 7.0, by = 0.1)
 # ct_wat_i <- seq(from = 0.14, to = 0.8, by = 0.01)
-clr_wat_j <- seq(from = 6.0, to = 6.5, by = 0.5)
-ct_wat_i <- seq(from = 0.3, to = 0.9, by = 0.3)
+clr_wat_j <- seq(from = 3.8, to = 4.0, by = 0.1)
+ct_wat_i <- seq(from = 0.2, to = 0.8, by = 0.2)
 # rig_wat_h <- c(1,2,3)
 rig_wat_h <- c(1)
 
@@ -273,7 +273,7 @@ rig_sed_m <- c(1)
 
 #tbd: nicht mehr nötig oder dann erweitern 
 col <- height.colors(15)
-class_id <- targeted_class$Id
+class_id <- mctar_wat$Id
 
 df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
                   clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
@@ -288,9 +288,9 @@ for (m in rig_sed_m) {
           for (j in clr_wat_j) {
             start_ij <- as_datetime(lubridate::now())
             # classify ground
-            msg_sed <- as.character(paste("SED", g, "_rigid", m, "_clthres", n, "clothres", o, sep = ""))
+            msg_sed <- as.character(paste("SED", g, "_rig", m, "_ct", n, "_clr", o, sep = ""))
             print(msg_sed)
-            las_sed_ij <- classify.gnd(las, o, n, m)
+            las_sed_ij <- classify.gnd(las, n, o, m)
             las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
             las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
             plot(las_sed_ij, size = 1, color = "RGB", bg = "black", axis = F)
@@ -300,9 +300,9 @@ for (m in rig_sed_m) {
             rgl.snapshot(output_sed_png_path)
             rgl.close()
             # classify water surface
-            msg_wat <- as.character(paste("WAT", g, "_rigid", h, "_clthres", i, "clothres", j, sep = ""))
+            msg_wat <- as.character(paste("WAT", g, "_rig", h, "_ct", i, "_clr", j, sep = ""))
             print(msg_wat)
-            las_wat_ij <- classify.gnd(las, j, i, h)
+            las_wat_ij <- classify.gnd(las, i, j, h)
             las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
             las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
             
