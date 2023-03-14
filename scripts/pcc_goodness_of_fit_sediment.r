@@ -179,12 +179,10 @@ aoi_shp <- read_sf(dsn = aoi_path)
 mctar_bb <- st_intersection(mctar_all, bounding_box)
 
 # Separate targets filtered by class
-mctar_water <- mctar_bb %>%  filter(Id == 1)
+mctar_wat <- mctar_bb %>%  filter(Id == 1)
 mctar_sed <- mctar_bb %>%  filter(Id == 2)
 mctar_veg <- mctar_bb %>%  filter(Id == 3)
 mctar_rock <- mctar_bb %>%  filter(Id == 5)
-
-targeted_class <- mctar_sed
 
 # Generate target beforehand with raster----------------------------------------
 # Calculate number of rows and columns of target, based on extent
@@ -237,45 +235,6 @@ if(has.lasClassification(las)){
 # Data exploration--------------------------------------------------------------
 data_path
 
-# Segment Water with Cloth Simulation Filter-----------------------------------
-rig_wat_h_water <- 1
-class_thres_water <- 0.2
-cloth_res_water <- 3.9
-status_water <- as.character(paste("00_water", "_rigid", rig_wat_h_water,
-                                   "_clthres", class_thres_water,
-                                   "clothres", cloth_res_water, sep = ""))
-las_water <- classify.gnd(las, class_thres_water, cloth_res_water, rig_wat_h_water)
-las_water <- add_attribute(las_water, FALSE, "water")
-las_water$water <- if_else(las_water$Classification == LASGROUND, T, F)
-
-las_water <- filter_poi(las_water, Classification == LASGROUND)
-# plot(las_water, size = 1, color = "RGB", bg = "white", axis = F)
-
-# Filter points which are not within area of interest
-las_water <- classify_poi(las_water, class = LASNOISE, roi = mcdut, inverse_roi = T)
-las_water <- filter_poi(las_water, Classification != LASNOISE)
-plot(las_water, size = 1, color = "RGB", bg = "black", axis = F)
-set.RGLtopview()
-output_water_png_name <- as.character(paste(status_water, ".png", sep = ""))
-output_water_png_path <- file.path(output_path, output_water_png_name, fsep="/")
-
-rgl.snapshot(output_water_png_path)
-rgl.close()
-
-# Rasterize water point cloud    
-DEM_water <- rasterize_canopy(las_water, res = raster_res, p2r(), pkg = "raster")
-
-raster_ext <- extent(xmin(DEM_water), xmax(DEM_water), ymin(DEM_water), ymax(DEM_water))
-raster_water <- raster(nrows=nrow(DEM_water), ncols=ncols(DEM_water), crs=2056,
-                  ext=raster_ext, resolution=raster_res, vals=NULL)
-plot(DEM_water)
-
-mask_water <- DEM_water
-mask_water[mask_water != 0] <- 0
-mask_water[is.na(mask_water)] <- 1
-
-plot(mask_water)
-
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # plot(las, size = 1, color = "RGB", bg = "white")
 
@@ -296,8 +255,17 @@ par(mfrow=c(1,1))
 # ct_wat_i <- seq(from = 0.14, to = 0.8, by = 0.01)
 clr_wat_j <- seq(from = 1.9, to = 6.5, by = 0.2)
 ct_wat_i <- seq(from = 0.3, to = 0.9, by = 0.03)
-rig_wat_h <- c(1,2,3)
- 
+# rig_wat_h <- c(1,2,3)
+rig_wat_h <- c(1)
+
+# tbd: tune
+clr_sed_o <- seq(from = 1.9, to = 6.5, by = 0.2)
+ct_sed_n <- seq(from = 0.3, to = 0.9, by = 0.03)
+# rig_sed_m <- c(1,2,3)
+rig_sed_m <- c(1)
+
+
+#tbd: nicht mehr nötig oder dann erweitern 
 col <- height.colors(15)
 class_id <- targeted_class$Id
 
@@ -313,60 +281,83 @@ for (m in rig_sed_m) {
         for (i in ct_wat_i) {
           for (j in clr_wat_j) {
             start_ij <- as_datetime(lubridate::now())
+            # classify ground
             msg_sed <- as.character(paste("SED", g, "_rigid", m, "_clthres", n, "clothres", o, sep = ""))
             print(msg_sed)
-            las_ij <- classify.gnd(las, o, n, m)
-            las_ij <- add_attribute(las_ij, FALSE, "ground")
-            las_ij$ground <- if_else(las_ij$Classification == LASGROUND, T, F)
-        
-            # las$Classification <- LASNONCLASSIFIED
-        
-            las_ij <- filter_poi(las_ij, Classification == LASGROUND)
-            # plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
-            
-            # Filter points which are not within area of interest
-            las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
-            las_ij <- filter_poi(las_ij, Classification != LASNOISE)
-            plot(las_ij, size = 1, color = "RGB", bg = "black", axis = F)
+            las_sed_ij <- classify.gnd(las, o, n, m)
+            las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
+            las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
+            plot(las_sed_ij, size = 1, color = "RGB", bg = "black", axis = F)
             set.RGLtopview()
-            output_png_name <- as.character(paste(msg_sed, ".png", sep = ""))
-            output_png_path <- file.path(output_path, output_png_name, fsep="/")
-            rgl.snapshot(output_png_path)
+            output_sed_png_name <- as.character(paste(msg_sed, ".png", sep = ""))
+            output_sed_png_path <- file.path(output_path, output_sed_png_name, fsep="/")
+            rgl.snapshot(output_sed_png_path)
             rgl.close()
-        
-            # Rasterize point cloud    
-            DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
-        
-            # Subtract water course
-            sed_ij <- DEM_ij * mask_water
+            # classify water surface
+            msg_wat <- as.character(paste("WAT", g, "_rigid", h, "_clthres", i, "clothres", j, sep = ""))
+            print(msg_wat)
+            las_wat_ij <- classify.gnd(las, j, i, h)
+            las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
+            las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
             
-            # Save plot of raster
+            # Rasterize both point clouds    
+            DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
+            DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
+
+            # Save plot of water raster
+            output_wat_rast_name <- as.character(paste(msg_wat, ".png", sep = ""))
+            output_wat_rast_path <- file.path(output_path, output_wat_rast_name, fsep="/")
+            png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
+            plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
+            dev.off()
+            
+            # Generate water mask
+            msk_wat_ij <- DEM_wat_ij
+            msk_wat_ij[msk_wat_ij != 0] <- 0
+            msk_wat_ij[is.na(msk_wat_ij)] <- 1            
+            # Subtract water course
+            sed_ij <- DEM_sed_ij * msk_wat_ij
+            
+            # Save plot of masked raster
             output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
             output_sed_rast_path <- file.path(output_path, output_sed_rast_name, fsep="/")
             png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij)) 
             plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
             dev.off()
             
-            # Not used here, since static water raster is used.
-            # raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
+            # Determine bounding box for both rasterized DEM
+            raster_ext <- extent(min(c(xmin(DEM_sed_ij), xmin(DEM_wat_ij))),
+                                 max(c(xmax(DEM_sed_ij), xmax(DEM_wat_ij))),
+                                 min(c(ymin(DEM_sed_ij), ymin(DEM_wat_ij))),
+                                 max(c(ymax(DEM_sed_ij), ymax(DEM_wat_ij))))
+            
             tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
                               ext=raster_ext, resolution=raster_res, vals=NULL)
-            target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
+            tar_sed <- fasterize(mctar_sed, tar_raw, field = "Id", fun="sum")
+            tar_wat <- fasterize(mctar_wat, tar_raw, field = "Id", fun="sum")
             
             # Normalise raster features
-            rater1 <- values(target)
+            rater1 <- values(tar_sed)
             rater1[rater1 != 0] <- 1
             rater1[is.na(rater1)] <- 0
             rater2 <- values(sed_ij)
             rater2[rater2 != 0] <- 1
             rater2[is.na(rater2)] <- 0
+            kap_sed <- cohen.kappa(x=cbind(rater1,rater2))
             
-            kap <- cohen.kappa(x=cbind(rater1,rater2))
+            # Normalise raster features
+            rater3 <- values(tar_wat)
+            rater3[rater3 != 0] <- 1
+            rater3[is.na(rater3)] <- 0
+            rater4 <- values(DEM_wat_ij)
+            rater4[rater4 != 0] <- 1
+            rater4[is.na(rater4)] <- 0
+            kap_wat <- cohen.kappa(x=cbind(rater3,rater4))
         
             end_ij <- as_datetime(lubridate::now())
             timespan_ij <- interval(start_ij, end_ij)
             delta_t <- as.numeric(timespan_ij, "seconds")
-            obs <- c(msg_sed, class_id, rig_wat_h, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t, raster_res)
+            obs <- c(msg_sed, class_id, rig_wat_h, i, j, "FALSE", kap_wat$n.obs, kap_wat$kappa, delta_t, raster_res)
             df <- rbind(df, obs)
             g <- g + 1
           }
