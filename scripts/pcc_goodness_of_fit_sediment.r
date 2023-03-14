@@ -309,12 +309,12 @@ for (m in rig_sed_m) {
             DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
             DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
 
-            # Save plot of water raster
-            output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
-            output_wat_rast_path <- file.path(output_path, output_wat_rast_name, fsep="/")
-            png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
-            plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
-            dev.off()
+            # Save plot of water raster. Currently disabled since las is already saved.
+            # output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
+            # output_wat_rast_path <- file.path(output_path, output_wat_rast_name, fsep="/")
+            # png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
+            # plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
+            # dev.off()
             
             # Generate water mask
             msk_wat_ij <- DEM_wat_ij
@@ -380,7 +380,6 @@ dev.off()
 png(output_target_wat_path, height=nrow(tar_wat), width=ncol(tar_wat)) 
 plot(tar_wat, maxpixels=ncell(tar_wat), legend =F)
 dev.off()
-
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
