@@ -58,17 +58,18 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
 cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
                             global_rigid, ct_sed_n, clr_sed_o, 
                             ct_wat_i, clr_wat_j, raster_res) {
+  id_ij <- sample(1:999, 1)
   start_ij <- as_datetime(lubridate::now())
   rig_sed_m <- global_rigid
   rig_wat_h <- global_rigid
   # classify ground
-  msg_sed <- as.character(paste("rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
+  msg_sed <- as.character(paste("SED", id_ij, "rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
   las_sed_ij <- classify.gnd(las, ct_sed_n, clr_sed_o, rig_sed_m)
   las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
   # classify water surface
-  msg_wat <- as.character(paste("rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
+  msg_wat <- as.character(paste("WAT", id_ij,"rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
   print(msg_wat)
   las_wat_ij <- classify.gnd(las, ct_wat_i, clr_wat_j, rig_wat_h)
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
@@ -76,7 +77,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   # Save plot of classified water surface
   # plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
   # set.RGLtopview()
-  # output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
+  # output_wat_png_name <- as.character(paste("LAS", msg_wat, ".png", sep = ""))
   # output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
   # rgl.snapshot(output_wat_png_path)
   # rgl.close()
@@ -85,7 +86,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
   
   # Save plot of water raster. Currently disabled since las is already saved.
-  # output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
+  # output_wat_rast_name <- as.character(paste("RAS", msg_wat, ".png", sep = ""))
   # output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
   # png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij))
   # plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
@@ -99,7 +100,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   sed_ij <- DEM_sed_ij * msk_wat_ij
   
   # Save plot of masked raster
-  output_sed_rast_name <- as.character(paste("SED", msg_sed, ".png", sep = ""))
+  output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
   output_sed_rast_path <- file.path(ga_output_path, output_sed_rast_name, fsep="/")
   png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij))
   plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
@@ -141,9 +142,10 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   timespan_ij <- interval(start_ij, end_ij)
   delta_t <- as.numeric(timespan_ij, "seconds")
   total_kappa <- kap_sed$kappa
-  iter_msg <- as.character(paste("Total Kappa (sed): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
-  print(kap_wat$kappa)
-  print(iter_msg)
+  iter_wat_msg <- as.character(paste("Total Kappa (wat): ", round(kap_wat$kappa, 4)))
+  iter_result_msg <- as.character(paste("Total Kappa (sed): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
+  print(iter_wat_msg)
+  print(iter_result_msg)
   obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
   output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
   output_csv_path <- file.path(ga_output_path, output_csv_name, fsep="/")
