@@ -105,23 +105,19 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
   dev.off()
   
-  # Determine bounding box for both rasterized DEM
-  raster_ext <- extent(min(c(xmin(DEM_sed_ij), xmin(DEM_wat_ij))),
-                       max(c(xmax(DEM_sed_ij), xmax(DEM_wat_ij))),
-                       min(c(ymin(DEM_sed_ij), ymin(DEM_wat_ij))),
-                       max(c(ymax(DEM_sed_ij), ymax(DEM_wat_ij))))
-  
-  raster_ext_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), ymin(DEM_wat_ij), ymax(DEM_wat_ij))
-  
-  # Generate uniform raster for targets
+  # Generate raster for water comparison
   target_wat <- targets_shp %>%  filter(Id == 1)
-  target_sed <- targets_shp %>%  filter(Id == 2)
-  tar_raw_sed <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
-                    ext=raster_ext, resolution=raster_res, vals=NULL)
+  raster_ext_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), ymin(DEM_wat_ij), ymax(DEM_wat_ij))
   tar_raw_wat <- raster(nrows=nrow(DEM_wat_ij), ncols=ncols(DEM_wat_ij), crs=2056,
-                    ext=raster_ext_wat, resolution=raster_res, vals=NULL)
-  tar_sed <- fasterize(target_sed, tar_raw_sed, field = "Id", fun="sum")
+                        ext=raster_ext_wat, resolution=raster_res, vals=NULL)
   tar_wat <- fasterize(target_wat, tar_raw_wat, field = "Id", fun="sum")
+
+  # Generate raster for sediment comparison
+  target_sed <- targets_shp %>%  filter(Id == 2)
+  raster_ext_sed <- extent(xmin(sed_ij), xmax(sed_ij), ymin(sed_ij), ymax(sed_ij))
+  tar_raw_sed <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
+                        ext=raster_ext_sed, resolution=raster_res, vals=NULL)
+  tar_sed <- fasterize(target_sed, tar_raw_sed, field = "Id", fun="sum")
   
   # Normalise raster values for comparison
   rater1 <- values(tar_sed)
