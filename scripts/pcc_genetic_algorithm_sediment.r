@@ -55,7 +55,7 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
-cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
+cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
                             global_rigid, ct_sed_n, clr_sed_o, 
                             ct_wat_i, clr_wat_j, raster_res) {
   start_ij <- as_datetime(lubridate::now())
@@ -65,27 +65,28 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
   msg_sed <- as.character(paste("rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
   las_sed_ij <- classify.gnd(las, ct_sed_n, clr_sed_o, rig_sed_m)
-  las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
+  las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
   # classify water surface
   msg_wat <- as.character(paste("rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
   print(msg_wat)
   las_wat_ij <- classify.gnd(las, ct_wat_i, clr_wat_j, rig_wat_h)
-  las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
+  las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
-  plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
-  set.RGLtopview()
-  output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
-  output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
-  rgl.snapshot(output_wat_png_path)
-  rgl.close()
+  # Save plot of classified water surface
+  # plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
+  # set.RGLtopview()
+  # output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
+  # output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
+  # rgl.snapshot(output_wat_png_path)
+  # rgl.close()
   # Rasterize both point clouds    
   DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
   DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
   
   # Save plot of water raster. Currently disabled since las is already saved.
   # output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
-  # output_wat_rast_path <- file.path(output_path, output_wat_rast_name, fsep="/")
+  # output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
   # png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
   # plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
   # dev.off()
@@ -98,11 +99,11 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
   sed_ij <- DEM_sed_ij * msk_wat_ij
   
   # Save plot of masked raster
-  # output_sed_rast_name <- as.character(paste("SED", msg_sed, ".png", sep = ""))
-  # output_sed_rast_path <- file.path(output_path, output_sed_rast_name, fsep="/")
-  # png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij))
-  # plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
-  # dev.off()
+  output_sed_rast_name <- as.character(paste("SED", msg_sed, ".png", sep = ""))
+  output_sed_rast_path <- file.path(ga_output_path, output_sed_rast_name, fsep="/")
+  png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij))
+  plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
+  dev.off()
   
   # Determine bounding box for both rasterized DEM
   raster_ext <- extent(min(c(xmin(DEM_sed_ij), xmin(DEM_wat_ij))),
@@ -110,16 +111,15 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
                        min(c(ymin(DEM_sed_ij), ymin(DEM_wat_ij))),
                        max(c(ymax(DEM_sed_ij), ymax(DEM_wat_ij))))
 
-  target_wat <- targets %>%  filter(Id == 1)
-  target_sed <- targets %>%  filter(Id == 2)
-  
-  
+  # Generate uniform raster for targets
+  target_wat <- targets_shp %>%  filter(Id == 1)
+  target_sed <- targets_shp %>%  filter(Id == 2)
   tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
                     ext=raster_ext, resolution=raster_res, vals=NULL)
   tar_sed <- fasterize(target_sed, tar_raw, field = "Id", fun="sum")
   tar_wat <- fasterize(target_wat, tar_raw, field = "Id", fun="sum")
   
-  # Normalise raster features
+  # Normalise raster values for comparison
   rater1 <- values(tar_sed)
   rater1[rater1 != 0] <- 1
   rater1[is.na(rater1)] <- 0
@@ -128,7 +128,7 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
   rater2[is.na(rater2)] <- 0
   kap_sed <- cohen.kappa(x=cbind(rater1,rater2))
   
-  # Normalise raster features
+  # Normalise raster values for comparison
   rater3 <- values(tar_wat)
   rater3[rater3 != 0] <- 1
   rater3[is.na(rater3)] <- 0
@@ -144,8 +144,11 @@ cohen.kappa.csf <- function(raw_las, aoi_shp, targets, log_path,
   iter_msg <- as.character(paste("Total Kappa (sed): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
   print(iter_msg)
   obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
+  output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
+  output_csv_path <- file.path(ga_output_path, output_csv_name, fsep="/")
   write(obs, file=output_csv_path, append = T)
-  return(total_kappa)
+  popsize_kappa <- total_kappa * 10000
+  return(popsize_kappa)
 }
 
 # Globals for Configuration-----------------------------------------------------
@@ -202,17 +205,14 @@ dir.create(output_path)
 mctar_shp_name <- as.character(paste(cfg$mapcurve_target_shp, sep = ""))
 mctar_path <- file.path(dir_repo, mctar_shp_name, fsep="/")
 
-mcdut_shp_name <- as.character(paste(cfg$mapcurve_dut_shp, sep = ""))
-mcdut_path <- file.path(dir_repo, mcdut_shp_name, fsep="/")
+ga_aoi_shp_name <- as.character(paste(cfg$mapcurve_dut_shp, sep = ""))
+ga_aoi_path <- file.path(dir_repo, ga_aoi_shp_name, fsep="/")
 
 output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 output_json_path <- file.path(output_path, output_json_name, fsep="/")
 
 output_target_name <- as.character(paste(output_id, ".png", sep = ""))
 output_target_path <- file.path(output_path, output_target_name, fsep="/")
-
-output_csv_name <- as.character(paste(output_id, ".csv", sep = ""))
-output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 
 output_las_inp_name <- as.character(paste(output_id, "-inp.txt", sep = ""))
 output_las_inp_path <- file.path(output_path, output_las_inp_name, fsep="/")
@@ -270,17 +270,17 @@ bounding_box <- gen_xy %>%
 
 # Read Shapefiles
 mctar_all <- read_sf(dsn = mctar_path) 
-mcdut <- read_sf(dsn = mcdut_path) 
+csf_aoi_shp <- read_sf(dsn = ga_aoi_path) 
 aoi_shp <- read_sf(dsn = aoi_path)
 
 # Intersect target with area of interest
-mctar_bb <- st_intersection(mctar_all, bounding_box)
+targets_aoi_shp <- st_intersection(mctar_all, bounding_box)
 
-# Separate targets filtered by class
-mctar_wat <- mctar_bb %>%  filter(Id == 1)
-mctar_sed <- mctar_bb %>%  filter(Id == 2)
-mctar_veg <- mctar_bb %>%  filter(Id == 3)
-mctar_rock <- mctar_bb %>%  filter(Id == 5)
+# Separate targets_shp filtered by class
+mctar_wat <- targets_aoi_shp %>%  filter(Id == 1)
+mctar_sed <- targets_aoi_shp %>%  filter(Id == 2)
+mctar_veg <- targets_aoi_shp %>%  filter(Id == 3)
+mctar_rock <- targets_aoi_shp %>%  filter(Id == 5)
 
 # Generate target beforehand with raster----------------------------------------
 # Calculate number of rows and columns of target, based on extent
@@ -305,7 +305,7 @@ mctar_rock <- mctar_bb %>%  filter(Id == 5)
 # test <- st_intersection(mctar_sed, AOI_xy)
 
 # ggplot() +
-#   geom_sf(data = mcdut, mapping = aes()) +
+#   geom_sf(data = csf_aoi_shp, mapping = aes()) +
 #   coord_sf(crs = st_crs(2056))
 
 # Read LAS
@@ -379,32 +379,36 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
 write(df, file=output_csv_path, append = T)
 
 # GA <- ga(type = "real-valued", 
-#          fitness =  function(x) -cohen.kappa.csf(las, mcdut, mctar_bb, output_csv_path,
+#          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path,
 #                                                  x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
 #          lower = c(1, 0.2, 2.5, 1, 0.2, 2.5, 0.4), upper = c(3, 4, 4, 3, 4, 7, 0.5), 
 #          # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
 #          popSize = 50, maxiter = 180, run = 100,
 #          optim = TRUE)
 
+csf_glob_rig <- 1
 GA_R1 <- ga(type = "real-valued", 
-         fitness =  function(x) -cohen.kappa.csf(las, mcdut, mctar_bb, output_csv_path, 1,
-                                                 x[1], x[2], x[3], x[4], x[5]),
+         fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+                                                 csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
          lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
          suggestions = c(0.5, 1.9, 0.2, 3.9, 0.5),
-         popSize = 50, maxiter = 180, run = 100,
+         popSize = 1000, maxiter = 180, run = 100,
+         maxFitness = 10000,
          optim = TRUE)
 
+csf_glob_rig <- 2
 GA_R2 <- ga(type = "real-valued", 
-            fitness =  function(x) -cohen.kappa.csf(las, mcdut, mctar_bb, output_csv_path, 2,
-                                                    x[1], x[2], x[3], x[4], x[5]),
+            fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+                                                    csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
             lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
             # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
             popSize = 50, maxiter = 180, run = 100,
             optim = TRUE)
 
+csf_glob_rig <- 3
 GA_R3 <- ga(type = "real-valued", 
-            fitness =  function(x) -cohen.kappa.csf(las, mcdut, mctar_bb, output_csv_path, 3,
-                                                    x[1], x[2], x[3], x[4], x[5]),
+            fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+                                                    csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
             lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
             # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
             popSize = 50, maxiter = 180, run = 100,
