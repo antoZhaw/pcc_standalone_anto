@@ -280,111 +280,44 @@ aoi_shp <- read_sf(dsn = aoi_path)
 # Intersect target with area of interest
 targets_aoi_shp <- st_intersection(mctar_all, bounding_box)
 
-# Separate targets_shp filtered by class
-mctar_wat <- targets_aoi_shp %>%  filter(Id == 1)
-mctar_sed <- targets_aoi_shp %>%  filter(Id == 2)
-mctar_veg <- targets_aoi_shp %>%  filter(Id == 3)
-mctar_rock <- targets_aoi_shp %>%  filter(Id == 5)
-
-# Generate target beforehand with raster----------------------------------------
-# Calculate number of rows and columns of target, based on extent
-# This calculation results in a resolution of 0.5
-# tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
-# tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
-# Generate target. This is done beforehand since it is required only once.
-# tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
-# target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
-
 # Information about rasterized target
 # target$layer
 # st_crs(target)
-
-
-# Plot features on one plot
-# ggplot() + 
-#   geom_sf(data = AOI_xy, mapping = aes()) +
-#   geom_sf(data = mctar_sed, mapping = aes()) +
-#   coord_sf(crs = st_crs(2056))
-
-# test <- st_intersection(mctar_sed, AOI_xy)
-
-# ggplot() +
-#   geom_sf(data = csf_aoi_shp, mapping = aes()) +
-#   coord_sf(crs = st_crs(2056))
 
 # Read LAS
 # Intensity (ct_wat_i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
-# Filter points which are not within area of interest---------------------------
-# las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
-# las <- filter_poi(las, Classification != LASNOISE)
-# plot(las, size = 1, color = "RGB", bg = "white", axis = F)
-
 # Reset class LASNOISE for further procedure
 las$Classification <- LASNONCLASSIFIED
 
-# Create copy of read LAS to omit loading procedure.
-# las_origin <- las
-# las <- las_origin
 
 # Check LAS whether it complies with the required
 if(has.lasClassification(las)){
   print("LAS file is already classified. Are you sure to continue?")}
 # if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
 
-# Data exploration--------------------------------------------------------------
-data_path
-
-# Segment Ground with Cloth Simulation Filter-----------------------------------
-# plot(las, size = 1, color = "RGB", bg = "white")
-
-las_origin <- las
-
-las <- las_origin
 par(mfrow=c(1,1))
 
-# good values for sediment (rigidness=1)
-# ct_wat_i <- c(0.9, 0.85, 0.8, 0.75)
-# clr_wat_j <- c(1.8, 1.7, 1.6, 1.5)
-# 
-# ct_wat_i <- c(0.4, 0.85)
-# clr_wat_j <- c(5.0, 1.7)
-
-# good values for sediment (rigidness=1)
-# clr_wat_j <- seq(from = 2.5, to = 7.0, by = 0.1)
-# ct_wat_i <- seq(from = 0.14, to = 0.8, by = 0.01)
-# clr_wat_j <- seq(from = 3.8, to = 4.0, by = 0.1)
-# ct_wat_i <- seq(from = 0.2, to = 0.8, by = 0.2)
-# rig_wat_h <- c(1,2,3)
-# rig_wat_h <- c(1)
-
-# tbd: tune
-# clr_sed_o <- seq(from = 1.9, to = 6.5, by = 0.2)
-# ct_sed_n <- seq(from = 0.3, to = 0.9, by = 0.03)
-# clr_sed_o <- c(5.5)
-# ct_sed_n <- c(1.2)
-
-# rig_sed_m <- c(1,2,3)
-# rig_sed_m <- c(1)
-
-
+# Genetic algorithm for parameter optimisation----------------------------------
+# Write header before start
 df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "sed_clothresolution", "sed_steepslope", "sed_kappa",
                  "wat_name", "wat_rigidness", "wat_classthreshold",
                  "wat_clothresolution", "wat_steepslope", "wat_kappa",
                  "n_obs", "comp_time_sec", "rasterresolution", sep =";"))
 
-# Write header before start
 output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
 output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 write(df, file=output_csv_path, append = T)
 
+# Start search
+gar3_start <- as_datetime(lubridate::now())
 csf_glob_rig <- 3
 GA_R3 <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
-                                                 csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
+         csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
          upper = c(4, 22, 0.8, 11.0, 0.5), 
          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
@@ -392,35 +325,39 @@ GA_R3 <- ga(type = "real-valued",
          maxFitness = 10000,
          optim = TRUE)
 
+gar3_end <- as_datetime(lubridate::now())
+timespan <- interval(gar3_start, gar3_end)
+timespan
+
+gar2_start <- as_datetime(lubridate::now())
 csf_glob_rig <- 2
 GA_R2 <- ga(type = "real-valued", 
-            fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
-                                                    csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-            lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
-            upper = c(4, 17, 0.8, 9.0, 0.5), 
-            suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
-            popSize = 1000, maxiter = 180, run = 100,
-            maxFitness = 10000,
-            optim = TRUE)
+          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+          csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+          upper = c(4, 22, 0.8, 11.0, 0.5), 
+          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
+          popSize = 1000, maxiter = 50, run = 10,
+          maxFitness = 10000,
+          optim = TRUE)
+gar2_end <- as_datetime(lubridate::now())
+timespan <- interval(gar2_start, gar2_end)
+timespan
 
+gar1_start <- as_datetime(lubridate::now())
 csf_glob_rig <- 1
 GA_R1 <- ga(type = "real-valued", 
-            fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
-                                                    csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-            lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
-            upper = c(4, 17, 0.8, 9.0, 0.5), 
-            suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
-            popSize = 1000, maxiter = 180, run = 100,
-            maxFitness = 10000,
-            optim = TRUE)
-
-png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
-plot(tar_sed, maxpixels=ncell(tar_sed), legend =F)
-dev.off()
-
-png(output_target_wat_path, height=nrow(tar_wat), width=ncol(tar_wat)) 
-plot(tar_wat, maxpixels=ncell(tar_wat), legend =F)
-dev.off()
+          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+          csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+          upper = c(4, 22, 0.8, 11.0, 0.5), 
+          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
+          popSize = 1000, maxiter = 50, run = 10,
+          maxFitness = 10000,
+          optim = TRUE)
+gar1_end <- as_datetime(lubridate::now())
+timespan <- interval(gar1_start, gar1_end)
+timespan
 
 # Generate JSON report----------------------------------------------------------
 end <- as_datetime(lubridate::now())
@@ -437,3 +374,12 @@ report$config_json <- config_json_path
 
 json_report <- toJSON(report, indent = 1)
 write(json_report, output_json_path, append = F)
+
+# Save png of targets
+png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
+plot(tar_sed, maxpixels=ncell(tar_sed), legend =F)
+dev.off()
+
+png(output_target_wat_path, height=nrow(tar_wat), width=ncol(tar_wat)) 
+plot(tar_wat, maxpixels=ncell(tar_wat), legend =F)
+dev.off()
