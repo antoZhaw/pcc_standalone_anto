@@ -318,12 +318,13 @@ csf_glob_rig <- 3
 GA_R3 <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
          csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-         lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
-         upper = c(4, 22, 0.8, 11.0, 0.5), 
+         lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
+         upper = c(10, 40, 0.8, 11.0, 0.5), 
          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
-         popSize = 1000, maxiter = 50, run = 10,
+         popSize = 100, maxiter = 50, run = 10,
          maxFitness = 10000,
-         optim = TRUE)
+         elitism = 3,
+         optim = F)
 
 gar3_end <- as_datetime(lubridate::now())
 timespan <- interval(gar3_start, gar3_end)
@@ -334,12 +335,14 @@ csf_glob_rig <- 2
 GA_R2 <- ga(type = "real-valued", 
           fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
           csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
-          upper = c(4, 22, 0.8, 11.0, 0.5), 
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
+          upper = c(10, 40, 0.8, 11.0, 0.5), 
           suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
-          popSize = 1000, maxiter = 50, run = 10,
+          popSize = 100, maxiter = 50, run = 10,
           maxFitness = 10000,
-          optim = TRUE)
+          elitism = 3,
+          optim = F)
+
 gar2_end <- as_datetime(lubridate::now())
 timespan <- interval(gar2_start, gar2_end)
 timespan
@@ -349,12 +352,14 @@ csf_glob_rig <- 1
 GA_R1 <- ga(type = "real-valued", 
           fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
           csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
-          upper = c(4, 22, 0.8, 11.0, 0.5), 
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
+          upper = c(10, 40, 0.8, 11.0, 0.5), 
           suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
-          popSize = 1000, maxiter = 50, run = 10,
+          popSize = 100, maxiter = 50, run = 10,
           maxFitness = 10000,
-          optim = TRUE)
+          elitism = 3,
+          optim = F)
+
 gar1_end <- as_datetime(lubridate::now())
 timespan <- interval(gar1_start, gar1_end)
 timespan
