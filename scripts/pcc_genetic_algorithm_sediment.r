@@ -74,22 +74,22 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
   # Save plot of classified water surface
-  # plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
-  # set.RGLtopview()
-  # output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
-  # output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
-  # rgl.snapshot(output_wat_png_path)
-  # rgl.close()
+  plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
+  set.RGLtopview()
+  output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
+  output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
+  rgl.snapshot(output_wat_png_path)
+  rgl.close()
   # Rasterize both point clouds    
   DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
   DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
   
   # Save plot of water raster. Currently disabled since las is already saved.
-  # output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
-  # output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
-  # png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij)) 
-  # plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
-  # dev.off()
+  output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
+  output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
+  png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij))
+  plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
+  dev.off()
   
   # Generate water mask
   msk_wat_ij <- DEM_wat_ij
@@ -110,14 +110,18 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
                        max(c(xmax(DEM_sed_ij), xmax(DEM_wat_ij))),
                        min(c(ymin(DEM_sed_ij), ymin(DEM_wat_ij))),
                        max(c(ymax(DEM_sed_ij), ymax(DEM_wat_ij))))
-
+  
+  raster_ext_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), ymin(DEM_wat_ij), ymax(DEM_wat_ij))
+  
   # Generate uniform raster for targets
   target_wat <- targets_shp %>%  filter(Id == 1)
   target_sed <- targets_shp %>%  filter(Id == 2)
-  tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
+  tar_raw_sed <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
                     ext=raster_ext, resolution=raster_res, vals=NULL)
-  tar_sed <- fasterize(target_sed, tar_raw, field = "Id", fun="sum")
-  tar_wat <- fasterize(target_wat, tar_raw, field = "Id", fun="sum")
+  tar_raw_wat <- raster(nrows=nrow(DEM_wat_ij), ncols=ncols(DEM_wat_ij), crs=2056,
+                    ext=raster_ext_wat, resolution=raster_res, vals=NULL)
+  tar_sed <- fasterize(target_sed, tar_raw_sed, field = "Id", fun="sum")
+  tar_wat <- fasterize(target_wat, tar_raw_wat, field = "Id", fun="sum")
   
   # Normalise raster values for comparison
   rater1 <- values(tar_sed)
@@ -142,6 +146,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   delta_t <- as.numeric(timespan_ij, "seconds")
   total_kappa <- kap_sed$kappa
   iter_msg <- as.character(paste("Total Kappa (sed): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
+  print(kap_wat$kappa)
   print(iter_msg)
   obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
   output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
@@ -375,7 +380,8 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "wat_clothresolution", "wat_steepslope", "wat_kappa",
                  "n_obs", "comp_time_sec", "rasterresolution", sep =";"))
 
-
+output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
+output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 write(df, file=output_csv_path, append = T)
 
 # GA <- ga(type = "real-valued", 
