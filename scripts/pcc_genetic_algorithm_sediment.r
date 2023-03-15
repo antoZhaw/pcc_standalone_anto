@@ -63,13 +63,13 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   rig_sed_m <- global_rigid
   rig_wat_h <- global_rigid
   # classify ground
-  msg_sed <- as.character(paste("SED", id_ij, "rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
+  msg_sed <- as.character(paste("SED", id_ij, "_rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
   las_sed_ij <- classify.gnd(las, ct_sed_n, clr_sed_o, rig_sed_m)
   las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
   # classify water surface
-  msg_wat <- as.character(paste("WAT", id_ij,"rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
+  msg_wat <- as.character(paste("WAT", id_ij,"_rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
   print(msg_wat)
   las_wat_ij <- classify.gnd(las, ct_wat_i, clr_wat_j, rig_wat_h)
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
@@ -385,7 +385,7 @@ GA_R3 <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
                                                  csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
          lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
-         upper = c(4, 17, 0.8, 9.0, 0.5), 
+         upper = c(4, 20, 0.8, 9.0, 0.5), 
          suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
          popSize = 1000, maxiter = 180, run = 100,
          maxFitness = 10000,
@@ -401,7 +401,6 @@ GA_R2 <- ga(type = "real-valued",
             popSize = 1000, maxiter = 180, run = 100,
             maxFitness = 10000,
             optim = TRUE)
-
 
 csf_glob_rig <- 1
 GA_R1 <- ga(type = "real-valued", 
