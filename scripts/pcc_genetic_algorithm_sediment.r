@@ -42,8 +42,8 @@ is.lasCRScompliant <- function(las, target_epsg) {
   return(compliant)
 }
 
-classify.gnd <- function(las, class_thres, cloth_res, rigid) {
-  mycsf <- csf(F, class_thres, cloth_res, rigid)
+classify.gnd <- function(las, steep_slopes = F, class_thres, cloth_res, rigid) {
+  mycsf <- csf(steep_slopes, class_thres, cloth_res, rigid)
   las <- classify_ground(las, mycsf)
   las_gnd <- filter_poi(las, Classification == LASGROUND)
   # plot(las_gnd, size = 1, color = "RGB", bg = "white")
@@ -60,18 +60,19 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
                             ct_wat_i, clr_wat_j, raster_res) {
   id_ij <- sample(1:999, 1)
   start_ij <- as_datetime(lubridate::now())
+  steep_slope <- if_else(global_rigid == 3, F, T)
   rig_sed_m <- global_rigid
   rig_wat_h <- global_rigid
   # classify ground
   msg_sed <- as.character(paste("SED", id_ij, "_rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
-  las_sed_ij <- classify.gnd(las, ct_sed_n, clr_sed_o, rig_sed_m)
+  las_sed_ij <- classify.gnd(las, steep_slope, ct_sed_n, clr_sed_o, rig_sed_m)
   las_sed_ij <- classify_poi(las_sed_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_sed_ij <- filter_poi(las_sed_ij, Classification != LASNOISE)
   # classify water surface
   msg_wat <- as.character(paste("WAT", id_ij,"_rig", round(rig_wat_h, 4), "_ct", round(ct_wat_i, 4), "_clr", round(clr_wat_j, 4), sep = ""))
   print(msg_wat)
-  las_wat_ij <- classify.gnd(las, ct_wat_i, clr_wat_j, rig_wat_h)
+  las_wat_ij <- classify.gnd(las, steep_slope, ct_wat_i, clr_wat_j, rig_wat_h)
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
   # Save plot of classified water surface
@@ -146,7 +147,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   iter_result_msg <- as.character(paste("Total Kappa (sed): ", round(total_kappa, 4), ", computed in ", round(delta_t, 3), " seconds."))
   print(iter_wat_msg)
   print(iter_result_msg)
-  obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, "FALSE", kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, "FALSE", kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
+  obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, steep_slope, kap_sed$kappa, msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, steep_slope, kap_wat$kappa, kap_sed$n.obs, delta_t, raster_res, sep =";"))
   output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
   output_csv_path <- file.path(ga_output_path, output_csv_name, fsep="/")
   write(obs, file=output_csv_path, append = T)
@@ -384,10 +385,10 @@ csf_glob_rig <- 3
 GA_R3 <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
                                                  csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-         lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
-         upper = c(4, 20, 0.8, 9.0, 0.5), 
-         suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
-         popSize = 1000, maxiter = 180, run = 100,
+         lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+         upper = c(4, 22, 0.8, 11.0, 0.5), 
+         suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
+         popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = TRUE)
 
