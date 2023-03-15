@@ -74,22 +74,22 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   las_wat_ij <- classify_poi(las_wat_ij, class = LASNOISE, roi = ga_aoi_shp, inverse_roi = T)
   las_wat_ij <- filter_poi(las_wat_ij, Classification != LASNOISE)
   # Save plot of classified water surface
-  plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
-  set.RGLtopview()
-  output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
-  output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
-  rgl.snapshot(output_wat_png_path)
-  rgl.close()
+  # plot(las_wat_ij, size = 1, color = "RGB", bg = "black", axis = F)
+  # set.RGLtopview()
+  # output_wat_png_name <- as.character(paste("LASWAT", msg_wat, ".png", sep = ""))
+  # output_wat_png_path <- file.path(ga_output_path, output_wat_png_name, fsep="/")
+  # rgl.snapshot(output_wat_png_path)
+  # rgl.close()
   # Rasterize both point clouds    
   DEM_sed_ij <- rasterize_canopy(las_sed_ij, res = raster_res, p2r(), pkg = "raster")
   DEM_wat_ij <- rasterize_canopy(las_wat_ij, res = raster_res, p2r(), pkg = "raster")
   
   # Save plot of water raster. Currently disabled since las is already saved.
-  output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
-  output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
-  png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij))
-  plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
-  dev.off()
+  # output_wat_rast_name <- as.character(paste("RASWAT", msg_wat, ".png", sep = ""))
+  # output_wat_rast_path <- file.path(ga_output_path, output_wat_rast_name, fsep="/")
+  # png(output_wat_rast_path, height=nrow(DEM_wat_ij), width=ncol(DEM_wat_ij))
+  # plot(DEM_wat_ij, maxpixels=ncell(DEM_wat_ij), legend =F)
+  # dev.off()
   
   # Generate water mask
   msk_wat_ij <- DEM_wat_ij
@@ -367,33 +367,24 @@ par(mfrow=c(1,1))
 # rig_sed_m <- c(1)
 
 
-#tbd: nicht mehr ct_sed_nötig oder dann erweitern 
-col <- height.colors(15)
-
 df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "sed_clothresolution", "sed_steepslope", "sed_kappa",
                  "wat_name", "wat_rigidness", "wat_classthreshold",
                  "wat_clothresolution", "wat_steepslope", "wat_kappa",
                  "n_obs", "comp_time_sec", "rasterresolution", sep =";"))
 
+# Write header before start
 output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
 output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
 write(df, file=output_csv_path, append = T)
 
-# GA <- ga(type = "real-valued", 
-#          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path,
-#                                                  x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
-#          lower = c(1, 0.2, 2.5, 1, 0.2, 2.5, 0.4), upper = c(3, 4, 4, 3, 4, 7, 0.5), 
-#          # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
-#          popSize = 50, maxiter = 180, run = 100,
-#          optim = TRUE)
-
-csf_glob_rig <- 1
-GA_R1 <- ga(type = "real-valued", 
+csf_glob_rig <- 3
+GA_R3 <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
                                                  csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-         lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
-         suggestions = c(0.5, 1.9, 0.2, 3.9, 0.5),
+         lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
+         upper = c(4, 17, 0.8, 9.0, 0.5), 
+         suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
          popSize = 1000, maxiter = 180, run = 100,
          maxFitness = 10000,
          optim = TRUE)
@@ -402,18 +393,23 @@ csf_glob_rig <- 2
 GA_R2 <- ga(type = "real-valued", 
             fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
                                                     csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-            lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
-            # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
-            popSize = 50, maxiter = 180, run = 100,
+            lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
+            upper = c(4, 17, 0.8, 9.0, 0.5), 
+            suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
+            popSize = 1000, maxiter = 180, run = 100,
+            maxFitness = 10000,
             optim = TRUE)
 
-csf_glob_rig <- 3
-GA_R3 <- ga(type = "real-valued", 
+
+csf_glob_rig <- 1
+GA_R1 <- ga(type = "real-valued", 
             fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
                                                     csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-            lower = c(0.2, 0.4, 0.2, 0.4, 0.4), upper = c(4, 17, 4, 17, 0.5), 
-            # suggestions = c(1, 0.5, 1.5, 1, 0.2, 3.9),
-            popSize = 50, maxiter = 180, run = 100,
+            lower = c(0.2, 0.4, 0.2, 2.0, 0.4), 
+            upper = c(4, 17, 0.8, 9.0, 0.5), 
+            suggestions = c(0.5, 1.9, 0.3, 4.0, 0.5),
+            popSize = 1000, maxiter = 180, run = 100,
+            maxFitness = 10000,
             optim = TRUE)
 
 png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
