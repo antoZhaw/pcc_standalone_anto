@@ -178,7 +178,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
 # Specify dataset
 dataset_id <- "1"
 wholeset <- T
-year <- "2021"
+year <- "2020"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 raster_res <- 0.5
