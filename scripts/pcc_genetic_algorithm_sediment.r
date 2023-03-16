@@ -103,14 +103,14 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   sed_ij <- DEM_sed_ij * msk_wat_ij
   
   # Restrict Area of interest with additional raster
-  bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
-  bb_sed_r <- raster(ext=bb_sed)
-  sed_ij <- crop(sed_ij, bb_sed_r)
-  
+  # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
+  # bb_sed_r <- raster(ext=bb_sed)
+  # sed_ij <- crop(sed_ij, bb_sed_r)
+  # 
   # Restrict Area of interest with additional raster
-  bb_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), 1178480, ymax(DEM_wat_ij))
-  bb_wat_r <- raster(ext=bb_wat)
-  DEM_wat_ij <- crop(DEM_wat_ij, bb_wat_r)
+  # bb_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), 1178480, ymax(DEM_wat_ij))
+  # bb_wat_r <- raster(ext=bb_wat)
+  # DEM_wat_ij <- crop(DEM_wat_ij, bb_wat_r)
   
   # Save plot of masked raster
   output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
@@ -161,7 +161,12 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   print(iter_result_msg)
   obs <- as.character(paste(msg_sed, rig_sed_m, ct_sed_n, clr_sed_o, steep_slope_sed, kap_sed$kappa,
                             msg_wat, rig_wat_h, ct_wat_i, clr_wat_j, steep_slope_wat, kap_wat$kappa, 
-                            kap_sed$n.obs, delta_t, raster_res, sep =";"))
+                            kap_sed$n.obs, delta_t, raster_res,
+                            xmin(raster_ext_wat), xmax(raster_ext_wat),
+                            ymin(raster_ext_wat), ymax(raster_ext_wat),
+                            xmin(raster_ext_sed), xmax(raster_ext_sed),
+                            ymin(raster_ext_sed), ymax(raster_ext_sed),
+                            sep =";"))
   output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
   output_csv_path <- file.path(ga_output_path, output_csv_name, fsep="/")
   write(obs, file=output_csv_path, append = T)
@@ -320,7 +325,9 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "sed_clothresolution", "sed_steepslope", "sed_kappa",
                  "wat_name", "wat_rigidness", "wat_classthreshold",
                  "wat_clothresolution", "wat_steepslope", "wat_kappa",
-                 "n_obs", "comp_time_sec", "rasterresolution", sep =";"))
+                 "n_obs", "comp_time_sec", "rasterresolution",
+                 "wat_xmin", "wat_xmax", "wat_ymin", "wat_ymax",
+                 "sed_xmin", "sed_xmax", "sed_ymin", "sed_ymax", sep =";"))
 
 output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
 output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
