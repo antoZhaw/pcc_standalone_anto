@@ -66,7 +66,19 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 wholeset <- T
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
-raster_res <- 0.5
+raster_res <- 0.4
+
+# Global filter settings for both years. Can be changed (implementation in json)
+rigid_n_water <- 3
+class_thres_water <- 0.459875684
+cloth_res_water <- 6.278611041
+steep_slope_water <- if_else(rigid_n_water == 3, F, T)
+
+# Sediment
+rigid_n_sed <- 3
+class_thres_sed <- 1.377562812
+cloth_res_sed <- 17.57031584
+steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -96,7 +108,6 @@ t0_cfg <- fromJSON(file = t0_config_json_path)
 t0_mcdut_shp_name <- as.character(paste(t0_cfg$mapcurve_dut_shp, sep = ""))
 t0_mcdut_path <- file.path(dir_repo, t0_mcdut_shp_name, fsep="/")
 
-
 # Settings t1
 t1_dataset_id <- "1"
 t1_year <- "2022"
@@ -113,7 +124,6 @@ t1_data_path <- file.path(dir_data, dir_persp, t1_year, settype, t1_dataset)
 t1_cfg <- fromJSON(file = t1_config_json_path)
 t1_mcdut_shp_name <- as.character(paste(t1_cfg$mapcurve_dut_shp, sep = ""))
 t1_mcdut_path <- file.path(dir_repo, t1_mcdut_shp_name, fsep="/")
-
 
 aoi_path <- file.path(dir_repo, "data/area_of_interest_final", "AOI_final.shp", fsep="/")
 aoi_dir <- file.path(dir_repo, "data/area_of_interest_final", fsep="/")
@@ -247,12 +257,6 @@ t1_las$Classification <- LASNONCLASSIFIED
 # las <- las_origin
 
 # Segment Water with Cloth Simulation Filter------------------------------------
-# Global filter settings for both years. Can be changed (implementation in json)
-rigid_n_water <- 1
-rigid_n_sed <- rigid_n_water
-steep_slope <- if_else(rigid_n_water == 3, F, T)
-class_thres_water <- 0.2
-cloth_res_water <- 3.9
 t0_status_water <- as.character(paste("00_water", t0_year, "_rigid", rigid_n_water,
                                    "_clthres", class_thres_water,
                                    "clothres", cloth_res_water, sep = ""))
@@ -260,8 +264,8 @@ t1_status_water <- as.character(paste("00_water", t1_year, "_rigid", rigid_n_wat
                                       "_clthres", class_thres_water,
                                       "clothres", cloth_res_water, sep = ""))
 
-t0_las_water <- classify.gnd(t0_las, steep_slope, class_thres_water, cloth_res_water, rigid_n_water)
-t1_las_water <- classify.gnd(t1_las, steep_slope, class_thres_water, cloth_res_water, rigid_n_water)
+t0_las_water <- classify.gnd(t0_las, steep_slope_water, class_thres_water, cloth_res_water, rigid_n_water)
+t1_las_water <- classify.gnd(t1_las, steep_slope_water, class_thres_water, cloth_res_water, rigid_n_water)
 
 t0_las_water <- add_attribute(t0_las_water, FALSE, "water")
 t1_las_water <- add_attribute(t1_las_water, FALSE, "water")
@@ -297,11 +301,11 @@ t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "r
 
 # Determine convex hull of both DEM
 # tbd: unclear, whether this has an effect on alignment..
-raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
-                    max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
-                    min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
-                    max(c(ymax(t0_DEM_water), ymax(t1_DEM_water))))
-raster_ext
+# raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
+#                     max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
+#                     min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
+#                     max(c(ymax(t0_DEM_water), ymax(t1_DEM_water))))
+# raster_ext
 
 # t0_raster_water <- raster(nrows=nrow(t0_DEM_water), ncols=ncols(t0_DEM_water), crs=2056,
 #                   ext=raster_ext, resolution=raster_res, vals=NULL)
@@ -324,17 +328,13 @@ plot(t1_mask_water)
 
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
-
-rigid_n_sed <- global_rigid
-class_thres_sed <- 0.2
-cloth_res_sed <- 3.9
 # classify ground
-t0_las_sed <- classify.gnd(t0_las, steep_slope, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t0_las_sed <- classify.gnd(t0_las, steep_slope_sed, class_thres_sed, cloth_res_sed, rigid_n_sed)
 t0_las_sed <- classify_poi(t0_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t0_las_sed <- filter_poi(t0_las_sed, Classification != LASNOISE)
 
 # classify ground
-t1_las_sed <- classify.gnd(t1_las, steep_slope, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t1_las_sed <- classify.gnd(t1_las, steep_slope_sed, class_thres_sed, cloth_res_sed, rigid_n_sed)
 t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
 
