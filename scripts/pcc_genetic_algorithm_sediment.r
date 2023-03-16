@@ -329,10 +329,11 @@ GA_R3 <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
          csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
-         upper = c(4, 40, 0.8, 20, 0.5), 
+         upper = c(8, 40, 0.8, 20, 0.5), 
          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
          popSize = 100, maxiter = 50, run = 10,
          maxFitness = 10000,
+         elitism = 3,
          optim = F)
 
 gar3_end <- as_datetime(lubridate::now())
@@ -361,10 +362,11 @@ GA_R1 <- ga(type = "real-valued",
           fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
           csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
           lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
-          upper = c(4, 40, 0.8, 20, 0.5), 
+          upper = c(8, 40, 0.8, 20, 0.5), 
           suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
           popSize = 100, maxiter = 50, run = 10,
           maxFitness = 10000,
+          elitism = 3,
           optim = F)
 
 gar1_end <- as_datetime(lubridate::now())
