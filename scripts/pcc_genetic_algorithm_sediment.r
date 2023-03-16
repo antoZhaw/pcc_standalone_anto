@@ -100,6 +100,16 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
   # Subtract water course
   sed_ij <- DEM_sed_ij * msk_wat_ij
   
+  # Restrict Area of interest with additional raster
+  bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
+  bb_sed_r <- raster(ext=bb_sed)
+  sed_ij <- crop(sed_ij, bb_sed_r)
+  
+  # Restrict Area of interest with additional raster
+  bb_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), 1178480, ymax(DEM_wat_ij))
+  bb_wat_r <- raster(ext=bb_wat)
+  DEM_wat_ij <- crop(DEM_wat_ij, bb_wat_r)
+  
   # Save plot of masked raster
   output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
   output_sed_rast_path <- file.path(ga_output_path, output_sed_rast_name, fsep="/")
@@ -318,12 +328,11 @@ csf_glob_rig <- 3
 GA_R3 <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
          csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-         lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
-         upper = c(10, 40, 0.8, 11.0, 0.5), 
+         lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+         upper = c(4, 40, 0.8, 20, 0.5), 
          suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
          popSize = 100, maxiter = 50, run = 10,
          maxFitness = 10000,
-         elitism = 3,
          optim = F)
 
 gar3_end <- as_datetime(lubridate::now())
@@ -335,12 +344,11 @@ csf_glob_rig <- 2
 GA_R2 <- ga(type = "real-valued", 
           fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
           csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-          lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
-          upper = c(10, 40, 0.8, 11.0, 0.5), 
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+          upper = c(4, 40, 0.8, 20, 0.5), 
           suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
           popSize = 100, maxiter = 50, run = 10,
           maxFitness = 10000,
-          elitism = 3,
           optim = F)
 
 gar2_end <- as_datetime(lubridate::now())
@@ -352,12 +360,11 @@ csf_glob_rig <- 1
 GA_R1 <- ga(type = "real-valued", 
           fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
           csf_glob_rig, x[1], x[2], x[3], x[4], x[5]),
-          lower = c(0.8, 2.0, 0.2, 3.3, 0.5), 
-          upper = c(10, 40, 0.8, 11.0, 0.5), 
+          lower = c(0.8, 2.0, 0.2, 3.3, 0.4), 
+          upper = c(4, 40, 0.8, 20, 0.5), 
           suggestions = c(1.75, 9.2, 0.52, 8.6, 0.5),
           popSize = 100, maxiter = 50, run = 10,
           maxFitness = 10000,
-          elitism = 3,
           optim = F)
 
 gar1_end <- as_datetime(lubridate::now())
