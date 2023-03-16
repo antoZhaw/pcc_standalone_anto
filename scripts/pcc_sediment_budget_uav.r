@@ -40,8 +40,8 @@ is.lasCRScompliant <- function(las, target_epsg) {
   return(compliant)
 }
 
-classify.gnd <- function(las, class_thres, cloth_res, rigid) {
-  mycsf <- csf(F, class_thres, cloth_res, rigid)
+classify.gnd <- function(las, steep_slopes = F, class_thres, cloth_res, rigid) {
+  mycsf <- csf(steep_slopes, class_thres, cloth_res, rigid)
   las <- classify_ground(las, mycsf)
   las_gnd <- filter_poi(las, Classification == LASGROUND)
   # plot(las_gnd, size = 1, color = "RGB", bg = "white")
@@ -187,8 +187,8 @@ bounding_box <- gen_xy %>%
 
 # Read Shapefiles
 # mctar_all <- read_sf(dsn = mctar_path) 
-t0_mcdut <- read_sf(dsn = t0_mcdut_path)
-t1_mcdut <- read_sf(dsn = t1_mcdut_path)
+t0_csf_aoi_shp <- read_sf(dsn = t0_mcdut_path)
+t1_csf_aoi_shp <- read_sf(dsn = t1_mcdut_path)
 aoi_shp <- read_sf(dsn = aoi_path)
 
 # Intersect target with area of interest
@@ -249,6 +249,8 @@ t1_las$Classification <- LASNONCLASSIFIED
 # Segment Water with Cloth Simulation Filter------------------------------------
 # Global filter settings for both years. Can be changed (implementation in json)
 rigid_n_water <- 1
+rigid_n_sed <- rigid_n_water
+steep_slope <- if_else(rigid_n_water == 3, F, T)
 class_thres_water <- 0.2
 cloth_res_water <- 3.9
 t0_status_water <- as.character(paste("00_water", t0_year, "_rigid", rigid_n_water,
@@ -258,8 +260,8 @@ t1_status_water <- as.character(paste("00_water", t1_year, "_rigid", rigid_n_wat
                                       "_clthres", class_thres_water,
                                       "clothres", cloth_res_water, sep = ""))
 
-t0_las_water <- classify.gnd(t0_las, class_thres_water, cloth_res_water, rigid_n_water)
-t1_las_water <- classify.gnd(t1_las, class_thres_water, cloth_res_water, rigid_n_water)
+t0_las_water <- classify.gnd(t0_las, steep_slope, class_thres_water, cloth_res_water, rigid_n_water)
+t1_las_water <- classify.gnd(t1_las, steep_slope, class_thres_water, cloth_res_water, rigid_n_water)
 
 t0_las_water <- add_attribute(t0_las_water, FALSE, "water")
 t1_las_water <- add_attribute(t1_las_water, FALSE, "water")
@@ -271,29 +273,30 @@ t1_las_water <- filter_poi(t1_las_water, Classification == LASGROUND)
 # plot(las_water, size = 1, color = "RGB", bg = "white", axis = F)
 
 # Filter points which are not within area of interest
-t0_las_water <- classify_poi(t0_las_water, class = LASNOISE, roi = t0_mcdut, inverse_roi = T)
+t0_las_water <- classify_poi(t0_las_water, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t0_las_water <- filter_poi(t0_las_water, Classification != LASNOISE)
-plot(t0_las_water, size = 1, color = "RGB", bg = "black", axis = F)
-set.RGLtopview()
-t0_output_water_png_name <- as.character(paste(t0_status_water, ".png", sep = ""))
-t0_output_water_png_path <- file.path(bud_output_path, t0_output_water_png_name, fsep="/")
-rgl.snapshot(t0_output_water_png_path)
-rgl.close()
+# plot(t0_las_water, size = 1, color = "RGB", bg = "black", axis = F)
+# set.RGLtopview()
+# t0_output_water_png_name <- as.character(paste(t0_status_water, ".png", sep = ""))
+# t0_output_water_png_path <- file.path(bud_output_path, t0_output_water_png_name, fsep="/")
+# rgl.snapshot(t0_output_water_png_path)
+# rgl.close()
 
-t1_las_water <- classify_poi(t1_las_water, class = LASNOISE, roi = t1_mcdut, inverse_roi = T)
+t1_las_water <- classify_poi(t1_las_water, class = LASNOISE, roi = t1_csf_aoi_shp, inverse_roi = T)
 t1_las_water <- filter_poi(t1_las_water, Classification != LASNOISE)
-plot(t1_las_water, size = 1, color = "RGB", bg = "black", axis = F)
-set.RGLtopview()
-t1_output_water_png_name <- as.character(paste(t1_status_water, ".png", sep = ""))
-t1_output_water_png_path <- file.path(bud_output_path, t1_output_water_png_name, fsep="/")
-rgl.snapshot(t1_output_water_png_path)
-rgl.close()
+# plot(t1_las_water, size = 1, color = "RGB", bg = "black", axis = F)
+# set.RGLtopview()
+# t1_output_water_png_name <- as.character(paste(t1_status_water, ".png", sep = ""))
+# t1_output_water_png_path <- file.path(bud_output_path, t1_output_water_png_name, fsep="/")
+# rgl.snapshot(t1_output_water_png_path)
+# rgl.close()
 
 # Rasterize water point cloud    
 t0_DEM_water <- rasterize_canopy(t0_las_water, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "raster")
 
 # Determine convex hull of both DEM
+# tbd: unclear, whether this has an effect on alignment..
 raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
                     max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
                     min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
@@ -319,7 +322,45 @@ t1_mask_water[is.na(t1_mask_water)] <- 1
 plot(t0_mask_water)
 plot(t1_mask_water)
 
+
 # Segment Ground with Cloth Simulation Filter-----------------------------------
+
+rigid_n_sed <- global_rigid
+class_thres_sed <- 0.2
+cloth_res_sed <- 3.9
+# classify ground
+t0_las_sed <- classify.gnd(t0_las, steep_slope, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t0_las_sed <- classify_poi(t0_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
+t0_las_sed <- filter_poi(t0_las_sed, Classification != LASNOISE)
+
+# classify ground
+t1_las_sed <- classify.gnd(t1_las, steep_slope, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
+t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
+
+# Rasterize sediment
+t0_DEM_sed <- rasterize_canopy(t0_las_sed, res = raster_res, p2r(), pkg = "raster")
+t1_DEM_sed <- rasterize_canopy(t1_las_sed, res = raster_res, p2r(), pkg = "raster")
+
+# Subtract water
+t0_sed <- t0_DEM_sed * t0_mask_water
+t1_sed <- t1_DEM_sed * t1_mask_water
+
+delta_sed <- t0_sed - t1_sed
+
+col <- height.colors(30)
+par(mfrow=c(1,3))
+
+plot(t0_sed, col = col, main = "UAV 2021")
+plot(t1_sed, col = col, main = "UAV 2022")
+plot(delta_sed, col = col, main = "DEM of difference")
+
+
+# Restrict Area of interest with additional raster (tbd)
+# bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
+# bb_sed_r <- raster(ext=bb_sed)
+# sed_ij <- crop(sed_ij, bb_sed_r)
+
 # plot(las, size = 1, color = "RGB", bg = "white")
 
 par(mfrow=c(1,1))
