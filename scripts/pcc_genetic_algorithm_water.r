@@ -147,7 +147,7 @@ cohen.kappa.csf.wat <- function(raw_las, ga_aoi_shp, targets_shp,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "1"
+dataset_id <- "5"
 wholeset <- T
 year <- "2021"
 perspective <- "uav"
@@ -314,10 +314,10 @@ GA <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf.wat(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_wat_report_path,
                                                  year, perspective, dataset_id,
-         3, x[1], x[2], 0.40),
-         lower = c(0.1, 1), 
-         upper = c(20, 40), 
-         suggestions = c(1.411, 12.438),
+         3, x[1], x[2], 0.5),
+         lower = c(0.1, 1.1), 
+         upper = c(2, 7), 
+         suggestions = c(1.3, 3.7),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
