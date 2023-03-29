@@ -55,7 +55,7 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
-cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, 
+cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp, 
                             ga_output_path, output_csv_path,
                             las_year, las_persp, las_dataset_id,
                             rig_sed_m, ct_sed_n, clr_sed_o, 
@@ -270,7 +270,7 @@ output_target_wat_path <- file.path(output_path, output_target_wat_name, fsep="/
 output_target_sed_name <- as.character(paste(output_id, "-target-sed.png", sep = ""))
 output_target_sed_path <- file.path(output_path, output_target_sed_name, fsep="/")
 
-output_ga_sed_report_name <- as.character(paste("ga_sed_report.csv", sep = ""))
+output_ga_sed_report_name <- as.character(paste("ga_sed", perspective, year, dataset_id, "report.csv", sep = "_"))
 output_ga_sed_report_path <- file.path(dir_export, output_ga_sed_report_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
@@ -342,7 +342,7 @@ write(df, file=output_ga_sed_report_path, append = T)
 # Start search
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
-         fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, 
+         fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
          2, x[1], x[2], 3, 2.63628606, 14.92997548, 0.400392864),
@@ -359,7 +359,7 @@ timespan
 
 # old try
 # GA <- ga(type = "real-valued", 
-#          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+#          fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, output_path, 
 #                                                  x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
 #          lower = c(1, 0.9, 2.0, 3, 0.7, 14, 0.4), 
 #          upper = c(1, 6.9, 6.5, 3, 2.9, 22, 0.5), 

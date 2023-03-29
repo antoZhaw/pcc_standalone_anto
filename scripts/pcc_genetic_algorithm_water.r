@@ -239,8 +239,8 @@ output_target_wat_path <- file.path(output_path, output_target_wat_name, fsep="/
 output_target_sed_name <- as.character(paste(output_id, "-target-sed.png", sep = ""))
 output_target_sed_path <- file.path(output_path, output_target_sed_name, fsep="/")
 
-output_ga_sed_report_name <- as.character(paste("ga_wat_report.csv", sep = ""))
-output_ga_sed_report_path <- file.path(dir_export, output_ga_sed_report_name, fsep="/")
+output_ga_wat_report_name <- as.character(paste("ga_wat", perspective, year, dataset_id, "report.csv", sep = "_"))
+output_ga_wat_report_path <- file.path(dir_export, output_ga_wat_report_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
@@ -306,13 +306,13 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "perspective", "dataset_id", "output_path", sep =";"))
 
 
-write(df, file=output_ga_sed_report_path, append = T)
+write(df, file=output_ga_wat_report_path, append = T)
 
 # Start search
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf.wat(las, csf_aoi_shp, targets_aoi_shp, 
-                                                 output_path, output_ga_sed_report_path,
+                                                 output_path, output_ga_wat_report_path,
                                                  year, perspective, dataset_id,
          3, x[1], x[2], 0.40),
          lower = c(0.1, 1), 
