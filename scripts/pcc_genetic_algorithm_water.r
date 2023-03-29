@@ -147,9 +147,9 @@ cohen.kappa.csf.wat <- function(raw_las, ga_aoi_shp, targets_shp,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "2"
+dataset_id <- "1"
 wholeset <- T
-year <- "2020"
+year <- "2021"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 raster_res <- 0.5
@@ -317,7 +317,7 @@ GA <- ga(type = "real-valued",
          3, x[1], x[2], 0.40),
          lower = c(0.1, 1), 
          upper = c(20, 40), 
-         suggestions = c(2.63628606, 14.92997548),
+         suggestions = c(1.411, 12.438),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
