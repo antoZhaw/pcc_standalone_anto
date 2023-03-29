@@ -337,10 +337,10 @@ write(df, file=output_csv_path, append = T)
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
-         x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
-         lower = c(1, 0.9, 2.0, 3, 0.7, 14, 0.4), 
-         upper = c(1, 6.9, 6.5, 3, 2.9, 22, 0.5), 
-         suggestions = c(1, 5, 3.9, 3, 1.8, 16, 0.5),
+         2, x[1], x[2], 3, 2.63628606, 14.92997548, 0.400392864),
+         lower = c(0.18, 1.8), 
+         upper = c(1.2, 4.2), 
+         suggestions = c(0.31, 3.5),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
@@ -348,6 +348,18 @@ GA <- ga(type = "real-valued",
 gar3_end <- as_datetime(lubridate::now())
 timespan <- interval(gar3_start, gar3_end)
 timespan
+
+# old try
+# GA <- ga(type = "real-valued", 
+#          fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+#                                                  x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
+#          lower = c(1, 0.9, 2.0, 3, 0.7, 14, 0.4), 
+#          upper = c(1, 6.9, 6.5, 3, 2.9, 22, 0.5), 
+#          suggestions = c(1, 5, 3.9, 3, 1.8, 16, 0.5),
+#          popSize = 1000, maxiter = 50, run = 10,
+#          maxFitness = 10000,
+#          optim = F)
+
 
 # lower = c(1, 0.8, 2.0, 1, 0.2, 3.3, 0.4), 
 # upper = c(3, 8, 40, 3, 0.8, 40, 0.5), 
