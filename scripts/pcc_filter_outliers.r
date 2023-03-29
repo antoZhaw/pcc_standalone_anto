@@ -34,7 +34,7 @@ las <- readLAS(path_input_data)
 # A higher k leads to a more precise but also higher computational time.
 # Then it rejects the points that are farther than the average distance
 # plus a number of times the standard deviation (multiplier m).
-k <- 50
+k <- 25
 # m = 5 is quiet aggressive and takes away tips of leafes.
 m <- 5
 las <- classify_noise(las, sor(k, m))

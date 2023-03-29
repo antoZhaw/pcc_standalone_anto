@@ -55,7 +55,9 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
-cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
+cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, 
+                            ga_output_path, output_csv_path,
+                            las_year, las_persp, las_dataset_id,
                             rig_sed_m, ct_sed_n, clr_sed_o, 
                             rig_wat_h, ct_wat_i, clr_wat_j, 
                             raster_res) {
@@ -166,9 +168,9 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
                             ymin(raster_ext_wat), ymax(raster_ext_wat),
                             xmin(raster_ext_sed), xmax(raster_ext_sed),
                             ymin(raster_ext_sed), ymax(raster_ext_sed),
+                            las_year, las_persp, las_dataset_id,
+                            ga_output_path,
                             sep =";"))
-  output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
-  output_csv_path <- file.path(ga_output_path, output_csv_name, fsep="/")
   write(obs, file=output_csv_path, append = T)
   popsize_kappa <- total_kappa * 10000
   return(popsize_kappa)
@@ -176,7 +178,7 @@ cohen.kappa.csf <- function(raw_las, ga_aoi_shp, targets_shp, ga_output_path,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "1"
+dataset_id <- "2"
 wholeset <- T
 year <- "2020"
 perspective <- "uav"
@@ -198,7 +200,7 @@ dataset <- paste(datasetname, ".las", sep = "")
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
-if(user == "gubelyve"){
+if(user == "gubelyve"| user == "xgby"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
@@ -208,6 +210,7 @@ if(user == "gubelyve"){
 
 dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
 dir_config <-  file.path(dir_repo, "config", fsep="/")
+dir_export <-  file.path(dir_repo, "export", fsep="/")
 
 config_id <- as.character(paste(year, perspective, settype, dataset_id, sep = "-"))
 output_id <- as.character(paste(timestamp, config_id, sep = "-"))
@@ -266,6 +269,9 @@ output_target_wat_path <- file.path(output_path, output_target_wat_name, fsep="/
 
 output_target_sed_name <- as.character(paste(output_id, "-target-sed.png", sep = ""))
 output_target_sed_path <- file.path(output_path, output_target_sed_name, fsep="/")
+
+output_ga_sed_report_name <- as.character(paste("ga_sed_report.csv", sep = ""))
+output_ga_sed_report_path <- file.path(dir_export, output_ga_sed_report_name, fsep="/")
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
@@ -327,16 +333,18 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "wat_clothresolution", "wat_steepslope", "wat_kappa",
                  "n_obs", "comp_time_sec", "rasterresolution",
                  "wat_xmin", "wat_xmax", "wat_ymin", "wat_ymax",
-                 "sed_xmin", "sed_xmax", "sed_ymin", "sed_ymax", sep =";"))
+                 "sed_xmin", "sed_xmax", "sed_ymin", "sed_ymax", "year", 
+                 "perspective", "dataset_id", "output_path", sep =";"))
 
-output_csv_name <- as.character(paste("genetic_algo_report.csv", sep = ""))
-output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
-write(df, file=output_csv_path, append = T)
+
+write(df, file=output_ga_sed_report_path, append = T)
 
 # Start search
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
-         fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, output_path, 
+         fitness =  function(x) -cohen.kappa.csf(las, csf_aoi_shp, targets_aoi_shp, 
+                                                 output_path, output_ga_sed_report_path,
+                                                 year, perspective, dataset_id,
          2, x[1], x[2], 3, 2.63628606, 14.92997548, 0.400392864),
          lower = c(0.18, 1.8), 
          upper = c(1.2, 4.2), 
