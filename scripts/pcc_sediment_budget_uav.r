@@ -65,6 +65,18 @@ normalise.raster.layer <- function(raster_layer, normal_value = 1) {
   raster_layer
 }
 
+plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
+  oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
+  tmap_mode("plot") + # "plot" or "view"
+  tm_shape(raster_bin) +
+  tm_raster(palette = oranges, title = plot_title, alpha = 1) +
+  tm_shape(target_shp) +
+  tm_polygons(alpha = 0.5) +
+  # tm_shape(wallows_raster_100) +
+  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
+  tm_view(control.position = c("right", "top"))
+}
+
 # Globals for Configuration-----------------------------------------------------
 # Record start date and time
 start <- as_datetime(lubridate::now())
@@ -340,16 +352,14 @@ t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "r
 # t1_raster_water <- raster(nrows=nrow(t1_DEM_water), ncols=ncols(t1_DEM_water), crs=2056,
 #                        ext=raster_ext, resolution=raster_res, vals=NULL)
 
-plot(t0_DEM_water)
-plot(t1_DEM_water)
+# plot(t0_DEM_water)
+# plot(t1_DEM_water)
 
 t0_mask_water <- mask.raster.layer(t0_DEM_water)
 t1_mask_water <- mask.raster.layer(t1_DEM_water)
 
-
-plot(t0_mask_water)
-
-plot(t1_mask_water)
+# plot(t0_mask_water)
+# plot(t1_mask_water)
 
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
@@ -376,25 +386,28 @@ delta_sed <- t0_sed - t1_sed
 col <- height.colors(30)
 par(mfrow=c(1,3))
 
-plot(t0_sed, col = col, main = "UAV t0")
-plot(t1_sed, col = col, main = "UAV t1")
-plot(delta_sed, col = col, main = "DEM of difference")
+# plot(t0_sed, col = col, main = "UAV t0")
+# plot(t1_sed, col = col, main = "UAV t1")
+# plot(delta_sed, col = col, main = "DEM of difference")
 
 
 t0_tm_sed <- normalise.raster.layer(t0_sed)
+t1_tm_sed <- normalise.raster.layer(t1_sed)
+t0_tm_wat <- normalise.raster.layer(t0_DEM_water)
+t1_tm_wat <- normalise.raster.layer(t1_DEM_water)
 
-oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
-t0_tm_sed_result <-
-  tmap_mode("plot") + # "plot" or "view"
-  tm_shape(t0_tm_sed) +
-  tm_raster(palette = oranges, title = "Sediment", alpha = 1) +
-  tm_shape(t0_target_sed) +
-  tm_polygons(alpha = 0.5) +
-  # tm_shape(wallows_raster_100) +
-  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
-  tm_view(control.position = c("right", "top"))
-
+t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "Sediment t0")
 t0_tm_sed_result
+
+t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "Sediment t1")
+t1_tm_sed_result
+
+t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "Water t0")
+t0_tm_wat_result
+
+t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "Water t1")
+t1_tm_wat_result
+
 
 tm_shp <-
   tmap_mode("plot") + # "plot" or "view"
