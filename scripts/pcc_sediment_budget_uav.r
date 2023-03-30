@@ -229,16 +229,6 @@ t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
 t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
 t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
 
-tm_shp <-
-  tmap_mode("plot") + # "plot" or "view"
-  tm_shape(t1_target_sed) +
-  tm_polygons() +
-  # tm_shape(wallows_raster_100) +
-  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
-  tm_view(control.position = c("right", "top"))
-
-tm_shp
-
 # Intersect target with area of interest
 # mctar_bb <- st_intersection(mctar_all, bounding_box)
 
@@ -391,18 +381,30 @@ plot(t1_sed, col = col, main = "UAV t1")
 plot(delta_sed, col = col, main = "DEM of difference")
 
 
-tm_sed_t0 <- normalise.raster.layer(t0_sed)
+t0_tm_sed <- normalise.raster.layer(t0_sed)
 
 oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
-tm_nw_100 <-
+t0_tm_sed_result <-
   tmap_mode("plot") + # "plot" or "view"
-  tm_shape(tm_sed_t0) +
+  tm_shape(t0_tm_sed) +
   tm_raster(palette = oranges, title = "Sediment", alpha = 1) +
+  tm_shape(t0_target_sed) +
+  tm_polygons(alpha = 0.5) +
   # tm_shape(wallows_raster_100) +
   # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
   tm_view(control.position = c("right", "top"))
 
-tm_nw_100
+t0_tm_sed_result
+
+tm_shp <-
+  tmap_mode("plot") + # "plot" or "view"
+  tm_shape(t1_target_sed) +
+  tm_polygons() +
+  # tm_shape(wallows_raster_100) +
+  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
+  tm_view(control.position = c("right", "top"))
+
+tm_shp
 
 # Restrict Area of interest with additional raster (tbd)
 # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
