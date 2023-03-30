@@ -369,8 +369,8 @@ t0_class_thres_sed <- t0_cfg$csf_gnd_class_threshold
 t1_class_thres_sed <- t1_cfg$csf_gnd_class_threshold
 t0_cloth_res_sed <- t0_cfg$csf_gnd_cloth_resolution
 t1_cloth_res_sed <- t1_cfg$csf_gnd_cloth_resolution
-t0_steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
-t1_steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
+t0_steep_slope_sed <- if_else(t0_rigid_n_sed == 3, F, T)
+t1_steep_slope_sed <- if_else(t1_rigid_n_sed == 3, F, T)
 
 t0_las_sed <- classify.gnd(t0_las, t0_steep_slope_sed, t0_class_thres_sed, t0_cloth_res_sed, t0_rigid_n_sed)
 t0_las_sed <- classify_poi(t0_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
@@ -404,16 +404,16 @@ t1_tm_sed <- normalise.raster.layer(t1_sed)
 t0_tm_wat <- normalise.raster.layer(t0_DEM_water)
 t1_tm_wat <- normalise.raster.layer(t1_DEM_water)
 
-t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "Sediment t0")
+t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
 t0_tm_sed_result
 
-t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "Sediment t1")
+t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1")
 t1_tm_sed_result
 
-t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "Water t0")
+t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0")
 t0_tm_wat_result
 
-t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "Water t1")
+t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1")
 t1_tm_wat_result
 
 
