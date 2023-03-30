@@ -66,10 +66,11 @@ normalise.raster.layer <- function(raster_layer, normal_value = 1) {
 }
 
 plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
-  oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
+  # oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
-  tm_raster(palette = oranges, title = plot_title, alpha = 1) +
+  tm_raster(title = plot_title, alpha = 1) +
+  # tm_raster(palette = oranges, title = plot_title, alpha = 1) +
   tm_shape(target_shp) +
   tm_polygons(alpha = 0.5) +
   # tm_shape(wallows_raster_100) +
