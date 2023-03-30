@@ -5,7 +5,7 @@ library(lidR) # Point cloud classification
 library(papeR) # summary tables
 library(tidyverse) # tidy essentials (ggplot, purr, tidyr, readr, dplyr)
 library(lubridate) # handling dates and time
-# library(tmap) # map visualization
+library(tmap) # map visualization
 # library(leaflet) # interactive maps
 library(terra) # handling spatial data
 library(sf) # handling spatial data
@@ -53,6 +53,18 @@ set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
+mask.raster.layer <- function(raster_layer) {
+  raster_layer[raster_layer != 0] <- 0
+  raster_layer[is.na(raster_layer)] <- 1
+  raster_layer
+}
+
+normalise.raster.layer <- function(raster_layer, normal_value = 1) {
+  raster_layer[raster_layer != 0] <- normal_value
+  raster_layer[is.na(raster_layer)] <- 0
+  raster_layer
+}
+
 # Globals for Configuration-----------------------------------------------------
 # Record start date and time
 start <- as_datetime(lubridate::now())
@@ -92,8 +104,8 @@ if(user == "gubelyve"){
 dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
 
 # Settings t0
-t0_dataset_id <- "1"
-t0_year <- "2021"
+t0_dataset_id <- "2"
+t0_year <- "2020"
 t0_datasetname <- as.character(paste(t0_year, perspective, settype, t0_dataset_id, sep = "-"))
 t0_dataset <- paste(t0_datasetname, ".las", sep = "")
 t0_dir_config <-  file.path(dir_repo, "config", fsep="/")
@@ -110,7 +122,7 @@ t0_mcdut_path <- file.path(dir_repo, t0_mcdut_shp_name, fsep="/")
 
 # Settings t1
 t1_dataset_id <- "1"
-t1_year <- "2022"
+t1_year <- "2020"
 t1_datasetname <- as.character(paste(t1_year, perspective, settype, t1_dataset_id, sep = "-"))
 t1_dataset <- paste(t1_datasetname, ".las", sep = "")
 t1_dir_config <-  file.path(dir_repo, "config", fsep="/")
@@ -315,15 +327,14 @@ t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "r
 plot(t0_DEM_water)
 plot(t1_DEM_water)
 
-t0_mask_water <- t0_DEM_water
-t0_mask_water[t0_mask_water != 0] <- 0
-t0_mask_water[is.na(t0_mask_water)] <- 1
+t0_mask_water <- mask.raster.layer(t0_DEM_water)
+t1_mask_water <- mask.raster.layer(t1_DEM_water)
 
-t1_mask_water <- t1_DEM_water
-t1_mask_water[t1_mask_water != 0] <- 0
-t1_mask_water[is.na(t1_mask_water)] <- 1
+
+
 
 plot(t0_mask_water)
+
 plot(t1_mask_water)
 
 
@@ -351,10 +362,24 @@ delta_sed <- t0_sed - t1_sed
 col <- height.colors(30)
 par(mfrow=c(1,3))
 
-plot(t0_sed, col = col, main = "UAV 2021")
-plot(t1_sed, col = col, main = "UAV 2022")
+plot(t0_sed, col = col, main = "UAV t0")
+plot(t1_sed, col = col, main = "UAV t1")
 plot(delta_sed, col = col, main = "DEM of difference")
 
+"C:\Daten\math_gubelyve\uav_data\2020\wholeset\20202008_Sarine_RGB_ppk_GCP02_dsm.tif"
+
+tm_sed_t0 <- normalise.raster.layer(t0_sed)
+
+oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
+tm_nw_100 <-
+  tmap_mode("plot") + # "plot" or "view"
+  tm_shape(tm_sed_t0) +
+  tm_raster(palette = oranges, title = "Nests", alpha = 1) +
+  # tm_shape(wallows_raster_100) +
+  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
+  tm_view(control.position = c("right", "top"))
+
+tm_nw_100
 
 # Restrict Area of interest with additional raster (tbd)
 # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
