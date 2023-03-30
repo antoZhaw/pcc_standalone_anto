@@ -94,7 +94,7 @@ steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
-if(user == "gubelyve"){
+if(user == "gubelyve"| user == "xgby"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
@@ -119,6 +119,9 @@ t0_data_path <- file.path(dir_data, dir_persp, t0_year, settype, t0_dataset)
 t0_cfg <- fromJSON(file = t0_config_json_path)
 t0_mcdut_shp_name <- as.character(paste(t0_cfg$mapcurve_dut_shp, sep = ""))
 t0_mcdut_path <- file.path(dir_repo, t0_mcdut_shp_name, fsep="/")
+t0_mctar_shp_name <- as.character(paste(t0_cfg$mapcurve_target_shp, sep = ""))
+t0_mctar_path <- file.path(dir_repo, t0_mctar_shp_name, fsep="/")
+
 
 # Settings t1
 t1_dataset_id <- "1"
@@ -136,6 +139,8 @@ t1_data_path <- file.path(dir_data, dir_persp, t1_year, settype, t1_dataset)
 t1_cfg <- fromJSON(file = t1_config_json_path)
 t1_mcdut_shp_name <- as.character(paste(t1_cfg$mapcurve_dut_shp, sep = ""))
 t1_mcdut_path <- file.path(dir_repo, t1_mcdut_shp_name, fsep="/")
+t1_mctar_shp_name <- as.character(paste(t1_cfg$mapcurve_target_shp, sep = ""))
+t1_mctar_path <- file.path(dir_repo, t1_mctar_shp_name, fsep="/")
 
 aoi_path <- file.path(dir_repo, "data/area_of_interest_final", "AOI_final.shp", fsep="/")
 aoi_dir <- file.path(dir_repo, "data/area_of_interest_final", fsep="/")
@@ -146,8 +151,6 @@ dir.create(bud_output_path)
 dir.create(t0_output_path)
 dir.create(t1_output_path)
 
-# mctar_shp_name <- as.character(paste(cfg$mapcurve_target_shp, sep = ""))
-# mctar_path <- file.path(dir_repo, mctar_shp_name, fsep="/")
 # 
 # output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 # output_json_path <- file.path(output_path, output_json_name, fsep="/")
@@ -211,7 +214,30 @@ bounding_box <- gen_xy %>%
 # mctar_all <- read_sf(dsn = mctar_path) 
 t0_csf_aoi_shp <- read_sf(dsn = t0_mcdut_path)
 t1_csf_aoi_shp <- read_sf(dsn = t1_mcdut_path)
+t0_mctar_all <- read_sf(dsn = t0_mctar_path)
+t1_mctar_all <- read_sf(dsn = t1_mctar_path)
+
 aoi_shp <- read_sf(dsn = aoi_path)
+# Intersect target with area of interest
+t0_targets_aoi_shp <- st_intersection(t0_mctar_all, bounding_box)
+t1_targets_aoi_shp <- st_intersection(t1_mctar_all, bounding_box)
+
+
+t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
+t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
+
+t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
+t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
+
+tm_shp <-
+  tmap_mode("plot") + # "plot" or "view"
+  tm_shape(t1_target_sed) +
+  tm_polygons() +
+  # tm_shape(wallows_raster_100) +
+  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
+  tm_view(control.position = c("right", "top"))
+
+tm_shp
 
 # Intersect target with area of interest
 # mctar_bb <- st_intersection(mctar_all, bounding_box)
@@ -331,8 +357,6 @@ t0_mask_water <- mask.raster.layer(t0_DEM_water)
 t1_mask_water <- mask.raster.layer(t1_DEM_water)
 
 
-
-
 plot(t0_mask_water)
 
 plot(t1_mask_water)
@@ -366,7 +390,6 @@ plot(t0_sed, col = col, main = "UAV t0")
 plot(t1_sed, col = col, main = "UAV t1")
 plot(delta_sed, col = col, main = "DEM of difference")
 
-"C:\Daten\math_gubelyve\uav_data\2020\wholeset\20202008_Sarine_RGB_ppk_GCP02_dsm.tif"
 
 tm_sed_t0 <- normalise.raster.layer(t0_sed)
 
@@ -374,7 +397,7 @@ oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
 tm_nw_100 <-
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_sed_t0) +
-  tm_raster(palette = oranges, title = "Nests", alpha = 1) +
+  tm_raster(palette = oranges, title = "Sediment", alpha = 1) +
   # tm_shape(wallows_raster_100) +
   # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
   tm_view(control.position = c("right", "top"))

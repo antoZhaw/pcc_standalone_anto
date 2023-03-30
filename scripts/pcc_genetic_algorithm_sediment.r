@@ -298,7 +298,7 @@ bounding_box <- gen_xy %>%
   st_cast("POLYGON")
 
 # Read Shapefiles
-mctar_all <- read_sf(dsn = mctar_path) 
+mctar_all <- read_sf(dsn = mctar_path)
 csf_aoi_shp <- read_sf(dsn = ga_aoi_path) 
 aoi_shp <- read_sf(dsn = aoi_path)
 
@@ -346,8 +346,8 @@ GA <- ga(type = "real-valued",
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
          2, x[1], x[2], 3, 0.699971869, 29.58891659, 0.40),
-         lower = c(0.18, 1.8), 
-         upper = c(1.2, 4.2), 
+         lower = c(0.1, 2.0), 
+         upper = c(0.9, 17), 
          suggestions = c(0.31, 3.5),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
