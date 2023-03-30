@@ -404,6 +404,7 @@ t1_tm_sed <- normalise.raster.layer(t1_sed)
 t0_tm_wat <- normalise.raster.layer(t0_DEM_water)
 t1_tm_wat <- normalise.raster.layer(t1_DEM_water)
 
+# Plot comparison between target and classified raster
 t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
 t0_tm_sed_result
 
@@ -416,6 +417,13 @@ t0_tm_wat_result
 t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1")
 t1_tm_wat_result
 
+# Determine habitate change
+t0_tm_hab <- normalise.raster.layer(t0_sed, 10)
+t1_tm_hab <- t1_sed
+
+tm_habitate <- t0_tm_hab + t1_tm_hab
+
+values(tm_habitate)
 
 # Restrict Area of interest with additional raster (tbd)
 # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
