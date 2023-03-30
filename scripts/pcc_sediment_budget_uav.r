@@ -93,17 +93,6 @@ perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 raster_res <- 0.4
 
-# Global filter settings for both years. Can be changed (implementation in json)
-rigid_n_water <- 3
-class_thres_water <- 0.459875684
-cloth_res_water <- 6.278611041
-steep_slope_water <- if_else(rigid_n_water == 3, F, T)
-
-# Sediment
-rigid_n_sed <- 3
-class_thres_sed <- 1.377562812
-cloth_res_sed <- 17.57031584
-steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -298,15 +287,24 @@ t1_las$Classification <- LASNONCLASSIFIED
 # las <- las_origin
 
 # Segment Water with Cloth Simulation Filter------------------------------------
-t0_status_water <- as.character(paste("00_water", t0_year, "_rigid", rigid_n_water,
-                                   "_clthres", class_thres_water,
-                                   "clothres", cloth_res_water, sep = ""))
-t1_status_water <- as.character(paste("00_water", t1_year, "_rigid", rigid_n_water,
-                                      "_clthres", class_thres_water,
-                                      "clothres", cloth_res_water, sep = ""))
+t0_rigid_n_water <- t0_cfg$csf_water_rigidness
+t1_rigid_n_water <- t1_cfg$csf_water_rigidness
+t0_class_thres_water <- t0_cfg$csf_water_class_threshold
+t1_class_thres_water <- t1_cfg$csf_water_class_threshold
+t0_cloth_res_water <- t0_cfg$csf_water_cloth_resolution
+t1_cloth_res_water <- t1_cfg$csf_water_cloth_resolution
+t0_steep_slope_water <- if_else(t0_rigid_n_water == 3, F, T)
+t1_steep_slope_water <- if_else(t1_rigid_n_water == 3, F, T)
 
-t0_las_water <- classify.gnd(t0_las, steep_slope_water, class_thres_water, cloth_res_water, rigid_n_water)
-t1_las_water <- classify.gnd(t1_las, steep_slope_water, class_thres_water, cloth_res_water, rigid_n_water)
+t0_status_water <- as.character(paste("00_water", t0_year, "_rigid", t0_rigid_n_water,
+                                   "_clthres", t0_class_thres_water,
+                                   "clothres", t0_cloth_res_water, sep = ""))
+t1_status_water <- as.character(paste("00_water", t1_year, "_rigid", t1_rigid_n_water,
+                                      "_clthres", t1_class_thres_water,
+                                      "clothres", t1_cloth_res_water, sep = ""))
+
+t0_las_water <- classify.gnd(t0_las, t0_steep_slope_water, t0_class_thres_water, t0_cloth_res_water, t0_rigid_n_water)
+t1_las_water <- classify.gnd(t1_las, t1_steep_slope_water, t1_class_thres_water, t1_cloth_res_water, t1_rigid_n_water)
 
 t0_las_water <- add_attribute(t0_las_water, FALSE, "water")
 t1_las_water <- add_attribute(t1_las_water, FALSE, "water")
@@ -365,12 +363,21 @@ t1_mask_water <- mask.raster.layer(t1_DEM_water)
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # classify ground
-t0_las_sed <- classify.gnd(t0_las, steep_slope_sed, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t0_rigid_n_sed <- t0_cfg$csf_gnd_rigidness
+t1_rigid_n_sed <- t1_cfg$csf_gnd_rigidness
+t0_class_thres_sed <- t0_cfg$csf_gnd_class_threshold
+t1_class_thres_sed <- t1_cfg$csf_gnd_class_threshold
+t0_cloth_res_sed <- t0_cfg$csf_gnd_cloth_resolution
+t1_cloth_res_sed <- t1_cfg$csf_gnd_cloth_resolution
+t0_steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
+t1_steep_slope_sed <- if_else(rigid_n_sed == 3, F, T)
+
+t0_las_sed <- classify.gnd(t0_las, t0_steep_slope_sed, t0_class_thres_sed, t0_cloth_res_sed, t0_rigid_n_sed)
 t0_las_sed <- classify_poi(t0_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t0_las_sed <- filter_poi(t0_las_sed, Classification != LASNOISE)
 
 # classify ground
-t1_las_sed <- classify.gnd(t1_las, steep_slope_sed, class_thres_sed, cloth_res_sed, rigid_n_sed)
+t1_las_sed <- classify.gnd(t1_las, t1_steep_slope_sed, t1_class_thres_sed, t1_cloth_res_sed, t1_rigid_n_sed)
 t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
 
@@ -409,16 +416,6 @@ t0_tm_wat_result
 t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "Water t1")
 t1_tm_wat_result
 
-
-tm_shp <-
-  tmap_mode("plot") + # "plot" or "view"
-  tm_shape(t1_target_sed) +
-  tm_polygons() +
-  # tm_shape(wallows_raster_100) +
-  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
-  tm_view(control.position = c("right", "top"))
-
-tm_shp
 
 # Restrict Area of interest with additional raster (tbd)
 # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
