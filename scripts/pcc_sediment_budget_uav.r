@@ -65,6 +65,18 @@ normalise.raster.layer <- function(raster_layer, normal_value = 1) {
   raster_layer
 }
 
+filter.raster.layer <- function(raster_layer, filter_value = 1) {
+  raster_layer[raster_layer != filter_value] <- 0
+  raster_layer[raster_layer == filter_value] <- 1
+  raster_layer[is.na(raster_layer)] <- 0
+  raster_layer
+}
+
+value.to.na.raster.layer <- function(raster_layer, na_value = 0) {
+  raster_layer[raster_layer == na_value] <- NA
+  raster_layer
+}
+
 plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
   # oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
   tmap_mode("plot") + # "plot" or "view"
@@ -419,12 +431,34 @@ t1_tm_wat_result
 
 # Determine habitate change
 t0_tm_hab <- normalise.raster.layer(t0_sed, 10)
-t1_tm_hab <- t1_sed
-
+t1_tm_hab <- t1_tm_sed
+# Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
-values(tm_habitate)
 
+pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
+tmap_mode("plot") + # "plot" or "view"
+  tm_shape(tm_habitate) +
+  # tm_raster(title = "2D Habitat change of Sediment", style = "cat",  ) +
+  tm_raster(title = "2D Habitat change of Sediment", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
+            labels = c("no change", "deposition", "erosion", "change in elevation") ) +
+  # tm_raster(palette = oranges, title = plot_title, alpha = 1) +
+  # tm_shape(target_shp) +
+  # tm_polygons(alpha = 0.5) +
+  # tm_shape(wallows_raster_100) +
+  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
+  tm_view(control.position = c("right", "top"))
+
+# Generate mask for cells which show a change in elevation (pick value 11)
+tm_elevation_mask <- filter.raster.layer(tm_habitate, 11)
+# Set zero values to na 
+tm_elevation_mask <- value.to.na.raster.layer(tm_elevation_mask)
+# Apply mask on delta z
+delta_z <- tm_elevation_mask*(t1_sed - t0_sed)
+
+tmap_mode("plot") + # "plot" or "view"
+  tm_shape(delta_z) +
+  tm_raster(title = "2D Habitat change of Sediment", alpha = 1, style = "cont")
 # Restrict Area of interest with additional raster (tbd)
 # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
 # bb_sed_r <- raster(ext=bb_sed)
@@ -432,7 +466,6 @@ values(tm_habitate)
 
 # plot(las, size = 1, color = "RGB", bg = "white")
 
-par(mfrow=c(1,1))
 
 # good values for sediment (rigidness=1)
 # class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
