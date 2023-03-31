@@ -89,11 +89,11 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
 }
 
 plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
-  # oranges <- tmaptools::get_brewer_pal("Oranges", n = 2, contrast = c(0.3, 0.9))
+  palcsf <- c("#FFFFFF", "#e41a1c")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
-  tm_raster(title = plot_title, alpha = 1) +
-  # tm_raster(palette = oranges, title = plot_title, alpha = 1) +
+  tm_raster(title = plot_title, alpha = 1, palette = palcsf, style = "cat", 
+            labels = c("no class", "CSF Ground")) +
   tm_shape(target_shp) +
   tm_polygons(alpha = 0.5) +
   # tm_shape(wallows_raster_100) +
@@ -161,7 +161,6 @@ t0_mcdut_shp_name <- as.character(paste(t0_cfg$mapcurve_dut_shp, sep = ""))
 t0_mcdut_path <- file.path(dir_repo, t0_mcdut_shp_name, fsep="/")
 t0_mctar_shp_name <- as.character(paste(t0_cfg$mapcurve_target_shp, sep = ""))
 t0_mctar_path <- file.path(dir_repo, t0_mctar_shp_name, fsep="/")
-
 
 # Settings t1
 t1_dataset_id <- "1"
@@ -280,49 +279,15 @@ t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
 
 # targeted_class <- mctar_sed
 
-# Generate target beforehand with raster----------------------------------------
-# Calculate number of rows and columns of target, based on extent
-# This calculation results in a resolution of 0.5
-# tar_ncol <- 2*(xmax(extent(targeted_class)) - xmin(extent(targeted_class)))
-# tar_nrow <- 2*(ymax(extent(targeted_class)) - ymin(extent(targeted_class)))
-# Generate target. This is done beforehand since it is required only once.
-# tar_raw <- raster(as(targeted_class, "Spatial"), ncols = tar_ncol, nrows = tar_nrow)
-# target <- rasterize(as(targeted_class, "Spatial"), tar_raw, getCover = TRUE, progress = "text")
-
-# Information about rasterized target
-# target$layer
-# st_crs(target)
-
-# Plot features on one plot
-# ggplot() + 
-#   geom_sf(data = AOI_xy, mapping = aes()) +
-#   geom_sf(data = mctar_sed, mapping = aes()) +
-#   coord_sf(crs = st_crs(2056))
-
-# test <- st_intersection(mctar_sed, AOI_xy)
-
-# ggplot() +
-#   geom_sf(data = mcdut, mapping = aes()) +
-#   coord_sf(crs = st_crs(2056))
-
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
 t0_las <- readLAS(t0_data_path, select = "xyzRGBc", filter = t0_cfg$las_filter)
 t1_las <- readLAS(t1_data_path, select = "xyzRGBc", filter = t1_cfg$las_filter)
 
-# Filter points which are not within area of interest---------------------------
-# las <- classify_poi(las, class = LASNOISE, roi = aoi_shp, inverse_roi = T)
-# las <- filter_poi(las, Classification != LASNOISE)
-# plot(las, size = 1, color = "RGB", bg = "white", axis = F)
-
 # Reset class LASNOISE for further procedure
 t0_las$Classification <- LASNONCLASSIFIED
 t1_las$Classification <- LASNONCLASSIFIED
-
-# Create copy of read LAS to omit loading procedure.
-# las_origin <- las
-# las <- las_origin
 
 # Segment Water with Cloth Simulation Filter------------------------------------
 t0_rigid_n_water <- t0_cfg$csf_water_rigidness
@@ -372,25 +337,9 @@ t1_las_water <- filter_poi(t1_las_water, Classification != LASNOISE)
 # rgl.snapshot(t1_output_water_png_path)
 # rgl.close()
 
-# Rasterize water point cloud    
+# Rasterize water point cloud---------------------------------------------------
 t0_DEM_water <- rasterize_canopy(t0_las_water, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "raster")
-
-# Determine convex hull of both DEM
-# tbd: unclear, whether this has an effect on alignment..
-# raster_ext <- extent(min(c(xmin(t0_DEM_water), xmin(t1_DEM_water))),
-#                     max(c(xmax(t0_DEM_water), xmax(t1_DEM_water))),
-#                     min(c(ymin(t0_DEM_water), ymin(t1_DEM_water))),
-#                     max(c(ymax(t0_DEM_water), ymax(t1_DEM_water))))
-# raster_ext
-
-# t0_raster_water <- raster(nrows=nrow(t0_DEM_water), ncols=ncols(t0_DEM_water), crs=2056,
-#                   ext=raster_ext, resolution=raster_res, vals=NULL)
-# t1_raster_water <- raster(nrows=nrow(t1_DEM_water), ncols=ncols(t1_DEM_water), crs=2056,
-#                        ext=raster_ext, resolution=raster_res, vals=NULL)
-
-# plot(t0_DEM_water)
-# plot(t1_DEM_water)
 
 t0_mask_water <- mask.raster.layer(t0_DEM_water)
 t1_mask_water <- mask.raster.layer(t1_DEM_water)
@@ -419,7 +368,7 @@ t1_las_sed <- classify.gnd(t1_las, t1_steep_slope_sed, t1_class_thres_sed, t1_cl
 t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
 
-# Rasterize sediment
+# Rasterize sediment------------------------------------------------------------
 t0_DEM_sed <- rasterize_canopy(t0_las_sed, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_sed <- rasterize_canopy(t1_las_sed, res = raster_res, p2r(), pkg = "raster")
 
@@ -429,20 +378,12 @@ t1_sed <- t1_DEM_sed * t1_mask_water
 
 delta_sed <- t0_sed - t1_sed
 
-col <- height.colors(30)
-par(mfrow=c(1,3))
-
-# plot(t0_sed, col = col, main = "UAV t0")
-# plot(t1_sed, col = col, main = "UAV t1")
-# plot(delta_sed, col = col, main = "DEM of difference")
-
-
 t0_tm_sed <- normalise.raster(t0_sed)
 t1_tm_sed <- normalise.raster(t1_sed)
 t0_tm_wat <- normalise.raster(t0_DEM_water)
 t1_tm_wat <- normalise.raster(t1_DEM_water)
 
-# Plot comparison between target and classified raster
+# Plot comparison between target and classified raster--------------------------
 t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
 t0_tm_sed_result
 
@@ -455,12 +396,11 @@ t0_tm_wat_result
 t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1")
 t1_tm_wat_result
 
-# Determine habitate change
+# Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
 t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
-
 
 pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 tmap_mode("plot") + # "plot" or "view"
@@ -487,7 +427,7 @@ tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all) +
   tm_raster(title = "Elevation change of Sediment, raw", alpha = 1, style = "cont")
 
-# Calculate critical level of detection
+# Calculate critical level of detection-----------------------------------------
 lod_crit <- sqrt(t1_cfg$z_mean_accuracy^2 + t0_cfg$z_mean_accuracy^2)
 
 delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
