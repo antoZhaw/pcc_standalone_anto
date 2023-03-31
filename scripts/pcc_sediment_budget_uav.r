@@ -59,21 +59,26 @@ mask.raster.layer <- function(raster_layer) {
   raster_layer
 }
 
-normalise.raster.layer <- function(raster_layer, normal_value = 1) {
+normalise.raster <- function(raster_layer, normal_value = 1) {
   raster_layer[raster_layer != 0] <- normal_value
   raster_layer[is.na(raster_layer)] <- 0
   raster_layer
 }
 
-filter.raster.layer <- function(raster_layer, filter_value = 1) {
+filter.raster <- function(raster_layer, filter_value = 1) {
   raster_layer[raster_layer != filter_value] <- 0
   raster_layer[raster_layer == filter_value] <- 1
   raster_layer[is.na(raster_layer)] <- 0
   raster_layer
 }
 
-value.to.na.raster.layer <- function(raster_layer, na_value = 0) {
+value.to.na.raster <- function(raster_layer, na_value = 0) {
   raster_layer[raster_layer == na_value] <- NA
+  raster_layer
+}
+
+discard.uncertain.raster <- function(raster_layer, z_level_of_detection) {
+  raster_layer[abs(raster_layer) <= z_level_of_detection] <- NA
   raster_layer
 }
 
@@ -411,10 +416,10 @@ par(mfrow=c(1,3))
 # plot(delta_sed, col = col, main = "DEM of difference")
 
 
-t0_tm_sed <- normalise.raster.layer(t0_sed)
-t1_tm_sed <- normalise.raster.layer(t1_sed)
-t0_tm_wat <- normalise.raster.layer(t0_DEM_water)
-t1_tm_wat <- normalise.raster.layer(t1_DEM_water)
+t0_tm_sed <- normalise.raster(t0_sed)
+t1_tm_sed <- normalise.raster(t1_sed)
+t0_tm_wat <- normalise.raster(t0_DEM_water)
+t1_tm_wat <- normalise.raster(t1_DEM_water)
 
 # Plot comparison between target and classified raster
 t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
@@ -430,7 +435,7 @@ t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Wa
 t1_tm_wat_result
 
 # Determine habitate change
-t0_tm_hab <- normalise.raster.layer(t0_sed, 10)
+t0_tm_hab <- normalise.raster(t0_sed, 10)
 t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
@@ -450,19 +455,33 @@ tmap_mode("plot") + # "plot" or "view"
   tm_view(control.position = c("right", "top"))
 
 # Generate mask for cells which show a change in elevation (pick value 11)
-tm_elevation_mask <- filter.raster.layer(tm_habitate, 11)
+tm_elevation_mask <- filter.raster(tm_habitate, 11)
 # Set zero values to na 
-tm_elevation_mask <- value.to.na.raster.layer(tm_elevation_mask)
+tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 # Apply mask on delta z
-delta_z <- tm_elevation_mask*(t1_sed - t0_sed)
+delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
+# Plot elevation change without uncertainty assessment
 tmap_mode("plot") + # "plot" or "view"
-  tm_shape(delta_z) +
-  tm_raster(title = "2D Habitat change of Sediment", alpha = 1, style = "cont")
-# Restrict Area of interest with additional raster (tbd)
-# bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
-# bb_sed_r <- raster(ext=bb_sed)
-# sed_ij <- crop(sed_ij, bb_sed_r)
+  tm_shape(delta_z_all) +
+  tm_raster(title = "Elevation change of Sediment, raw", alpha = 1, style = "cont")
+
+# Calculate critical level of detection
+lod_crit <- sqrt(t1_cfg$z_mean_accuracy^2 + t0_cfg$z_mean_accuracy^2)
+
+delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
+
+# Plot elevation change with uncertainty assessment
+tmap_mode("plot") + # "plot" or "view"
+  tm_shape(delta_z_cleaned) +
+  tm_raster(title = "Elevation change of Sediment, clean", alpha = 1, style = "cont")
+
+dist <- data.frame(values(delta_z_all)) %>% 
+  mutate(discarded = if_else(values.delta_z_all. <= lod_crit, T, F))
+
+hist(dist$values.delta_z_all.)
+
+summary(dist)
 
 # plot(las, size = 1, color = "RGB", bg = "white")
 
