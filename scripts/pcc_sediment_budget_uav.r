@@ -78,7 +78,13 @@ value.to.na.raster <- function(raster_layer, na_value = 0) {
 }
 
 discard.uncertain.raster <- function(raster_layer, z_level_of_detection) {
-  raster_layer[abs(raster_layer) <= z_level_of_detection] <- NA
+  raster_layer[abs(raster_layer) < z_level_of_detection] <- NA
+  raster_layer
+}
+
+gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
+  raster_layer[abs(raster_layer) >= z_level_of_detection] <- NA
+  raster_layer[!is.na(raster_layer)] <- 10
   raster_layer
 }
 
@@ -94,6 +100,15 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
   # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
   tm_view(control.position = c("right", "top"))
 }
+
+create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
+  dt <- data.frame(values(raw_raster)) %>% 
+    mutate(discarded = if_else(abs(values.raw_raster.) <= lod_critical, T, F),
+           class = as.factor(if_else(values.raw_raster. <= 0, "Erosion", "Deposition")),
+           cell_vol = raster_res^2*values.raw_raster.)
+  dt
+}
+
 
 # Globals for Configuration-----------------------------------------------------
 # Record start date and time
@@ -470,14 +485,27 @@ tmap_mode("plot") + # "plot" or "view"
 lod_crit <- sqrt(t1_cfg$z_mean_accuracy^2 + t0_cfg$z_mean_accuracy^2)
 
 delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
+delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 
 # Plot elevation change with uncertainty assessment
+paldisc <- c("#000000")
 tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned) +
-  tm_raster(title = "Elevation change of Sediment, clean", alpha = 1, style = "cont")
+  tm_raster(title = "Elevation change of Sediment", alpha = 1, style = "cont") + 
+  tm_shape(delta_z_noise) +
+  tm_raster(title = "Discarded cells", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded"))
 
-dist <- data.frame(values(delta_z_all)) %>% 
-  mutate(discarded = if_else(values.delta_z_all. <= lod_crit, T, F))
+
+dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all))
+
+# Plot histogram of raster cells
+ggplot(dist, aes(values.raw_raster., fill = discarded)) +
+  geom_histogram(binwidth = 0.01) +
+  labs(x = "Elevation change [m]",
+       y = "Count") + 
+  theme_minimal()
+
+dist  
 
 hist(dist$values.delta_z_all.)
 
