@@ -23,9 +23,9 @@ library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
 library(rgl) # for RGL Viewer control functions
-library(sabre) # for mapcurves (goodness-of-fit function)
 library(fasterize) # for faster rasterization
 library(psych) # for cohen's kappa
+library(viridis) # for pretty color schemes
 
 # Functions---------------------------------------------------------------------
 
@@ -104,7 +104,13 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
 create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
   dt <- data.frame(values(raw_raster)) %>% 
     mutate(discarded = if_else(abs(values.raw_raster.) <= lod_critical, T, F),
-           class = as.factor(if_else(values.raw_raster. <= 0, "Erosion", "Deposition")),
+           # class = as.factor(if_else(values.raw_raster. <= 0, "Erosion", "Deposition")),
+           class = case_when(
+             discarded == T ~ "Discarded volume",
+             discarded == F & values.raw_raster. <= 0 ~ "Erosion",
+             discarded == F & values.raw_raster. > 0 ~ "Deposition",
+             TRUE ~ NA # Default case
+           ),
            cell_vol = raster_res^2*values.raw_raster.)
   dt
 }
@@ -505,7 +511,19 @@ ggplot(dist, aes(values.raw_raster., fill = discarded)) +
        y = "Count") + 
   theme_minimal()
 
-dist  
+dist_sum <- dist %>%
+  filter(!is.na(values.raw_raster.)) %>% 
+  group_by(class) %>%
+  summarize(n=n(), vol=sum(cell_vol))
+
+ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
+  geom_bar(position="stack", stat="identity") +
+  scale_fill_viridis(discrete = T) +
+  ggtitle("Sediment Budget t1-t0") +
+    theme_minimal() +
+    ylab("Volume in qubicmeter") +
+    xlab("t0 to t1")
+
 
 hist(dist$values.delta_z_all.)
 
