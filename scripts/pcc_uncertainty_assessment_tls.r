@@ -302,30 +302,27 @@ bounding_box <- gen_xy %>%
 # of the first point is loaded only to reduce computational time.
 # las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
+# Check LAS whether it complies with the required
+if(!is.lasCRScompliant(las, 2056)){
+  stop("The read LAS file has no Coordinate Reference System, script stops.")}
+
 # Read CSV with GCP information
 gcp <- read.delim(csv_path, header = T, sep = ",")
 
 # For loop candidate
-ext_i <- extent(gcp$x[1]-0.5, gcp$x[1]+0.5,gcp$y[1]-0.5,gcp$y[1]+0.5)
-las_sub <- catalog_intersect(las, raster(ext_i))
-plot(las_sub, size = 1, color = "RGB", bg = "black")
-
-output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
-output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
-
-writeLAS(las_sub, file = output_las_sed_path)
-
-
-# Reset class LASNOISE for further procedure
-las$Classification <- LASNONCLASSIFIED
-
-
-# Check LAS whether it complies with the required
-if(has.lasClassification(las)){
-  print("LAS file is already classified. Are you sure to continue?")}
-# if (length(warnings())>=1) {stop("The read LAS file throws warnings, script stops.")}
-
-
+i <- 1
+for (i in gcp) {
+  # Generate extent for subset
+  ext_i <- extent(gcp$x[i]-0.5, gcp$x[i]+0.5,gcp$y[i]-0.5,gcp$y[i]+0.5)
+  # Create subset
+  las_sub <- catalog_intersect(las, raster(ext_i))
+  plot(las_sub, size = 1, color = "RGB", bg = "black")
+  # Generate path for subset
+  output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
+  output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
+  print(output_las_sub_path)
+  writeLAS(las_sub, file = output_las_sub_path)
+}
 
 
 # Generate JSON report----------------------------------------------------------
