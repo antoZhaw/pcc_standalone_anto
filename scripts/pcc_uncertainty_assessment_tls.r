@@ -316,6 +316,7 @@ gcp <- read.delim(csv_path, header = T, sep = ",")
 # las_sub <- catalog_intersect(las, raster(ext_i))
 
 # For loop candidate
+ext_las <- extent(las)
 rect <- 10
 for (i in gcp$ID) {
   # Generate extent for subset
@@ -325,7 +326,7 @@ for (i in gcp$ID) {
   las_sub <- clip_rectangle(las, gcp$x[i]-rect, gcp$y[i]-rect, gcp$x[i]+rect, gcp$y[i]+rect)
   # !is.null(intersect(ext_las, ext_i))
   # warnings()
-  if(!is.null(intersect(ext_las, ext_i))){
+  if(!is.null(intersect(ext_las, ext_i)) & !gcp$corrupt[i]){
     plot(las_sub, size = 1, color = "RGB", bg = "black")
     # Generate path for subset
     output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
