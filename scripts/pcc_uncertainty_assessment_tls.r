@@ -51,8 +51,8 @@ classify.gnd <- function(las, steep_slopes = F, class_thres, cloth_res, rigid) {
   return(las_gnd)
 }
 
-set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
-  view3d(theta = 0, phi = 0, zoom = 0.8)
+set.RGLtopview <- function(x_scale = 800, y_scale = 800, zoom = 0.8) {
+  view3d(theta = 0, phi = 0, zoom = zoom)
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
@@ -317,8 +317,9 @@ gcp <- read.delim(csv_path, header = T, sep = ",")
 
 # For loop candidate
 ext_las <- extent(las)
-rect <- 2.5
+rect <- 2.0
 i <- 1
+
 for (j in gcp$ID) {
   # Generate extent for subset
   print(j)
@@ -330,8 +331,25 @@ for (j in gcp$ID) {
   # warnings()
   # if(!is.null(intersect(ext_las, ext_i)) & !gcp$corrupt[i]){
   if(!is.empty(las_sub)){
+    plot(las_sub, size = 1, color = "RGB", bg = "white")
+    set.RGLtopview(zoom = 0.1)
+    output_wat_png_name <- as.character(paste("GCP_ID", j, "-wh-extent.png", sep = ""))
+    output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
+    rgl.snapshot(output_wat_png_path)
+    set.RGLtopview(zoom = 0.03)
+    output_wat_png_name <- as.character(paste("GCP_ID", j, "-wh-zoom.png", sep = ""))
+    output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
+    rgl.snapshot(output_wat_png_path)
+    rgl.close()
     plot(las_sub, size = 1, color = "RGB", bg = "black")
-    set.RGLtopview()
+    set.RGLtopview(zoom = 0.1)
+    output_wat_png_name <- as.character(paste("GCP_ID", j, "-bk-extent.png", sep = ""))
+    output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
+    rgl.snapshot(output_wat_png_path)
+    set.RGLtopview(zoom = 0.03)
+    output_wat_png_name <- as.character(paste("GCP_ID", j, "-bk-zoom.png", sep = ""))
+    output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
+    rgl.snapshot(output_wat_png_path)
     # Generate path for subset
     output_las_sub_name <- as.character(paste(output_id, "-subset-ID", j, ".las", sep = ""))
     output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
