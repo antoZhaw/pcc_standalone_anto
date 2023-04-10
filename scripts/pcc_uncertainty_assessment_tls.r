@@ -317,7 +317,7 @@ gcp <- read.delim(csv_path, header = T, sep = ",")
 
 # For loop candidate
 ext_las <- extent(las)
-rect <- 10
+rect <- 2.5
 i <- 1
 for (j in gcp$ID) {
   # Generate extent for subset
