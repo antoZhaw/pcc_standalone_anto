@@ -39,6 +39,7 @@ has.lasClassification <- function(las) {
 is.lasCRScompliant <- function(las, target_epsg) {
   las_epsg <- st_crs(las)$epsg
   compliant <- if_else(las_epsg == target_epsg,T,F)
+  compliant <- if_else(is.na(compliant),F,compliant)
   return(compliant)
 }
 
@@ -178,9 +179,9 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "1"
+dataset_id <- "3"
 wholeset <- T
-year <- "2021"
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 raster_res <- 0.5
@@ -300,7 +301,7 @@ bounding_box <- gen_xy %>%
 # Read LAS
 # Intensity (ct_wat_i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
-# las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
+las <- readLAS(data_path, select = "xyzRGBc", filter = cfg$las_filter)
 
 # Check LAS whether it complies with the required
 if(!is.lasCRScompliant(las, 2056)){
@@ -309,19 +310,29 @@ if(!is.lasCRScompliant(las, 2056)){
 # Read CSV with GCP information
 gcp <- read.delim(csv_path, header = T, sep = ",")
 
+# i <- gcp$ID[1]
+# ext_i <- extent(gcp$x[i]-0.5, gcp$x[i]+0.5, gcp$y[i]-0.5, gcp$y[i]+0.5)
+# Create subset
+# las_sub <- catalog_intersect(las, raster(ext_i))
+
 # For loop candidate
-i <- 1
-for (i in gcp) {
+rect <- 10
+for (i in gcp$ID) {
   # Generate extent for subset
-  ext_i <- extent(gcp$x[i]-0.5, gcp$x[i]+0.5,gcp$y[i]-0.5,gcp$y[i]+0.5)
+  print(i)
+  ext_i <- extent(gcp$x[i]-rect, gcp$x[i]+rect,gcp$y[i]-rect,gcp$y[i]+rect)
   # Create subset
-  las_sub <- catalog_intersect(las, raster(ext_i))
-  plot(las_sub, size = 1, color = "RGB", bg = "black")
-  # Generate path for subset
-  output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
-  output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
-  print(output_las_sub_path)
-  writeLAS(las_sub, file = output_las_sub_path)
+  las_sub <- clip_rectangle(las, gcp$x[i]-rect, gcp$y[i]-rect, gcp$x[i]+rect, gcp$y[i]+rect)
+  # !is.null(intersect(ext_las, ext_i))
+  # warnings()
+  if(!is.null(intersect(ext_las, ext_i))){
+    plot(las_sub, size = 1, color = "RGB", bg = "black")
+    # Generate path for subset
+    output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
+    output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
+    print(output_las_sub_path)
+    writeLAS(las_sub, file = output_las_sub_path)
+  }else{print("no point intersects searched area")}
 }
 
 
