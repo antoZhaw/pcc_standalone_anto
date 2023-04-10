@@ -179,7 +179,7 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "3"
+dataset_id <- "2"
 wholeset <- T
 year <- "2022"
 perspective <- "tls"
@@ -318,22 +318,27 @@ gcp <- read.delim(csv_path, header = T, sep = ",")
 # For loop candidate
 ext_las <- extent(las)
 rect <- 10
-for (i in gcp$ID) {
+i <- 1
+for (j in gcp$ID) {
   # Generate extent for subset
+  print(j)
   print(i)
   ext_i <- extent(gcp$x[i]-rect, gcp$x[i]+rect,gcp$y[i]-rect,gcp$y[i]+rect)
   # Create subset
   las_sub <- clip_rectangle(las, gcp$x[i]-rect, gcp$y[i]-rect, gcp$x[i]+rect, gcp$y[i]+rect)
   # !is.null(intersect(ext_las, ext_i))
   # warnings()
-  if(!is.null(intersect(ext_las, ext_i)) & !gcp$corrupt[i]){
+  # if(!is.null(intersect(ext_las, ext_i)) & !gcp$corrupt[i]){
+  if(!is.empty(las_sub)){
     plot(las_sub, size = 1, color = "RGB", bg = "black")
+    set.RGLtopview()
     # Generate path for subset
-    output_las_sub_name <- as.character(paste(output_id, "-subset-", i, ".las", sep = ""))
+    output_las_sub_name <- as.character(paste(output_id, "-subset-ID", j, ".las", sep = ""))
     output_las_sub_path <- file.path(output_path, output_las_sub_name, fsep="/")
     print(output_las_sub_path)
     writeLAS(las_sub, file = output_las_sub_path)
   }else{print("no point intersects searched area")}
+  i <- i + 1
 }
 
 

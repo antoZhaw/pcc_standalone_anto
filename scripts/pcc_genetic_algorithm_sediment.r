@@ -65,8 +65,8 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
   start_ij <- as_datetime(lubridate::now())
   rig_sed_m <- round(rig_sed_m, 0)
   rig_wat_h <- round(rig_wat_h, 0)
-  steep_slope_sed <- if_else(rig_sed_m == 3, F, T)
-  steep_slope_wat <- if_else(rig_wat_h == 3, F, T)
+  steep_slope_sed <- if_else(rig_sed_m == 3, T, T)
+  steep_slope_wat <- if_else(rig_wat_h == 3, T, T)
   # classify ground
   msg_sed <- as.character(paste("SED", id_ij, "_rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
@@ -183,7 +183,6 @@ wholeset <- T
 year <- "2020"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
-raster_res <- 0.5
 
 # Internal globals such as paths and IDs----------------------------------------
 # Record start date and time
@@ -345,10 +344,10 @@ GA <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
-         1, x[1], x[2], 3, 0.943316774, 20.34196452, 0.40),
-         lower = c(0.05, 1), 
-         upper = c(0.15, 10), 
-         suggestions = c(0.1, 3.0),
+         1, x[1], x[2], 3, 0.69997187, 29.5889166, x[3]),
+         lower = c(0.1, 3.0, 0.2), 
+         upper = c(0.35, 4.5, 0.5), 
+         suggestions = c(0.246668090, 3.78168753, 0.488410685),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
