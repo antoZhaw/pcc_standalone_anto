@@ -88,7 +88,7 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
   raster_layer
 }
 
-plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
+plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title, spec_layout) {
   palcsf <- c("#FFFFFF", "#e41a1c")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
@@ -99,8 +99,10 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
   # tm_shape(wallows_raster_100) +
   # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
   tm_view(control.position = c("right", "top")) +
-  tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"), 
-            main.title = plot_title, main.title.position = "center", main.title.size = 0.5)
+    tm_layout(main.title = plot_title) +
+    spec_layout
+  # tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"), 
+  #           main.title = plot_title, main.title.position = "center", main.title.size = 0.5)
 }
 
 create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
@@ -410,30 +412,20 @@ output_gof_t0_wat_path <- file.path(bud_output_path, output_gof_t0_wat_name, fse
 output_gof_t1_wat_name <- as.character(paste("gof_t1_wat.png", sep = ""))
 output_gof_t1_wat_path <- file.path(bud_output_path, output_gof_t1_wat_name, fsep="/")
 
+gof_layout <- tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"),
+                        main.title.position = "center", main.title.size = 0.5)
 
-t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
+t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0", gof_layout)
 tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
 
-save.plot()
-png(output_gof_t0_sed_path, width = 960, height = 960) 
-t0_tm_sed_result
-dev.off()
+t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1", gof_layout)
+tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 960, height = 960)
 
-t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1")
-png(output_gof_t1_sed_path, width = 960, height = 960) 
-t1_tm_sed_result
-dev.off()
+t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0", gof_layout)
+tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 960, height = 960)
 
-t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0")
-
-png(output_gof_t0_wat_path, width = 960, height = 960) 
-t0_tm_wat_result
-dev.off()
-
-t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1")
-png(output_gof_t1_wat_path, width = 960, height = 960) 
-t1_tm_wat_result
-dev.off()
+t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1", gof_layout)
+tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 960, height = 960)
 
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
