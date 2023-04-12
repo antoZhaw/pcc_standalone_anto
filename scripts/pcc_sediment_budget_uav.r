@@ -88,16 +88,15 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
   raster_layer
 }
 
-plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title, spec_layout) {
+plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title, spec_layout, persp) {
   palcsf <- c("#FFFFFF", "#e41a1c")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
-  tm_raster(alpha = 1, palette = palcsf, style = "cat", 
+  tm_raster(title = "Classification", 
+            alpha = 1, palette = palcsf, style = "cat", 
             labels = c("no class", "CSF Ground")) +
   tm_shape(target_shp) +
   tm_polygons(alpha = 0.5, lwd = 0.3) +
-  # tm_shape(wallows_raster_100) +
-  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
   tm_view(control.position = c("right", "top")) +
     tm_layout(main.title = plot_title) +
     spec_layout
@@ -135,6 +134,24 @@ perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 raster_res <- 0.4
 
+# Settings t0 and t1
+# uav 2021-2020
+t0_dataset_id <- "1"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2021"
+
+# uav 2020-2020
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2021"
+
+# tls 2022-2021
+# t0_dataset_id <- "2"
+# t0_year <- "2021"
+# t1_dataset_id <- "3"
+# t1_year <- "2022"
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -147,9 +164,6 @@ if(user == "gubelyve"| user == "xgby"){
 }
 dir_persp <- if_else(perspective == "tls", "tls_data", "uav_data")
 
-# Settings t0
-t0_dataset_id <- "2"
-t0_year <- "2020"
 t0_datasetname <- as.character(paste(t0_year, perspective, settype, t0_dataset_id, sep = "-"))
 t0_dataset <- paste(t0_datasetname, ".las", sep = "")
 t0_dir_config <-  file.path(dir_repo, "config", fsep="/")
@@ -167,8 +181,6 @@ t0_mctar_shp_name <- as.character(paste(t0_cfg$mapcurve_target_shp, sep = ""))
 t0_mctar_path <- file.path(dir_repo, t0_mctar_shp_name, fsep="/")
 
 # Settings t1
-t1_dataset_id <- "1"
-t1_year <- "2020"
 t1_datasetname <- as.character(paste(t1_year, perspective, settype, t1_dataset_id, sep = "-"))
 t1_dataset <- paste(t1_datasetname, ".las", sep = "")
 t1_dir_config <-  file.path(dir_repo, "config", fsep="/")
@@ -260,6 +272,9 @@ bounding_box <- gen_xy %>%
 # mctar_all <- read_sf(dsn = mctar_path) 
 t0_csf_aoi_shp <- read_sf(dsn = t0_mcdut_path)
 t1_csf_aoi_shp <- read_sf(dsn = t1_mcdut_path)
+
+# Read and generate targets only for uav data
+if(perspective == "uav"){
 t0_mctar_all <- read_sf(dsn = t0_mctar_path)
 t1_mctar_all <- read_sf(dsn = t1_mctar_path)
 
@@ -274,6 +289,7 @@ t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
 
 t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
 t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
+}
 
 # Intersect target with area of interest
 # mctar_bb <- st_intersection(mctar_all, bounding_box)
@@ -306,6 +322,8 @@ t0_las$Classification <- LASNONCLASSIFIED
 t1_las$Classification <- LASNONCLASSIFIED
 
 # Segment Water with Cloth Simulation Filter------------------------------------
+# Classify water surface only for uav data
+if(perspective == "uav"){
 t0_rigid_n_water <- t0_cfg$csf_water_rigidness
 t1_rigid_n_water <- t1_cfg$csf_water_rigidness
 t0_class_thres_water <- t0_cfg$csf_water_class_threshold
@@ -362,7 +380,7 @@ t1_mask_water <- mask.raster.layer(t1_DEM_water)
 
 # plot(t0_mask_water)
 # plot(t1_mask_water)
-
+}
 
 # Segment Ground with Cloth Simulation Filter-----------------------------------
 # classify ground
@@ -388,16 +406,20 @@ t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
 t0_DEM_sed <- rasterize_canopy(t0_las_sed, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_sed <- rasterize_canopy(t1_las_sed, res = raster_res, p2r(), pkg = "raster")
 
-# Subtract water
-t0_sed <- t0_DEM_sed * t0_mask_water
-t1_sed <- t1_DEM_sed * t1_mask_water
+# Subtract water. this is only for uav data
+if(perspective == "uav"){
+  t0_sed <- t0_DEM_sed * t0_mask_water
+  t1_sed <- t1_DEM_sed * t1_mask_water
+  t0_tm_wat <- normalise.raster(t0_DEM_water)
+  t1_tm_wat <- normalise.raster(t1_DEM_water)
+}else{
+  t0_sed <- t0_DEM_sed
+  t1_sed <- t1_DEM_sed
+}
 
 delta_sed <- t0_sed - t1_sed
-
 t0_tm_sed <- normalise.raster(t0_sed)
 t1_tm_sed <- normalise.raster(t1_sed)
-t0_tm_wat <- normalise.raster(t0_DEM_water)
-t1_tm_wat <- normalise.raster(t1_DEM_water)
 
 # Plot comparison between target and classified raster--------------------------
 output_gof_t0_sed_name <- as.character(paste("gof_t0_sed.png", sep = ""))
@@ -406,26 +428,45 @@ output_gof_t0_sed_path <- file.path(bud_output_path, output_gof_t0_sed_name, fse
 output_gof_t1_sed_name <- as.character(paste("gof_t1_sed.png", sep = ""))
 output_gof_t1_sed_path <- file.path(bud_output_path, output_gof_t1_sed_name, fsep="/")
 
-output_gof_t0_wat_name <- as.character(paste("gof_t0_wat.png", sep = ""))
-output_gof_t0_wat_path <- file.path(bud_output_path, output_gof_t0_wat_name, fsep="/")
+if(perspective == "uav"){
+  output_gof_t0_wat_name <- as.character(paste("gof_t0_wat.png", sep = ""))
+  output_gof_t0_wat_path <- file.path(bud_output_path, output_gof_t0_wat_name, fsep="/")
+  
+  output_gof_t1_wat_name <- as.character(paste("gof_t1_wat.png", sep = ""))
+  output_gof_t1_wat_path <- file.path(bud_output_path, output_gof_t1_wat_name, fsep="/")
+}
 
-output_gof_t1_wat_name <- as.character(paste("gof_t1_wat.png", sep = ""))
-output_gof_t1_wat_path <- file.path(bud_output_path, output_gof_t1_wat_name, fsep="/")
+output_hab_change_name <- as.character(paste("habitate_change.png", sep = ""))
+output_hab_change_path <- file.path(bud_output_path, output_hab_change_name, fsep="/")
+
+output_elev_name <- as.character(paste("elevation_change.png", sep = ""))
+output_elev_path <- file.path(bud_output_path, output_elev_name, fsep="/")
+
+output_elev_uncert_name <- as.character(paste("elevation_change_uncert.png", sep = ""))
+output_elev_uncert_path <- file.path(bud_output_path, output_elev_uncert_name, fsep="/")
+
+output_lod_hist_name <- as.character(paste("lod_histogram.png", sep = ""))
+output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/")
+
+output_lod_bar_name <- as.character(paste("lod_barplot.png", sep = ""))
+output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 
 gof_layout <- tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 0.5)
 
-t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0", gof_layout)
-tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
+if(perspective == "uav"){
+  t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0", gof_layout)
+  tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
+  
+  t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1", gof_layout)
+  tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 960, height = 960)
 
-t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1", gof_layout)
-tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 960, height = 960)
-
-t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0", gof_layout)
-tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 960, height = 960)
-
-t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1", gof_layout)
-tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 960, height = 960)
+  t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0", gof_layout)
+  tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 960, height = 960)
+  
+  t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1", gof_layout)
+  tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 960, height = 960)
+}
 
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
@@ -433,18 +474,18 @@ t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
+tm_default_layout <- tm_layout(frame = TRUE, 
+                               legend.title.size = 0.5, legend.text.size = 0.5, 
+                               legend.outside = F, legend.position = c("left", "center"),
+                                 main.title.position = "center", main.title.size = 0.5)
+
 pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
-tmap_mode("plot") + # "plot" or "view"
+tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate) +
-  # tm_raster(title = "2D Habitat change of Sediment", style = "cat",  ) +
   tm_raster(title = "2D Habitat change of Sediment", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
-            labels = c("no change", "deposition", "erosion", "change in elevation") ) +
-  # tm_raster(palette = oranges, title = plot_title, alpha = 1) +
-  # tm_shape(target_shp) +
-  # tm_polygons(alpha = 0.5) +
-  # tm_shape(wallows_raster_100) +
-  # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
-  tm_view(control.position = c("right", "top"))
+            labels = c("no change", "deposition", "erosion", "change in elevation")) +
+  tm_default_layout
+tmap_save(tm = tm_hab, output_hab_change_path, width = 960, height = 960)
 
 # Generate mask for cells which show a change in elevation (pick value 11)
 tm_elevation_mask <- filter.raster(tm_habitate, 11)
@@ -454,9 +495,11 @@ tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
 # Plot elevation change without uncertainty assessment
-tmap_mode("plot") + # "plot" or "view"
+tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all) +
-  tm_raster(title = "Elevation change of Sediment, raw", alpha = 1, style = "cont")
+  tm_raster(title = "Elevation change of Sediment, raw", alpha = 1, style = "cont") +
+  tm_default_layout
+tmap_save(tm = tm_elev, output_elev_path, width = 960, height = 960)
 
 # Calculate critical level of detection-----------------------------------------
 lod_crit <- sqrt(t1_cfg$z_mean_accuracy^2 + t0_cfg$z_mean_accuracy^2)
@@ -466,12 +509,13 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 
 # Plot elevation change with uncertainty assessment
 paldisc <- c("#000000")
-tmap_mode("plot") + # "plot" or "view"
+tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned) +
   tm_raster(title = "Elevation change of Sediment", alpha = 1, style = "cont") + 
   tm_shape(delta_z_noise) +
-  tm_raster(title = "Discarded cells", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded"))
-
+  tm_raster(title = "Discarded cells", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded")) +
+  tm_default_layout
+tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 960, height = 960)
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all))
 
@@ -481,6 +525,7 @@ ggplot(dist, aes(values.raw_raster., fill = discarded)) +
   labs(x = "Elevation change [m]",
        y = "Count") + 
   theme_minimal()
+
 
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
