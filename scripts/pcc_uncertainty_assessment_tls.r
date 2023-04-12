@@ -340,6 +340,7 @@ for (j in gcp$ID) {
     output_wat_png_name <- as.character(paste("GCP_ID", j, "-wh-zoom.png", sep = ""))
     output_wat_png_path <- file.path(output_path, output_wat_png_name, fsep="/")
     rgl.snapshot(output_wat_png_path)
+    set.RGLtopview(zoom = 1.0)
     rgl.close()
     plot(las_sub, size = 1, color = "RGB", bg = "black")
     set.RGLtopview(zoom = 0.1)

@@ -92,13 +92,15 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, plot_title) {
   palcsf <- c("#FFFFFF", "#e41a1c")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
-  tm_raster(title = plot_title, alpha = 1, palette = palcsf, style = "cat", 
+  tm_raster(alpha = 1, palette = palcsf, style = "cat", 
             labels = c("no class", "CSF Ground")) +
   tm_shape(target_shp) +
-  tm_polygons(alpha = 0.5) +
+  tm_polygons(alpha = 0.5, lwd = 0.3) +
   # tm_shape(wallows_raster_100) +
   # tm_raster(palette = purples, title = "Wallows", alpha = 1) +
-  tm_view(control.position = c("right", "top"))
+  tm_view(control.position = c("right", "top")) +
+  tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"), 
+            main.title = plot_title, main.title.position = "center", main.title.size = 0.5)
 }
 
 create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
@@ -190,7 +192,10 @@ dir.create(bud_output_path)
 dir.create(t0_output_path)
 dir.create(t1_output_path)
 
-# 
+output_bud_report_name <- as.character(paste("budget-report.txt", sep = ""))
+output_bud_report_path <- file.path(bud_output_path, output_bud_report_name, fsep="/")
+
+
 # output_json_name <- as.character(paste(output_id, ".json", sep = ""))
 # output_json_path <- file.path(output_path, output_json_name, fsep="/")
 # 
@@ -284,6 +289,15 @@ t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
 # of the first point is loaded only to reduce computational time.
 t0_las <- readLAS(t0_data_path, select = "xyzRGBc", filter = t0_cfg$las_filter)
 t1_las <- readLAS(t1_data_path, select = "xyzRGBc", filter = t1_cfg$las_filter)
+
+sink(output_bud_report_path)
+print("Summary of LAS t0:")
+print(t0_config_id)
+summary(t0_las)
+print("Summary of LAS t1:")
+print(t1_config_id)
+summary(t1_las)
+sink(append = T)
 
 # Reset class LASNOISE for further procedure
 t0_las$Classification <- LASNONCLASSIFIED
@@ -384,17 +398,42 @@ t0_tm_wat <- normalise.raster(t0_DEM_water)
 t1_tm_wat <- normalise.raster(t1_DEM_water)
 
 # Plot comparison between target and classified raster--------------------------
+output_gof_t0_sed_name <- as.character(paste("gof_t0_sed.png", sep = ""))
+output_gof_t0_sed_path <- file.path(bud_output_path, output_gof_t0_sed_name, fsep="/")
+
+output_gof_t1_sed_name <- as.character(paste("gof_t1_sed.png", sep = ""))
+output_gof_t1_sed_path <- file.path(bud_output_path, output_gof_t1_sed_name, fsep="/")
+
+output_gof_t0_wat_name <- as.character(paste("gof_t0_wat.png", sep = ""))
+output_gof_t0_wat_path <- file.path(bud_output_path, output_gof_t0_wat_name, fsep="/")
+
+output_gof_t1_wat_name <- as.character(paste("gof_t1_wat.png", sep = ""))
+output_gof_t1_wat_path <- file.path(bud_output_path, output_gof_t1_wat_name, fsep="/")
+
+
 t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, "GOF: Sediment t0")
+tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
+
+save.plot()
+png(output_gof_t0_sed_path, width = 960, height = 960) 
 t0_tm_sed_result
+dev.off()
 
 t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, "GOF: Sediment t1")
+png(output_gof_t1_sed_path, width = 960, height = 960) 
 t1_tm_sed_result
+dev.off()
 
 t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, "GOF: Water t0")
+
+png(output_gof_t0_wat_path, width = 960, height = 960) 
 t0_tm_wat_result
+dev.off()
 
 t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, "GOF: Water t1")
+png(output_gof_t1_wat_path, width = 960, height = 960) 
 t1_tm_wat_result
+dev.off()
 
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
