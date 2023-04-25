@@ -338,16 +338,16 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
 
 write(df, file=output_ga_sed_report_path, append = T)
 
-# Start search
+# Start search (order rig_sed_m, ct_sed_n, clr_sed_o)
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
          fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
-         1, x[1], x[2], 3, 0.69997187, 29.5889166, 0.4),
-         lower = c(0.1, 3.0, 0.2), 
-         upper = c(0.35, 4.5, 0.5), 
-         suggestions = c(0.246668090, 3.78168753, 0.488410685),
+         1, x[1], x[2], 3, 0.73427743, 25.5294682, 0.4),
+         lower = c(0.1, 1.0), 
+         upper = c(7.5, 10), 
+         suggestions = c(0.246668090, 3.78168753),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
