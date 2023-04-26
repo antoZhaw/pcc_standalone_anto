@@ -2,6 +2,8 @@
   "id": 3,
   "wholeset": true,
   "year": "2022",
+  "survey_date": "20221011",
+  "survey_date_pret": "11.10.2022",
   "perspective": "tls",
   "crs_name": "CH1903+ / LV95",
   "crs_epsg": 2056,

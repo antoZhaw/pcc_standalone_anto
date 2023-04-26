@@ -2,6 +2,8 @@
   "id": 1,
   "wholeset": false,
   "year": "2021",
+  "survey_date": "20211013",
+  "survey_date_pret": "13.10.2021",
   "perspective": "tls",
   "crs_name": "unknown",
   "crs_epsg": null,

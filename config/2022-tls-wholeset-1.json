@@ -2,6 +2,8 @@
   "id": 1,
   "wholeset": true,
   "year": "2022",
+  "survey_date": "20221011",
+  "survey_date_pret": "11.10.2022",
   "perspective": "tls",
   "crs_name": "unknown",
   "crs_epsg": null,

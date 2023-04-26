@@ -109,7 +109,8 @@ create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
     mutate(discarded = if_else(abs(values.raw_raster.) <= lod_critical, T, F),
            # class = as.factor(if_else(values.raw_raster. <= 0, "Erosion", "Deposition")),
            class = case_when(
-             discarded == T ~ "Discarded volume",
+             discarded == T & values.raw_raster. <= 0 ~ "Discarded Erosion",
+             discarded == T & values.raw_raster. > 0 ~ "Discarded Deposition",
              discarded == F & values.raw_raster. <= 0 ~ "Erosion",
              discarded == F & values.raw_raster. > 0 ~ "Deposition",
              TRUE ~ NA # Default case
@@ -530,7 +531,27 @@ ggplot(dist, aes(values.raw_raster., fill = discarded)) +
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
   group_by(class) %>%
-  summarize(n=n(), vol=sum(cell_vol))
+  summarize(n=n(), vol=sum(cell_vol), area=sum(n*raster_res)) 
+
+.rowNamesDF(dist_sum, make.names=FALSE) <- dist_sum$class
+
+dist_sum$vol[4]
+
+epoch <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
+
+export <- data.frame(epoch) %>% 
+  mutate(Ero_vol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
+         Ero_area_m2 = dist_sum$area[dist_sum$class=="Erosion"],
+         Ero_zoneavg = Ero_vol_m3/Ero_area_m2,
+         Ero_lossvol_rel = dist_sum$vol[dist_sum$class=="Discarded Erosion"]/dist_sum$vol[dist_sum$class=="Erosion"],
+         Depo_vol_m3 = dist_sum$vol[dist_sum$class=="Deposition"],
+         Depo_area_m2 = dist_sum$area[dist_sum$class=="Deposition"],
+         Depo_zoneavg = Depo_vol_m3/Depo_area_m2,
+         Depo_lossvol_rel = dist_sum$vol[dist_sum$class=="Discarded Deposition"]/dist_sum$vol[dist_sum$class=="Deposition"],
+         reported_date = timestamp)
+
+write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
+            append = T, sep = ";", row.names = F)
 
 ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
   geom_bar(position="stack", stat="identity") +

@@ -2,6 +2,8 @@
   "id": 1,
   "wholeset": true,
   "year": "2022",
+  "survey_date": "20221007",
+  "survey_date_pret": "07.10.2022",
   "perspective": "uav",
   "crs_name": "CH1903+ / LV95",
   "crs_epsg": 2056,

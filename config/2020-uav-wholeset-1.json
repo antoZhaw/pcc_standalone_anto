@@ -3,6 +3,7 @@
   "wholeset": true,
   "year": "2020",
   "survey_date": "20201105",
+  "survey_date_pret": "5.11.20",
   "perspective": "uav",
   "crs_name": "CH1903+ / LV95",
   "crs_epsg": 2056,
