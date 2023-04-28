@@ -503,7 +503,7 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
 tmap_save(tm = tm_elev, output_elev_path, width = 960, height = 960)
 
 # Calculate critical level of detection-----------------------------------------
-lod_crit <- sqrt(t1_cfg$z_mean_accuracy^2 + t0_cfg$z_mean_accuracy^2)
+lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_accuracy^2 + t0_cfg$z_sigma_accuracy^2)
 
 delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
 delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
@@ -540,7 +540,8 @@ dist_sum$vol[4]
 interval <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
 
 export <- data.frame(interval) %>% 
-  mutate(Ero_validvol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
+  mutate(lod_crit,
+         Ero_validvol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
          Ero_discvol_m3 = dist_sum$vol[dist_sum$class=="Discarded Erosion"],
          Ero_totvol_m3 = Ero_validvol_m3 + Ero_discvol_m3,
          Ero_lossvol_rel = 100*Ero_discvol_m3/Ero_totvol_m3,
