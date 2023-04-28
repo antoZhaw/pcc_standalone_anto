@@ -10,6 +10,7 @@
   "area_of_interest": "AOI_final.shp",
   "outlier_already_filtered": false,
   "las_filter": "-keep_first -keep_xy 2575011 1178366.7 2575517.4 1178993 -drop_z_below 572.0",
+  "mapcurve_target_shp": "data/target_NF_2021/Polygon_ImageClassification_2021_NF.shp",
   "mapcurve_dut_shp": "data/dut_filter_230315/dut_filter_230315.shp",
   "csf_gnd_sloop_smooth": true,
   "csf_gnd_class_threshold": 1.5,
