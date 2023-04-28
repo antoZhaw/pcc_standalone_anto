@@ -537,17 +537,25 @@ dist_sum <- dist %>%
 
 dist_sum$vol[4]
 
-epoch <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
+interval <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
 
-export <- data.frame(epoch) %>% 
-  mutate(Ero_vol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
-         Ero_area_m2 = dist_sum$area[dist_sum$class=="Erosion"],
-         Ero_zoneavg = Ero_vol_m3/Ero_area_m2,
-         Ero_lossvol_rel = dist_sum$vol[dist_sum$class=="Discarded Erosion"]/dist_sum$vol[dist_sum$class=="Erosion"],
-         Depo_vol_m3 = dist_sum$vol[dist_sum$class=="Deposition"],
-         Depo_area_m2 = dist_sum$area[dist_sum$class=="Deposition"],
-         Depo_zoneavg = Depo_vol_m3/Depo_area_m2,
-         Depo_lossvol_rel = dist_sum$vol[dist_sum$class=="Discarded Deposition"]/dist_sum$vol[dist_sum$class=="Deposition"],
+export <- data.frame(interval) %>% 
+  mutate(Ero_validvol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
+         Ero_discvol_m3 = dist_sum$vol[dist_sum$class=="Discarded Erosion"],
+         Ero_totvol_m3 = Ero_validvol_m3 + Ero_discvol_m3,
+         Ero_lossvol_rel = 100*Ero_discvol_m3/Ero_totvol_m3,
+         Ero_validarea_m2 = dist_sum$area[dist_sum$class=="Erosion"],
+         Ero_discarea_m2 = dist_sum$area[dist_sum$class=="Discarded Erosion"],
+         Ero_totarea_m2 = Ero_validarea_m2 + Ero_discarea_m2,
+         Ero_validzoneavg = Ero_validvol_m3/Ero_validarea_m2,
+         Depo_validvol_m3 = dist_sum$vol[dist_sum$class=="Deposition"],
+         Depo_discvol_m3 = dist_sum$vol[dist_sum$class=="Discarded Deposition"],
+         Depo_totvol_m3 = Ero_validvol_m3 + Ero_discvol_m3,
+         Depo_lossvol_rel = 100*Depo_discvol_m3/Depo_totvol_m3,
+         Depo_validarea_m2 = dist_sum$area[dist_sum$class=="Deposition"],
+         Depo_discarea_m2 = dist_sum$area[dist_sum$class=="Discarded Deposition"],
+         Depo_totarea_m2 = Depo_validarea_m2 + Depo_discarea_m2,
+         Depo_validzoneavg = Depo_validvol_m3/Depo_validarea_m2,
          reported_date = timestamp)
 
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
