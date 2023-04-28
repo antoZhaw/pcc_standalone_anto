@@ -238,6 +238,9 @@ output_target_wat_path <- file.path(output_path, output_target_wat_name, fsep="/
 output_target_sed_name <- as.character(paste(output_id, "-target-sed.png", sep = ""))
 output_target_sed_path <- file.path(output_path, output_target_sed_name, fsep="/")
 
+output_target_all_name <- as.character(paste(output_id, "-target-all.png", sep = ""))
+output_target_all_path <- file.path(output_path, output_target_all_name, fsep="/")
+
 output_ga_wat_report_name <- as.character(paste("ga_wat", perspective, year, dataset_id, "report.csv", sep = "_"))
 output_ga_wat_report_path <- file.path(dir_export, output_ga_wat_report_name, fsep="/")
 
@@ -251,8 +254,8 @@ if(length(warnings())!=0){
 }
 
 # Generate rectangular polygon of area of interest
-gen_xy <- structure(list(dat = c("BURR-1-1-1", "BURR-1-1-1", 
-                                 "BURR-1-1-1", "BURR-1-1-1"),
+gen_xy <- structure(list(dat = c("AOI", "AOI", 
+                                     "AOI", "AOI"),
                          Longitude = c(2575011, 2575011, 
                                       2575517.4, 2575517.4),
                          Latitude = c(1178366.7, 1178993, 
@@ -272,6 +275,14 @@ aoi_shp <- read_sf(dsn = aoi_path)
 
 # Intersect target with area of interest
 targets_aoi_shp <- st_intersection(mctar_all, bounding_box)
+
+ggplot() +
+  geom_sf(data = bounding_box, aes(fill = dat), alpha = 0.1) +
+  geom_sf(data = targets_aoi_shp, aes(fill = as.factor(Class_name)), alpha = 0.5) +
+  coord_sf(datum=st_crs(2056)) +
+  theme_minimal()
+
+ggsave(output_target_all_path, bg = 'white')
 
 # Information about rasterized target
 # target$layer

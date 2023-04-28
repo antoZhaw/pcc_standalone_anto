@@ -276,8 +276,8 @@ aoi_shp <- read_sf(dsn = aoi_path)
 targets_aoi_shp <- st_intersection(mctar_all, bounding_box_tls)
 
 ggplot() +
-  geom_sf(data = bounding_box_tls, aes(fill = dat), alpha = 0.3) +
-  geom_sf(data = targets_aoi_shp, aes(fill = as.factor(Class_name)), alpha = 0.3) +
+  geom_sf(data = bounding_box_tls, aes(fill = dat), alpha = 0.1) +
+  geom_sf(data = targets_aoi_shp, aes(fill = as.factor(Class_name)), alpha = 0.5) +
   coord_sf(datum=st_crs(2056)) +
   theme_minimal()
 
