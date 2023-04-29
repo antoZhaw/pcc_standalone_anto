@@ -96,9 +96,9 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "2"
+dataset_id <- "3"
 wholeset <- T
-year <- "2021"
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -117,7 +117,7 @@ dataset <- paste(datasetname, ".las", sep = "")
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
-if(user == "gubelyve"){
+if(user == "gubelyve"| user == "xgby"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
@@ -289,11 +289,11 @@ ExB_thresh <- cfg$sky_ExB_threshold
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
 las_sky <- filter_poi(las, Classification == LASBUILDING)
-plot(las_sky, size = 1, color = "RGB", bg = "black")
+# plot(las_sky, size = 1, color = "RGB", bg = "black")
 
 # Plot filtered noise
 las_noise <- filter_poi(las, Classification == LASNOISE)
-plot(las_noise, size = 1, color = "RGB", bg = "black")
+# plot(las_noise, size = 1, color = "RGB", bg = "black")
 
 }
 # las_origin <- las
