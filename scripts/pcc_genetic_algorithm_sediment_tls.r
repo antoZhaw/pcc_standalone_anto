@@ -252,8 +252,8 @@ if(length(warnings())!=0){
 #   st_cast("POLYGON")
 
 # Narrowed tls polygon
-gen_xy_tls <- structure(list(dat = c("AOI", "AOI", 
-                                 "AOI", "AOI"),
+gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
+                                 "AOI TLS", "AOI TLS"),
                          Longitude = c(2575340, 2575340, 
                                        2575480, 2575480),
                          Latitude = c(1178520, 1178780, 
