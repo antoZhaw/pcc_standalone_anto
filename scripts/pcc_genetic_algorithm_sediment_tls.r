@@ -93,12 +93,12 @@ cohen.kappa.csf.sed.tls <- function(raw_las, ga_aoi_shp, targets_shp,
   dev.off()
   
   # Generate raster for sediment comparison
-  target_sed <- targets_shp %>%  filter(Id == 2)
   raster_ext_sed <- extent(xmin(sed_ij), xmax(sed_ij), ymin(sed_ij), ymax(sed_ij))
   tar_raw_sed <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
-                        ext=raster_ext_sed, resolution=raster_res, vals=NULL)
+                        ext=raster_ext_sed, resolution=raster_res, vals=NULL)  
+  target_sed <- targets_shp %>%  filter(Id == 2)
   tar_sed <- fasterize(target_sed, tar_raw_sed, field = "Id", fun="sum")
-  
+
   # Normalise raster values for comparison
   rater1 <- values(tar_sed)
   rater1[rater1 != 0] <- 1
@@ -269,6 +269,21 @@ bounding_box_tls <- gen_xy_tls %>%
 
 # Read Shapefiles
 mctar_all <- read_sf(dsn = mctar_path)
+
+if(year == "2022"){
+  mctar_all <- mctar_all %>% 
+    mutate(
+      Id = case_when(
+        Class_name == "Water"~1,
+        Class_name == "Sediment"~2,
+        Class_name == "Vegetation"~3,
+        Class_name == "Other"~4,
+        Class_name == "Bedrock/Boulders"~5,
+        TRUE~99 #Default case
+      )
+    )
+}
+
 csf_aoi_shp <- read_sf(dsn = ga_aoi_path) 
 
 # Intersect target with area of interest
@@ -316,6 +331,8 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
 
 
 write(df, file=output_ga_sed_report_path, append = T)
+
+
 
 # Start search (order rig_sed_m, ct_sed_n, clr_sed_o)
 gar3_start <- as_datetime(lubridate::now())
