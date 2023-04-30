@@ -178,7 +178,7 @@ poi_whitenoise <- ~if_else(las$RGBmean >= whitenoise_thresh, T, F)
 
 poi_blacknoise <- ~if_else(las$RGBmean <= blacknoise_thresh, T, F)
 
-poi_sky_ExB <- ~if_else(las$ExB >= ExB_thresh & las$ground == F &
+poi_sky_ExB <- ~if_else(las$ExB >= ExB_thresh & 
                           las$Classification == LASNONCLASSIFIED, T, F)
 
 # Read files--------------------------------------------------------------------
@@ -253,7 +253,7 @@ las_post <- F
 # })
 
 # Classify noise in tls data----------------------------------------------------
-if(perspective=="tls"){
+# if(perspective=="tls"){
 # Classify outliers as noise. Can be skipped since it has high computational time.
   # if(cfg$outlier_already_filtered==F){
     # las <- classify_noise(las, sor(50,5))
@@ -276,6 +276,10 @@ blacknoise_thresh <- cfg$blacknoise_threshold
 
 las <- classify_poi(las, class = LASNOISE, poi = poi_blacknoise)
 
+# Plot filtered noise
+las_noise <- filter_poi(las, Classification == LASNOISE)
+# plot(las_noise, size = 1, color = "RGB", bg = "black")
+
 # Classify sky------------------------------------------------------------------
 # Vegetation filter priority: ExB, BPI (some might be deactivated)
 
@@ -289,13 +293,11 @@ ExB_thresh <- cfg$sky_ExB_threshold
 las <- classify_poi(las, class = LASBUILDING, poi = poi_sky_ExB)
 # las <- filter_poi(las, Classification != LASBUILDING)
 las_sky <- filter_poi(las, Classification == LASBUILDING)
-# plot(las_sky, size = 1, color = "RGB", bg = "black")
 
-# Plot filtered noise
-las_noise <- filter_poi(las, Classification == LASNOISE)
-# plot(las_noise, size = 1, color = "RGB", bg = "black")
+plot(las_sky, size = 1, color = "RGB", bg = "black")
 
-}
+# }
+
 # las_origin <- las
 # las <- las_origin
 

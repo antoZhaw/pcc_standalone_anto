@@ -20,7 +20,7 @@
   "z_sigma_accuracy": 0.062667216, 
   "whitenoise_threshold": 48000,
   "blacknoise_threshold": 4000,
-  "sky_ExB_threshold": 6000,
+  "sky_ExB_threshold": 18000,
   "veg_ExR_threshold": 20000,
   "veg_GLI_threshold": 0.09,
   "sed_RtoBmin": 0.7222,

@@ -130,9 +130,9 @@ cohen.kappa.csf.sed.tls <- function(raw_las, ga_aoi_shp, targets_shp,
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "3"
+dataset_id <- "4"
 wholeset <- T
-year <- "2021"
+year <- "2022"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -270,7 +270,6 @@ bounding_box_tls <- gen_xy_tls %>%
 # Read Shapefiles
 mctar_all <- read_sf(dsn = mctar_path)
 csf_aoi_shp <- read_sf(dsn = ga_aoi_path) 
-aoi_shp <- read_sf(dsn = aoi_path)
 
 # Intersect target with area of interest
 targets_aoi_shp <- st_intersection(mctar_all, bounding_box_tls)
@@ -278,6 +277,7 @@ targets_aoi_shp <- st_intersection(mctar_all, bounding_box_tls)
 ggplot() +
   geom_sf(data = bounding_box_tls, aes(fill = dat), alpha = 0.1) +
   geom_sf(data = targets_aoi_shp, aes(fill = as.factor(Class_name)), alpha = 0.5) +
+  geom_sf(data = csf_aoi_shp, aes(fill = as.factor(id)), alpha = 0.5) +
   coord_sf(datum=st_crs(2056)) +
   theme_minimal()
 
