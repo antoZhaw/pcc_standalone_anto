@@ -63,7 +63,7 @@ cohen.kappa.csf.sed.tls <- function(raw_las, ga_aoi_shp, targets_shp,
   id_ij <- sample(1:999, 1)
   start_ij <- as_datetime(lubridate::now())
   rig_sed_m <- round(rig_sed_m, 0)
-  steep_slope_sed <- if_else(rig_sed_m == 3, T, T)
+  steep_slope_sed <- if_else(rig_sed_m == 3, T, F)
   # classify ground
   msg_sed <- as.character(paste("SED", id_ij, "_rig", round(rig_sed_m, 4), "_ct", round(ct_sed_n, 4), "_clr", round(clr_sed_o, 4), sep = ""))
   print(msg_sed)
@@ -340,9 +340,9 @@ GA <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf.sed.tls(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
-         3, x[1], x[2], 0.4),
-         lower = c(0.08, 3), 
-         upper = c(10, 10), 
+         2, x[1], x[2], 0.4),
+         lower = c(0.08, 1.2), 
+         upper = c(2, 5), 
          suggestions = c(0.246668090, 3.78168753),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
