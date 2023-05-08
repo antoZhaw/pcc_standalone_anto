@@ -304,6 +304,20 @@ mctar_all <- read_sf(dsn = mctar_path)
 csf_aoi_shp <- read_sf(dsn = ga_aoi_path) 
 aoi_shp <- read_sf(dsn = aoi_path)
 
+if(year == "2022"){
+  mctar_all <- mctar_all %>% 
+    mutate(
+      Id = case_when(
+        Class_name == "Water"~1,
+        Class_name == "Sediment"~2,
+        Class_name == "Vegetation"~3,
+        Class_name == "Other"~4,
+        Class_name == "Bedrock/Boulders"~5,
+        TRUE~99 #Default case
+      )
+    )
+}
+
 # Intersect target with area of interest
 targets_aoi_shp <- st_intersection(mctar_all, bounding_box)
 
