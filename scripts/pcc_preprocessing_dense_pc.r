@@ -96,9 +96,9 @@ gen.attribute.plot <- function(input_attr, attr_name, plot_title, sub_title, pos
 
 # Globals for Configuration-----------------------------------------------------
 # Specify dataset
-dataset_id <- "3"
+dataset_id <- "2"
 wholeset <- T
-year <- "2022"
+year <- "2021"
 perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
