@@ -180,7 +180,7 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
 # Specify dataset
 dataset_id <- "1"
 wholeset <- T
-year <- "2021"
+year <- "2022"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
@@ -369,10 +369,10 @@ GA <- ga(type = "real-valued",
          fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, 
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
-         3, x[1], x[2], 3, 2.63628606, 14.92997548, 0.4),
+         3, x[1], x[2], 2, 1.754319916, 24.95654602, 0.4),
          lower = c(0.1, 1.0), 
-         upper = c(20, 40), 
-         suggestions = c(0.246668090, 3.78168753),
+         upper = c(3, 10), 
+         suggestions = c(0.219415685, 2.435972824),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)

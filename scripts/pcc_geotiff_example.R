@@ -68,9 +68,9 @@ t0_tif_crop <- crop(t0_tif, tot_aoi)
 tm1 <- tm_shape(t0_tif_crop) +
   tm_rgb(r=1, g=2, b=3) +
   tm_shape(csf_aoi_shp) +
-  tm_borders(col="red", lwd=2.5, alpha = 0.9) +
+  tm_borders(col="red", lwd=2.0, alpha = 0.9) +
   tm_shape(bounding_box_tls) +
-  tm_borders(col="yellow", lwd=2.5, alpha = 0.9)
+  tm_borders(col="yellow", lwd=2.0, alpha = 0.9)
 tm1
 
-tmap_save(tm1, "export/study_site.png", width=1920, height=1920, dpi = 300)
+tmap_save(tm1, "export/study_site.png", width=1920, height=1920, dpi = 600)
