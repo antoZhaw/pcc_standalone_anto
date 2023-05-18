@@ -137,18 +137,18 @@ settype <- if_else(wholeset == T, "wholeset", "subset")
 
 # Settings t0 and t1
 # uav 2022-2021
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
-t0_dataset_id <- "1"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2021"
-raster_res <- 0.4
+# t0_dataset_id <- "1"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2021"
+# raster_res <- 0.4
 
 # uav 2020-2020
 # t0_dataset_id <- "2"
@@ -289,11 +289,24 @@ if(perspective == "uav"){
 t0_mctar_all <- read_sf(dsn = t0_mctar_path)
 t1_mctar_all <- read_sf(dsn = t1_mctar_path)
 
+if(t1_year == "2022"){
+  t1_mctar_all <- t1_mctar_all %>% 
+    mutate(
+      Id = case_when(
+        Class_name == "Water"~1,
+        Class_name == "Sediment"~2,
+        Class_name == "Vegetation"~3,
+        Class_name == "Other"~4,
+        Class_name == "Bedrock/Boulders"~5,
+        TRUE~99 #Default case
+      )
+    )
+}
+
 aoi_shp <- read_sf(dsn = aoi_path)
 # Intersect target with area of interest
 t0_targets_aoi_shp <- st_intersection(t0_mctar_all, bounding_box)
 t1_targets_aoi_shp <- st_intersection(t1_mctar_all, bounding_box)
-
 
 t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
 t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
@@ -537,7 +550,6 @@ ggplot(dist, aes(values.raw_raster., fill = discarded)) +
        y = "Count") + 
   theme_minimal()
 
-
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
   group_by(class) %>%
@@ -561,7 +573,7 @@ export <- data.frame(interval) %>%
          Ero_validzoneavg = Ero_validvol_m3/Ero_validarea_m2,
          Depo_validvol_m3 = dist_sum$vol[dist_sum$class=="Deposition"],
          Depo_discvol_m3 = dist_sum$vol[dist_sum$class=="Discarded Deposition"],
-         Depo_totvol_m3 = Ero_validvol_m3 + Ero_discvol_m3,
+         Depo_totvol_m3 = Depo_validvol_m3 + Depo_discvol_m3,
          Depo_lossvol_rel = 100*Depo_discvol_m3/Depo_totvol_m3,
          Depo_validarea_m2 = dist_sum$area[dist_sum$class=="Deposition"],
          Depo_discarea_m2 = dist_sum$area[dist_sum$class=="Discarded Deposition"],
@@ -570,7 +582,7 @@ export <- data.frame(interval) %>%
          reported_date = timestamp)
 
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
-            append = T, sep = ";", row.names = F)
+            append = T, sep = ";", row.names = F, col.names = F)
 
 ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
   geom_bar(position="stack", stat="identity") +
