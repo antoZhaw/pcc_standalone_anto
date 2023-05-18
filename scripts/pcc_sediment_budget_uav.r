@@ -144,28 +144,38 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 wholeset <- T
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
-comment <- "unfiltered histogram and maps, no sed_rigid = 3"
+comment <- "narrow breaks (-1 to 1), no sed_rigid = 3"
+narrow_breaks <- c(-1, -0.5, 0.5, 1)
+wide_breaks <- c(-2, -1, 1, 2)
+global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
-t0_dataset_id <- "1"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2021"
-raster_res <- 0.4
+# t0_dataset_id <- "1"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2021"
+# raster_res <- 0.4
 
 # uav 2020-2020
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
 # t1_year <- "2021"
+# raster_res <- 0.4
+
+# uav overall
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
 # raster_res <- 0.4
 
 # tls 2022-2021
@@ -552,7 +562,7 @@ delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 elev_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu") +
+  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks)) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_title) +
@@ -574,7 +584,7 @@ paldisc <- c("#000000")
 elev_uncert_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu") + 
+  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
   tm_shape(delta_z_noise) +
   tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded")) +
   tm_shape(t0_csf_aoi_shp) +
