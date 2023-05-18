@@ -89,22 +89,25 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
 }
 
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
-  palcsf <- c("#FFFFFF", "#e41a1c")
+  palcsf <- c("#FFFFFF", "#d7191c")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
-  tm_raster(title = "Classification", 
+  tm_raster(title = "Legend", 
             alpha = 1, palette = palcsf, style = "cat", 
-            labels = c("no class", "CSF Ground")) +
+            labels = c("unclassified", "classified area")) +
   tm_shape(target_shp) +
-  tm_polygons(alpha = 0.5, lwd = 0.6, col = "#1f78b4") +
+  tm_polygons(alpha = 0.5, lwd = 0.6, col = "#a6d96a") +
   tm_shape(aoi) +
   tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
   tm_layout(main.title = plot_title) +
-  tm_add_legend('line', 
+  tm_add_legend('fill', 
+                  col = "#a6d96a",
+                  labels = c('Reference data')) +
+  tm_add_legend('fill', 
                   border.col = "#000000",
-                  labels = c('Area of interest'),
-                  title="Polygons") +
+                  col = "#ffffff",
+                  labels = c('Area of interest')) +
   spec_layout
   # tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"), 
   #           main.title = plot_title, main.title.position = "center", main.title.size = 0.5)
@@ -484,24 +487,24 @@ output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/
 output_lod_bar_name <- as.character(paste("lod_barplot.png", sep = ""))
 output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 
-gof_layout <- tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"),
-                        main.title.position = "center", main.title.size = 0.5)
+gof_layout <- tm_layout(frame = T, legend.text.size = 0.6, legend.title.size = 0.6, legend.outside = F, legend.position = c("left", "center"),
+                        main.title.position = "center", main.title.size = 0.6)
 
 if(perspective == "uav"){
-  t0_title_sed <- paste("Sediment", t0_year, sep = " ")
-  t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, title_sed, gof_layout)
+  t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
+  t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
   tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
   
-  t1_title_sed <- paste("Sediment", t1_year, sep = " ")  
-  t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_title_sed, gof_layout)
+  t1_title_sed <- paste("Sediment Classification", t1_cfg$survey_date_pret, sep = " ")  
+  t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout)
   tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 960, height = 960)
 
-  t0_title_wat <- paste("Water", t0_year, sep = " ")  
-  t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_title_wat, gof_layout)
+  t0_title_wat <- paste("Water Classification", t0_cfg$survey_date_pret, sep = " ")  
+  t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_csf_aoi_shp, t0_title_wat, gof_layout)
   tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 960, height = 960)
 
-  t1_title_wat <- paste("Water", t1_year, sep = " ")  
-  t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_title_wat, gof_layout)
+  t1_title_wat <- paste("Water Classification", t1_cfg$survey_date_pret, sep = " ")  
+  t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_csf_aoi_shp, t1_title_wat, gof_layout)
   tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 960, height = 960)
 }
 
@@ -512,15 +515,23 @@ t1_tm_hab <- t1_tm_sed
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
 tm_default_layout <- tm_layout(frame = TRUE, 
-                               legend.title.size = 0.5, legend.text.size = 0.5, 
+                               legend.title.size = 0.6, legend.text.size = 0.6, 
                                legend.outside = F, legend.position = c("left", "center"),
                                  main.title.position = "center", main.title.size = 0.5)
 
 pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
+hab_title <- paste("2D Habitat change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate) +
-  tm_raster(title = "2D Habitat change of Sediment", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
+  tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
             labels = c("no change", "deposition", "erosion", "change in elevation")) +
+  tm_shape(t0_csf_aoi_shp) +
+  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+    tm_layout(main.title = hab_title) +
+  tm_add_legend('fill', 
+                border.col = "#000000",
+                col = "#ffffff",
+                labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 960, height = 960)
 
@@ -532,9 +543,17 @@ tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
 # Plot elevation change without uncertainty assessment
+elev_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all) +
-  tm_raster(title = "Elevation change of Sediment, raw", alpha = 1, style = "cont") +
+  tm_raster(title = "Legend", alpha = 1, style = "cont") +
+  tm_shape(t0_csf_aoi_shp) +
+  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+  tm_layout(main.title = elev_title) +
+  tm_add_legend('fill', 
+                border.col = "#000000",
+                col = "#ffffff",
+                labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 960, height = 960)
 
@@ -546,12 +565,21 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 
 # Plot elevation change with uncertainty assessment
 paldisc <- c("#000000")
+elev_uncert_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned) +
-  tm_raster(title = "Elevation change of Sediment", alpha = 1, style = "cont") + 
+  tm_raster(title = "Legend", alpha = 1, style = "cont") + 
   tm_shape(delta_z_noise) +
   tm_raster(title = "Discarded cells", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded")) +
+  tm_shape(t0_csf_aoi_shp) +
+  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+  tm_layout(main.title = elev_uncert_title) +
+  tm_add_legend('fill', 
+                border.col = "#000000",
+                col = "#ffffff",
+                labels = c('Area of interest')) +
   tm_default_layout
+
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 960, height = 960)
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all))
