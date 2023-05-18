@@ -133,26 +133,36 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 wholeset <- T
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
-raster_res <- 0.4
+
 
 # Settings t0 and t1
+# uav 2022-2021
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
+
 # uav 2021-2020
 t0_dataset_id <- "1"
 t0_year <- "2020"
 t1_dataset_id <- "1"
 t1_year <- "2021"
+raster_res <- 0.4
 
 # uav 2020-2020
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
 # t1_year <- "2021"
+# raster_res <- 0.4
 
 # tls 2022-2021
-# t0_dataset_id <- "2"
+# t0_dataset_id <- "4"
 # t0_year <- "2021"
-# t1_dataset_id <- "3"
+# t1_dataset_id <- "4"
 # t1_year <- "2022"
+# raster_res <- 0.2
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -503,7 +513,7 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
 tmap_save(tm = tm_elev, output_elev_path, width = 960, height = 960)
 
 # Calculate critical level of detection-----------------------------------------
-lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_accuracy^2 + t0_cfg$z_sigma_accuracy^2)
+lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_estimated^2 + t0_cfg$z_sigma_estimated^2)
 
 delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
 delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
