@@ -90,16 +90,17 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
 
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
   # palcsf <- c("#FFFFFF", "#d7191c")
+  bbox_aoi <- st_bbox(aoi)
   palcsf <- c("#FFFFFF", "#2c7bb6")
   tmap_mode("plot") + # "plot" or "view"
-  tm_shape(raster_bin) +
+  tm_shape(raster_bin, bbox = bbox_aoi) +
   tm_raster(title = "Legend", 
             alpha = 1, palette = palcsf, style = "cat", 
             labels = c("unclassified", "classified area")) +
   tm_shape(target_shp) +
-  tm_polygons(alpha = 0.65, lwd = 0.6, col = "#fdae61") +
+  tm_polygons(alpha = 0.65, lwd = 0.8, col = "#fdae61") +
   tm_shape(aoi) +
-  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+  tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
   tm_layout(main.title = plot_title) +
   tm_add_legend('fill', 
@@ -488,25 +489,25 @@ output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/
 output_lod_bar_name <- as.character(paste("lod_barplot.png", sep = ""))
 output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 
-gof_layout <- tm_layout(frame = T, legend.text.size = 0.6, legend.title.size = 0.6, legend.outside = F, legend.position = c("left", "center"),
-                        main.title.position = "center", main.title.size = 0.6)
+gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
+                        main.title.position = "center", main.title.size = 1.3)
 
 if(perspective == "uav"){
   t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
   t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
-  tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 960, height = 960)
+  tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 1920, height = 1920)
   
   t1_title_sed <- paste("Sediment Classification", t1_cfg$survey_date_pret, sep = " ")  
   t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout)
-  tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 960, height = 960)
+  tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 1920, height = 1920)
 
   t0_title_wat <- paste("Water Classification", t0_cfg$survey_date_pret, sep = " ")  
   t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_csf_aoi_shp, t0_title_wat, gof_layout)
-  tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 960, height = 960)
+  tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 1920, height = 1920)
 
   t1_title_wat <- paste("Water Classification", t1_cfg$survey_date_pret, sep = " ")  
   t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_csf_aoi_shp, t1_title_wat, gof_layout)
-  tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 960, height = 960)
+  tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 1920, height = 1920)
 }
 
 # Determine habitate change-----------------------------------------------------
@@ -515,10 +516,11 @@ t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
-tm_default_layout <- tm_layout(frame = TRUE, 
-                               legend.title.size = 0.6, legend.text.size = 0.6, 
+bbox_aoi <- st_bbox(t0_csf_aoi_shp)
+tm_default_layout <- tm_layout(frame = F, 
+                               legend.title.size = 1.3, legend.text.size = 1.3, 
                                legend.outside = F, legend.position = c("left", "center"),
-                                 main.title.position = "center", main.title.size = 0.5)
+                                 main.title.position = "center", main.title.size = 1.3)
 
 # pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 # pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
@@ -526,18 +528,18 @@ tm_default_layout <- tm_layout(frame = TRUE,
 pal4div <- c("#FFFFFF", "#440154", "#fde725", "#31688e")
 hab_title <- paste("2D Habitat change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
-  tm_shape(tm_habitate) +
+  tm_shape(tm_habitate, bbox = bbox_aoi) +
   tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
-            labels = c("no change", "deposition", "erosion", "change in elevation")) +
+            labels = c("no change", "Deposition", "Erosion ", "Elevation change")) +
   tm_shape(t0_csf_aoi_shp) +
-  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
-    tm_layout(main.title = hab_title) +
+  tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
+  tm_layout(main.title = hab_title) +
   tm_add_legend('fill', 
                 border.col = "#000000",
                 col = "#ffffff",
                 labels = c('Area of interest')) +
   tm_default_layout
-tmap_save(tm = tm_hab, output_hab_change_path, width = 960, height = 960)
+tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
 # Generate mask for cells which show a change in elevation (pick value 11)
 tm_elevation_mask <- filter.raster(tm_habitate, 11)
@@ -549,17 +551,17 @@ delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 # Plot elevation change without uncertainty assessment
 elev_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev <- tmap_mode("plot") + # "plot" or "view"
-  tm_shape(delta_z_all) +
+  tm_shape(delta_z_all, bbox = bbox_aoi) +
   tm_raster(title = "Legend", alpha = 1, style = "cont") +
   tm_shape(t0_csf_aoi_shp) +
-  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+  tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_title) +
   tm_add_legend('fill', 
                 border.col = "#000000",
                 col = "#ffffff",
                 labels = c('Area of interest')) +
   tm_default_layout
-tmap_save(tm = tm_elev, output_elev_path, width = 960, height = 960)
+tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
 # Calculate critical level of detection-----------------------------------------
 lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_estimated^2 + t0_cfg$z_sigma_estimated^2)
@@ -571,12 +573,12 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 paldisc <- c("#000000")
 elev_uncert_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
-  tm_shape(delta_z_cleaned) +
+  tm_shape(delta_z_cleaned, bbox = bbox_aoi) +
   tm_raster(title = "Legend", alpha = 1, style = "cont") + 
   tm_shape(delta_z_noise) +
   tm_raster(title = "Discarded cells", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded")) +
   tm_shape(t0_csf_aoi_shp) +
-  tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
+  tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_uncert_title) +
   tm_add_legend('fill', 
                 border.col = "#000000",
@@ -584,7 +586,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
                 labels = c('Area of interest')) +
   tm_default_layout
 
-tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 960, height = 960)
+tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "discarded", "valid")))
@@ -653,6 +655,4 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
     xlab("")
 
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
-
-hist(dist$values.delta_z_all.)
 summary(dist)
