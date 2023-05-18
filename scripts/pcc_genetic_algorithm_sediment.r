@@ -370,9 +370,9 @@ GA <- ga(type = "real-valued",
                                                  output_path, output_ga_sed_report_path,
                                                  year, perspective, dataset_id,
          3, x[1], x[2], 2, 1.754319916, 24.95654602, 0.4),
-         lower = c(0.1, 1.0), 
-         upper = c(3, 10), 
-         suggestions = c(0.219415685, 2.435972824),
+         lower = c(3.0, 1.0), #default min: 0.08, 1.0
+         upper = c(8, 10), # default max: 8, 
+         suggestions = c(0.207797027, 3.278936715),
          popSize = 1000, maxiter = 50, run = 10,
          maxFitness = 10000,
          optim = F)
