@@ -89,20 +89,21 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
 }
 
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
-  palcsf <- c("#FFFFFF", "#d7191c")
+  # palcsf <- c("#FFFFFF", "#d7191c")
+  palcsf <- c("#FFFFFF", "#2c7bb6")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin) +
   tm_raster(title = "Legend", 
             alpha = 1, palette = palcsf, style = "cat", 
             labels = c("unclassified", "classified area")) +
   tm_shape(target_shp) +
-  tm_polygons(alpha = 0.5, lwd = 0.6, col = "#a6d96a") +
+  tm_polygons(alpha = 0.65, lwd = 0.6, col = "#fdae61") +
   tm_shape(aoi) +
   tm_polygons(alpha = 0.0, lwd = 0.6, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
   tm_layout(main.title = plot_title) +
   tm_add_legend('fill', 
-                  col = "#a6d96a",
+                  col = "#fdae61",  alpha = 0.6,
                   labels = c('Reference data')) +
   tm_add_legend('fill', 
                   border.col = "#000000",
@@ -519,7 +520,10 @@ tm_default_layout <- tm_layout(frame = TRUE,
                                legend.outside = F, legend.position = c("left", "center"),
                                  main.title.position = "center", main.title.size = 0.5)
 
-pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
+# pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
+# pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
+# pal4div <- c("#FFFFFF", "#80cdc1", "#bf812d", "#01665e")
+pal4div <- c("#FFFFFF", "#440154", "#fde725", "#31688e")
 hab_title <- paste("2D Habitat change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate) +
@@ -582,14 +586,21 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
 
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 960, height = 960)
 
-dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all))
+dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
+  mutate(cell_status = as.factor(if_else(discarded == T, "discarded", "valid")))
 
 # Plot histogram of raster cells
-ggplot(dist, aes(values.raw_raster., fill = discarded)) +
+p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   geom_histogram(binwidth = 0.01) +
   labs(x = "Elevation change [m]",
-       y = "Count") + 
-  theme_minimal()
+       y = "Count", fill = "Cell status") + 
+  theme_bw() +
+  # scale_fill_manual(values = c("#fee090", "#74add1")) +
+  scale_fill_manual(values = c("#35b779", "#31688e")) +
+  scale_x_continuous(limits = c(-1.5,1.5)) +
+  theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=17), legend.title = element_text(size=17))
+
+ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px")
 
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
