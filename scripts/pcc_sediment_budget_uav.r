@@ -137,11 +137,11 @@ settype <- if_else(wholeset == T, "wholeset", "subset")
 
 # Settings t0 and t1
 # uav 2022-2021
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# t0_dataset_id <- "1"
+# t0_year <- "2021"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # uav 2021-2020
 t0_dataset_id <- "1"
