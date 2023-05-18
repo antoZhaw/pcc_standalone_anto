@@ -142,7 +142,7 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 # Settings which apply for t0 and t1.
 wholeset <- T
-perspective <- "uav"
+perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 comment <- "narrow breaks (-1 to 1), no sed_rigid = 3"
 narrow_breaks <- c(-1, -0.5, 0.5, 1)
@@ -172,18 +172,18 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # uav overall
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # tls 2022-2021
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
-# t1_year <- "2022"
-# raster_res <- 0.2
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
