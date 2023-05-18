@@ -598,8 +598,11 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   # scale_fill_manual(values = c("#fee090", "#74add1")) +
   scale_fill_manual(values = c("#35b779", "#31688e")) +
   scale_x_continuous(limits = c(-1.5,1.5)) +
-  theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=17), legend.title = element_text(size=17))
-
+  theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=17), legend.title = element_text(size=17)) +
+  theme(axis.line = element_line(color='black'),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank())
+  
 ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px")
 
 dist_sum <- dist %>%
@@ -636,119 +639,20 @@ export <- data.frame(interval) %>%
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
             append = T, sep = ";", row.names = F, col.names = F)
 
-ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
+# Barplot of volume distribution of calculated budget
+budget_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
   geom_bar(position="stack", stat="identity") +
   scale_fill_viridis(discrete = T) +
-  ggtitle("Sediment Budget t1-t0") +
+  ggtitle(budget_title) +
     theme_minimal() +
-    ylab("Volume in qubicmeter") +
-    xlab("t0 to t1")
+    theme(axis.line = element_line(color='black'),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank()) +
+    ylab("Volume [m²]") +
+    xlab("")
 
+ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
 hist(dist$values.delta_z_all.)
-
 summary(dist)
-
-# plot(las, size = 1, color = "RGB", bg = "white")
-
-
-# good values for sediment (rigidness=1)
-# class_thres_i <- c(0.9, 0.85, 0.8, 0.75)
-# cloth_res_i <- c(1.8, 1.7, 1.6, 1.5)
-# 
-# class_thres_i <- c(0.4, 0.85)
-# cloth_res_i <- c(5.0, 1.7)
-
-# good values for sediment (rigidness=1)
-# cloth_res_i <- seq(from = 2.5, to = 7.0, by = 0.1)
-# class_thres_i <- seq(from = 0.14, to = 0.8, by = 0.01)
-cloth_res_i <- seq(from = 1.9, to = 6.5, by = 0.2)
-class_thres_i <- seq(from = 0.3, to = 0.9, by = 0.03)
-
-col <- height.colors(15)
-class_id <- targeted_class$Id
-
-df <- data.frame(name=c(""), class=c(""), rigidness=c(""), classthreshold=c(""),
-                  clothresolution=c(""), steepslope=c(""), n_obs=c(""), 
-                 kappa=c(""), comp_time_sec=c(""), rasterresolution=c(""))
-
-    start_ij <- as_datetime(lubridate::now())
-    rigid_n <- 1
-    status_sed <- as.character(paste("RGL", n, "_rigid", rigid_n, "_clthres", i, "clothres", j, sep = ""))
-    print(status_sed)
-    las_ij <- classify.gnd(las, i, j, rigid_n)
-    las_ij <- add_attribute(las_ij, FALSE, "ground")
-    las_ij$ground <- if_else(las_ij$Classification == LASGROUND, T, F)
-
-    # las$Classification <- LASNONCLASSIFIED
-
-    las_ij <- filter_poi(las_ij, Classification == LASGROUND)
-    # plot(las_ij, size = 1, color = "RGB", bg = "white", axis = F)
-    
-    # Filter points which are not within area of interest
-    las_ij <- classify_poi(las_ij, class = LASNOISE, roi = mcdut, inverse_roi = T)
-    las_ij <- filter_poi(las_ij, Classification != LASNOISE)
-    plot(las_ij, size = 1, color = "RGB", bg = "black", axis = F)
-    set.RGLtopview()
-    output_png_name <- as.character(paste(status_sed, ".png", sep = ""))
-    output_png_path <- file.path(output_path, output_png_name, fsep="/")
-    rgl.snapshot(output_png_path)
-    rgl.close()
-
-    # Rasterize point cloud    
-    DEM_ij <- rasterize_canopy(las_ij, res = raster_res, p2r(), pkg = "raster")
-
-    # Subtract water course
-    sed_ij <- DEM_ij * mask_water
-    
-    # Save plot of raster
-    output_sed_rast_name <- as.character(paste(status_sed, ".png", sep = ""))
-    output_sed_rast_path <- file.path(output_path, output_sed_rast_name, fsep="/")
-    png(output_sed_rast_path, height=nrow(sed_ij), width=ncol(sed_ij)) 
-    plot(sed_ij, maxpixels=ncell(sed_ij), legend =F)
-    dev.off()
-    
-    # Not used here, since static water raster is used.
-    # raster_ext <- extent(xmin(DEM_ij), xmax(DEM_ij), ymin(DEM_ij), ymax(DEM_ij))
-    tar_raw <- raster(nrows=nrow(sed_ij), ncols=ncols(sed_ij), crs=2056,
-                      ext=raster_ext, resolution=raster_res, vals=NULL)
-    target <- fasterize(targeted_class, tar_raw, field = "Id", fun="sum")
-    
-    # Normalise raster features
-    rater1 <- values(target)
-    rater1[rater1 != 0] <- 1
-    rater1[is.na(rater1)] <- 0
-    rater2 <- values(sed_ij)
-    rater2[rater2 != 0] <- 1
-    rater2[is.na(rater2)] <- 0
-    
-    kap <- cohen.kappa(x=cbind(rater1,rater2))
-
-    end_ij <- as_datetime(lubridate::now())
-    timespan_ij <- interval(start_ij, end_ij)
-    delta_t <- as.numeric(timespan_ij, "seconds")
-    obs <- c(status_sed, class_id, rigid_n, i, j, "FALSE", kap$n.obs, kap$kappa, delta_t, raster_res)
-    df <- rbind(df, obs)
-
-write_delim(df, file=output_csv_path, delim = ";")
-
-png(output_target_rast_path, height=nrow(target), width=ncol(target)) 
-plot(target, maxpixels=ncell(target), legend =F)
-dev.off()
-
-
-# Generate JSON report----------------------------------------------------------
-end <- as_datetime(lubridate::now())
-timespan <- interval(start, end)
-
-run_time <- end - start
-run_time
-
-report <- cfg
-report$timestamp <- timestamp
-report$run_time_minutes <- as.numeric(timespan, "minutes")
-report$data <- data_path
-report$config_json <- config_json_path
-
-json_report <- toJSON(report, indent = 1)
-write(json_report, output_json_path, append = F)
