@@ -26,6 +26,7 @@ library(rgl) # for RGL Viewer control functions
 library(fasterize) # for faster rasterization
 library(psych) # for cohen's kappa
 library(viridis) # for pretty color schemes
+library(cowplot) # for multiple plot export
 
 # Functions---------------------------------------------------------------------
 
@@ -168,7 +169,7 @@ global_breaks <- narrow_breaks
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
-# t1_year <- "2021"
+# t1_year <- "2020"
 # raster_res <- 0.4
 
 # uav overall
@@ -518,6 +519,9 @@ if(perspective == "uav"){
   t1_title_wat <- paste("Water Classification", t1_cfg$survey_date_pret, sep = " ")  
   t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_csf_aoi_shp, t1_title_wat, gof_layout)
   tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 1920, height = 1920)
+  
+  plot_grid(t0_title_sed, t0_title_wat, nrow = 1)
+  plot_grid(t1_title_sed, t1_title_wat, nrow = 1)
 }
 
 # Determine habitate change-----------------------------------------------------
@@ -526,7 +530,24 @@ t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
-bbox_aoi <- st_bbox(t0_csf_aoi_shp)
+if(perspective == "uav"){
+  bbox_aoi <- st_bbox(t0_csf_aoi_shp)
+}else{
+  gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
+                                       "AOI TLS", "AOI TLS"),
+                               Longitude = c(2575340, 2575340, 
+                                             2575480, 2575480),
+                               Latitude = c(1178520, 1178780, 
+                                            1178780, 1178520)),
+                          class = "data.frame", row.names = c(NA,-4L))
+  
+  bbox_aoi <- gen_xy_tls %>%
+    st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
+    group_by(dat) %>%
+    summarise(geometry = st_combine(geometry)) %>%
+    st_cast("POLYGON")
+}
+
 tm_default_layout <- tm_layout(frame = F, 
                                legend.title.size = 1.3, legend.text.size = 1.3, 
                                legend.outside = F, legend.position = c("left", "center"),
@@ -544,10 +565,7 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
   tm_layout(main.title = hab_title) +
-  tm_add_legend('fill', 
-                border.col = "#000000",
-                col = "#ffffff",
-                labels = c('Area of interest')) +
+  tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
@@ -566,10 +584,7 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_title) +
-  tm_add_legend('fill', 
-                border.col = "#000000",
-                col = "#ffffff",
-                labels = c('Area of interest')) +
+  tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
@@ -590,10 +605,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_uncert_title) +
-  tm_add_legend('fill', 
-                border.col = "#000000",
-                col = "#ffffff",
-                labels = c('Area of interest')) +
+  tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
@@ -604,12 +616,12 @@ dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>%
 # Plot histogram of raster cells
 p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   geom_histogram(binwidth = 0.01) +
-  labs(x = "Elevation change [m]",
-       y = "Count", fill = "Cell status") + 
+  labs(x = "Elevation change [m]", y = "Count", fill = "Cell status") + 
   theme_bw() +
   # scale_fill_manual(values = c("#fee090", "#74add1")) +
-  scale_fill_manual(values = c("#35b779", "#31688e")) +
-  scale_x_continuous(limits = c(-1.5,1.5)) +
+  # scale_fill_manual(values = c("#35b779", "#31688e")) +
+  scale_fill_manual(values = c("#000000", "#35b779")) +
+  scale_x_continuous(limits = c(-1,1)) +
   theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=17), legend.title = element_text(size=17)) +
   theme(axis.line = element_line(color='black'),
         panel.grid.minor = element_blank(),
@@ -654,18 +666,20 @@ export <- data.frame(interval) %>%
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
             append = T, sep = ";", row.names = F, col.names = F)
 
+ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
+summary(dist)
+
 # Barplot of volume distribution of calculated budget
 budget_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
   geom_bar(position="stack", stat="identity") +
   scale_fill_viridis(discrete = T) +
   ggtitle(budget_title) +
-    theme_minimal() +
-    theme(axis.line = element_line(color='black'),
+  theme_minimal() +
+  theme(axis.line = element_line(color='black'),
         panel.grid.minor = element_blank(),
         panel.border = element_blank()) +
-    ylab("Volume [m²]") +
-    xlab("")
+  ylab("Volume [m²]") +
+  xlab("")
 
-ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
-summary(dist)
+plot_grid(tm_elev_uncert, p_hist, nrow = 1, labels = c('A', 'B'), label_size = 12)

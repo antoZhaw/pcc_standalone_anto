@@ -332,8 +332,6 @@ df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
 
 write(df, file=output_ga_sed_report_path, append = T)
 
-
-
 # Start search (order rig_sed_m, ct_sed_n, clr_sed_o)
 gar3_start <- as_datetime(lubridate::now())
 GA <- ga(type = "real-valued", 
