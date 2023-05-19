@@ -143,15 +143,16 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
 # Settings which apply for t0 and t1.
 wholeset <- T
-perspective <- "tls"
 settype <- if_else(wholeset == T, "wholeset", "subset")
-comment <- "narrow breaks (-1 to 1), no sed_rigid = 3"
+comment <- "wide breaks (-2 to 2), no sed_rigid = 3"
 narrow_breaks <- c(-1, -0.5, 0.5, 1)
 wide_breaks <- c(-2, -1, 1, 2)
 global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
+# perspective <- "uav"
+# flood_startdate <- "31.05.2022"
 # t0_dataset_id <- "1"
 # t0_year <- "2021"
 # t1_dataset_id <- "1"
@@ -159,6 +160,8 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # uav 2021-2020
+# perspective <- "uav"
+# flood_startdate <- "11.07.2021"
 # t0_dataset_id <- "1"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -166,13 +169,17 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # uav 2020-2020
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2020"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "22.10.2020"
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2020"
+raster_res <- 0.4
 
 # uav overall
+# perspective <- "uav"
+# flood_startdate <- "NA"
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -180,11 +187,13 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # tls 2022-2021
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -500,6 +509,9 @@ output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/
 output_lod_bar_name <- as.character(paste("lod_barplot.png", sep = ""))
 output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 
+output_budget_name <- as.character(paste("budget-overview.png", sep = ""))
+output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
+
 gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 1.3)
 
@@ -549,9 +561,9 @@ if(perspective == "uav"){
 }
 
 tm_default_layout <- tm_layout(frame = F, 
-                               legend.title.size = 1.3, legend.text.size = 1.3, 
+                               legend.title.size = 1.3, legend.text.size = 1.0, 
                                legend.outside = F, legend.position = c("left", "center"),
-                                 main.title.position = "center", main.title.size = 1.3)
+                               main.title.position = "center", main.title.size = 1.3)
 
 # pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 # pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
@@ -577,10 +589,10 @@ tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
 # Plot elevation change without uncertainty assessment
-elev_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+elev_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
 tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) +
+  tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_title) +
@@ -596,12 +608,13 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 
 # Plot elevation change with uncertainty assessment
 paldisc <- c("#000000")
-elev_uncert_title <- paste("Elevation change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+elev_uncert_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
+  tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
   tm_shape(delta_z_noise) +
-  tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("discarded")) +
+  tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("Discarded cells")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_layout(main.title = elev_uncert_title) +
@@ -621,12 +634,12 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   # scale_fill_manual(values = c("#fee090", "#74add1")) +
   # scale_fill_manual(values = c("#35b779", "#31688e")) +
   scale_fill_manual(values = c("#000000", "#35b779")) +
-  scale_x_continuous(limits = c(-1,1)) +
-  theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=17), legend.title = element_text(size=17)) +
+  scale_x_continuous(limits = c(-1, 1)) +
+  theme(legend.position = c(0.2, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12)) +
   theme(axis.line = element_line(color='black'),
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
-  
+p_hist
 ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px")
 
 dist_sum <- dist %>%
@@ -641,7 +654,8 @@ dist_sum$vol[4]
 interval <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
 
 export <- data.frame(interval) %>% 
-  mutate(lod_crit_m = lod_crit,
+  mutate(flood_startdate,
+         lod_crit_m = lod_crit,
          perspective = perspective,
          Ero_validvol_m3 = dist_sum$vol[dist_sum$class=="Erosion"],
          Ero_discvol_m3 = dist_sum$vol[dist_sum$class=="Discarded Erosion"],
@@ -666,7 +680,6 @@ export <- data.frame(interval) %>%
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
             append = T, sep = ";", row.names = F, col.names = F)
 
-ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 summary(dist)
 
 # Barplot of volume distribution of calculated budget
@@ -681,5 +694,16 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
         panel.border = element_blank()) +
   ylab("Volume [m²]") +
   xlab("")
+ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
-plot_grid(tm_elev_uncert, p_hist, nrow = 1, labels = c('A', 'B'), label_size = 12)
+p_elev_unvert_grob <- tm_elev_uncert +
+  tm_layout(frame = F, 
+            legend.title.size = 1.3, legend.text.size = 1.0, 
+            legend.outside = F, legend.position = c(0.05, 0.2),
+            main.title.position = "center", main.title.size = 1.3)
+p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
+
+plot_grid(p_elev_uncert, p_hist, nrow = 1, labels = c('A', 'B'), label_size = 12)
+
+ggsave(output_budget_path, height=1400, width=2800, units ="px")
+
