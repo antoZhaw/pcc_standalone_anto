@@ -1,0 +1,5 @@
+"class";"n";"vol";"area";"flood_startdate";"lod_crit_m";"perspective";"raster_res_m";"reported_date";"comment"
+"Deposition";5361;249.75120000005;2144.4;"22.10.2020";0.150000000313981;"uav";0.4;"2023-05-19-18-9";"wide breaks (-2 to 2), no sed_rigid = 3"
+"Discarded Deposition";1628;22.8032000000051;651.2;"22.10.2020";0.150000000313981;"uav";0.4;"2023-05-19-18-9";"wide breaks (-2 to 2), no sed_rigid = 3"
+"Discarded Erosion";642;-6.30672000000123;256.8;"22.10.2020";0.150000000313981;"uav";0.4;"2023-05-19-18-9";"wide breaks (-2 to 2), no sed_rigid = 3"
+"Erosion";262;-11.3992000000025;104.8;"22.10.2020";0.150000000313981;"uav";0.4;"2023-05-19-18-9";"wide breaks (-2 to 2), no sed_rigid = 3"

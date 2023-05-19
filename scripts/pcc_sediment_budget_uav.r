@@ -649,9 +649,19 @@ dist_sum <- dist %>%
 
 .rowNamesDF(dist_sum, make.names=FALSE) <- dist_sum$class
 
-dist_sum$vol[4]
-
 interval <- paste(t0_cfg$survey_date_pret, t1_cfg$survey_date_pret, sep =" - ")
+
+export_detailed <- dist_sum %>% 
+  mutate(interval,
+         flood_startdate,
+         lod_crit_m = lod_crit,
+         perspective = perspective,
+         raster_res_m = raster_res,
+         reported_date = timestamp,
+         comment)
+
+write.table(export_detailed, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results_detailed.csv",
+            append = T, sep = ";", row.names = F, col.names = F)
 
 export <- data.frame(interval) %>% 
   mutate(flood_startdate,
@@ -679,8 +689,6 @@ export <- data.frame(interval) %>%
 
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
             append = T, sep = ";", row.names = F, col.names = F)
-
-summary(dist)
 
 # Barplot of volume distribution of calculated budget
 budget_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
