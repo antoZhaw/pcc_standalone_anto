@@ -635,7 +635,7 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   # scale_fill_manual(values = c("#35b779", "#31688e")) +
   scale_fill_manual(values = c("#000000", "#35b779")) +
   scale_x_continuous(limits = c(-1, 1)) +
-  theme(legend.position = c(0.2, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12)) +
+  theme(legend.position = c(0.15, 0.88), legend.text = element_text(size=15), legend.title = element_text(size=15)) +
   theme(axis.line = element_line(color='black'),
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
@@ -704,6 +704,7 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
   xlab("")
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
+p_hist_grob <- p_hist + theme(legend.position = c(0.2, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
 p_elev_unvert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
             legend.title.size = 1.3, legend.text.size = 1.0, 
@@ -711,7 +712,7 @@ p_elev_unvert_grob <- tm_elev_uncert +
             main.title.position = "center", main.title.size = 1.3)
 p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 
-plot_grid(p_elev_uncert, p_hist, nrow = 1, labels = c('A', 'B'), label_size = 12)
+plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('A', 'B'), label_size = 12)
 
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
 
