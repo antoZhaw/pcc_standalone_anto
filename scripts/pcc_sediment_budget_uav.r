@@ -144,20 +144,20 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 # Settings which apply for t0 and t1.
 wholeset <- T
 settype <- if_else(wholeset == T, "wholeset", "subset")
-comment <- "wide breaks (-2 to 2), no sed_rigid = 3"
+comment <- "narrow breaks"
 narrow_breaks <- c(-1, -0.5, 0.5, 1)
 wide_breaks <- c(-2, -1, 1, 2)
 global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
-# perspective <- "uav"
-# flood_startdate <- "31.05.2022"
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "31.05.2022"
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
 # perspective <- "uav"
@@ -169,13 +169,13 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # uav 2020-2020
-perspective <- "uav"
-flood_startdate <- "22.10.2020"
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2020"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "22.10.2020"
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2020"
+# raster_res <- 0.4
 
 # uav overall
 # perspective <- "uav"
@@ -704,7 +704,7 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
   xlab("")
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
-p_hist_grob <- p_hist + theme(legend.position = c(0.2, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
+p_hist_grob <- p_hist + theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
 p_elev_unvert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
             legend.title.size = 1.3, legend.text.size = 1.0, 
@@ -715,4 +715,3 @@ p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('A', 'B'), label_size = 12)
 
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
-
