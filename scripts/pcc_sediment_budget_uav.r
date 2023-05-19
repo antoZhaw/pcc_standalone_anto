@@ -151,13 +151,13 @@ global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
-perspective <- "uav"
-flood_startdate <- "31.05.2022"
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "31.05.2022"
+# t0_dataset_id <- "1"
+# t0_year <- "2021"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # uav 2021-2020
 # perspective <- "uav"
@@ -187,13 +187,13 @@ raster_res <- 0.4
 # raster_res <- 0.4
 
 # tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
-# t1_year <- "2022"
-# raster_res <- 0.2
+flood_startdate <- "31.05.2022"
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -544,10 +544,14 @@ tm_habitate <- t0_tm_hab + t1_tm_hab
 
 if(perspective == "uav"){
   bbox_aoi <- st_bbox(t0_csf_aoi_shp)
+  tm_default_layout <- tm_layout(frame = F, 
+                                 legend.title.size = 1.3, legend.text.size = 1.0, 
+                                 legend.outside = F, legend.position = c("left", "center"),
+                                 main.title.position = "center", main.title.size = 1.3)
 }else{
   gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
                                        "AOI TLS", "AOI TLS"),
-                               Longitude = c(2575340, 2575340, 
+                               Longitude = c(2575310, 2575310, 
                                              2575480, 2575480),
                                Latitude = c(1178520, 1178780, 
                                             1178780, 1178520)),
@@ -558,12 +562,14 @@ if(perspective == "uav"){
     group_by(dat) %>%
     summarise(geometry = st_combine(geometry)) %>%
     st_cast("POLYGON")
+  
+  tm_default_layout <- tm_layout(frame = F, 
+                                 legend.title.size = 1.0, legend.text.size = 0.8, 
+                                 legend.outside = F, legend.position = c(0.0, 0.6),
+                                 main.title.position = "center", main.title.size = 1.0)
 }
 
-tm_default_layout <- tm_layout(frame = F, 
-                               legend.title.size = 1.3, legend.text.size = 1.0, 
-                               legend.outside = F, legend.position = c("left", "center"),
-                               main.title.position = "center", main.title.size = 1.3)
+
 
 # pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 # pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
@@ -704,7 +710,7 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
   xlab("")
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
-p_hist_grob <- p_hist + theme(legend.position = c(0.15, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
+p_hist_grob <- p_hist + theme(legend.position = c(0.18, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
 p_elev_unvert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
             legend.title.size = 1.3, legend.text.size = 1.0, 
