@@ -89,6 +89,14 @@ gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
   raster_layer
 }
 
+summary.norm.raster <- function(raw_raster, res_m, summary_name) {
+  summary <- data.frame(values(raw_raster)) %>% 
+  filter(!is.na(values.raw_raster.)) %>%
+  filter(values.raw_raster. != 0) %>%
+  summarize(timestamp, summary_name, n=n(), area=n*res_m^2)
+  summary
+}
+
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
   # palcsf <- c("#FFFFFF", "#d7191c")
   bbox_aoi <- st_bbox(aoi)
@@ -512,11 +520,21 @@ if(perspective == "uav"){
 output_hab_change_name <- as.character(paste(flood_prefix, "_habitate_change.png", sep = ""))
 output_hab_change_path <- file.path(bud_output_path, output_hab_change_name, fsep="/")
 
+output_hab_change_bg_name <- as.character(paste(flood_prefix, "_habitate_change_bg.png", sep = ""))
+output_hab_change_bg_path <- file.path(bud_output_path, output_hab_change_bg_name, fsep="/")
+
 output_elev_name <- as.character(paste(flood_prefix, "_elevation_change.png", sep = ""))
 output_elev_path <- file.path(bud_output_path, output_elev_name, fsep="/")
 
+output_elev_bg_name <- as.character(paste(flood_prefix, "_elevation_change_bg.png", sep = ""))
+output_elev_bg_path <- file.path(bud_output_path, output_elev_bg_name, fsep="/")
+
 output_elev_uncert_name <- as.character(paste(flood_prefix, "_elevation_change_uncert.png", sep = ""))
 output_elev_uncert_path <- file.path(bud_output_path, output_elev_uncert_name, fsep="/")
+
+output_elev_uncert_bg_name <- as.character(paste(flood_prefix, "_elevation_change_uncert_bg.png", sep = ""))
+output_elev_uncert_bg_path <- file.path(bud_output_path, output_elev_uncert_bg_name, fsep="/")
+
 
 output_lod_hist_name <- as.character(paste(flood_prefix, "_lod_histogram.png", sep = ""))
 output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/")
@@ -552,11 +570,14 @@ if(perspective == "uav"){
 }
 
 # tbd: Insert here for t0_tm_sed, t1_tm_sed, t0_tm_wat, t1_tm_wat and save it
-# dist_sum <- dist %>%
-#   filter(!is.na(values.raw_raster.)) %>% 
-#   group_by(class) %>%
-#   summarize(n=n(), area=n*raster_res^2) 
+t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
+t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
+t0_tm_watsum <- summary.norm.raster(t0_tm_wat, raster_res, "t0_tm_wat")
+t1_tm_watsum <- summary.norm.raster(t1_tm_wat, raster_res, "t1_tm_wat")
 
+single_area_results <- rbind(t0_tm_sedsum, t1_tm_sedsum, t0_tm_watsum, t1_tm_watsum)
+write.table(single_area_results, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_single_area_results.csv",
+            append = T, sep = ";", row.names = F, col.names = F)
 
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
@@ -604,16 +625,13 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
   # tm_layout(main.title = hab_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
-  tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.3) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
-# tbd: Insert here something like and save it
-# dist_sum <- dist %>%
-#   filter(!is.na(values.raw_raster.)) %>% 
-#   group_by(class) %>%
-#   summarize(n=n(), vol=sum(cell_vol), area=n*raster_res^2) 
+tm_hab_bg <- tm_hab +
+  tm_shape(tif_crop) +
+  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+tmap_save(tm = tm_hab_bg, output_hab_change_bg_path, width = 1920, height = 1920)
 
 # Generate mask for cells which show a change in elevation (pick value 11)
 tm_elevation_mask <- filter.raster(tm_habitate, 11)
@@ -633,6 +651,11 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
+
+tm_elev_bg <- tm_elev +
+  tm_shape(tif_crop) +
+  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+tmap_save(tm = tm_elev_bg, output_elev_bg_path, width = 1920, height = 1920)
 
 # Calculate critical level of detection-----------------------------------------
 lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_estimated^2 + t0_cfg$z_sigma_estimated^2)
@@ -656,6 +679,12 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_default_layout
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
+
+tm_elev_uncert_bg <- tm_elev_uncert +
+  tm_shape(tif_crop) +
+  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, height = 1920)
+
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "discarded", "valid")))
