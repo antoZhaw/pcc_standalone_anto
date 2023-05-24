@@ -536,6 +536,13 @@ if(perspective == "uav"){
   plot_grid(t1_title_sed, t1_title_wat, nrow = 1)
 }
 
+# tbd: Insert here for t0_tm_sed, t1_tm_sed, t0_tm_wat, t1_tm_wat and save it
+# dist_sum <- dist %>%
+#   filter(!is.na(values.raw_raster.)) %>% 
+#   group_by(class) %>%
+#   summarize(n=n(), area=n*raster_res^2) 
+
+
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
 t1_tm_hab <- t1_tm_sed
@@ -569,13 +576,11 @@ if(perspective == "uav"){
                                  main.title.position = "center", main.title.size = 1.0)
 }
 
-
-
 # pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 # pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
 # pal4div <- c("#FFFFFF", "#80cdc1", "#bf812d", "#01665e")
 pal4div <- c("#FFFFFF", "#440154", "#fde725", "#31688e")
-hab_title <- paste("2D Habitat change (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+hab_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate, bbox = bbox_aoi) +
   tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
@@ -587,6 +592,12 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
+# tbd: Insert here something like and save it
+# dist_sum <- dist %>%
+#   filter(!is.na(values.raw_raster.)) %>% 
+#   group_by(class) %>%
+#   summarize(n=n(), vol=sum(cell_vol), area=n*raster_res^2) 
+
 # Generate mask for cells which show a change in elevation (pick value 11)
 tm_elevation_mask <- filter.raster(tm_habitate, 11)
 # Set zero values to na 
@@ -595,7 +606,7 @@ tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
 # Plot elevation change without uncertainty assessment
-elev_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+elev_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_all, bbox = bbox_aoi) +
   tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
@@ -614,7 +625,7 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 
 # Plot elevation change with uncertainty assessment
 paldisc <- c("#000000")
-elev_uncert_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+elev_uncert_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned, bbox = bbox_aoi) +
@@ -651,7 +662,7 @@ ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px"
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
   group_by(class) %>%
-  summarize(n=n(), vol=sum(cell_vol), area=sum(n*raster_res)) 
+  summarize(n=n(), vol=sum(cell_vol), area=n*raster_res^2) 
 
 .rowNamesDF(dist_sum, make.names=FALSE) <- dist_sum$class
 
@@ -697,7 +708,7 @@ write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_
             append = T, sep = ";", row.names = F, col.names = F)
 
 # Barplot of volume distribution of calculated budget
-budget_title <- paste("Sediment Budget (", t1_cfg$survey_date_pret, " - ", t0_cfg$survey_date_pret, ")", sep = "")
+budget_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) + 
   geom_bar(position="stack", stat="identity") +
   scale_fill_viridis(discrete = T) +
@@ -718,6 +729,6 @@ p_elev_unvert_grob <- tm_elev_uncert +
             main.title.position = "center", main.title.size = 1.3)
 p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 
-plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('A', 'B'), label_size = 12)
+plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
