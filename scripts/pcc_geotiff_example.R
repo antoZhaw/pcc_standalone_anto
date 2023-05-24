@@ -47,7 +47,6 @@ csf_aoi_shp <- read_sf(dsn = "C:/Daten/math_gubelyve/pcc_standalone/data/dut_fil
 #   coord_sf(datum=st_crs(2056)) +
 #   theme_minimal()
 
-t0_tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/20202008_Sarine_RGB_ppk_GCP02_transparent_mosaic_group1.tif")
 # look at the metadata
 # t0_tif
 # Plot the three layered geotiff
@@ -60,10 +59,10 @@ t0_tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/20202008_Sarine_RGB_ppk_
 
 
 # Generate raster for total aoi
+tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif")
 e <- extent(2575009, 2575489, 1178385, 1178900)
 tot_aoi <- raster(crs=2056, ext=e, resolution=0.2, vals=NULL)  
-
-t0_tif_crop <- crop(t0_tif, tot_aoi)
+t0_tif_crop <- crop(tif, tot_aoi)
 
 tm1 <- tm_shape(t0_tif_crop) +
   tm_rgb(r=1, g=2, b=3) +
