@@ -131,7 +131,6 @@ create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
   dt
 }
 
-
 # Globals for Configuration-----------------------------------------------------
 # Record start date and time
 start <- as_datetime(lubridate::now())
@@ -151,17 +150,19 @@ global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
-# perspective <- "uav"
-# flood_startdate <- "31.05.2022"
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
 # perspective <- "uav"
 # flood_startdate <- "11.07.2021"
+# flood_prefix <- "110721"
 # t0_dataset_id <- "1"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -171,6 +172,7 @@ global_breaks <- narrow_breaks
 # uav 2020-2020
 # perspective <- "uav"
 # flood_startdate <- "22.10.2020"
+# flood_prefix <- "221020"
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -180,6 +182,7 @@ global_breaks <- narrow_breaks
 # uav overall
 # perspective <- "uav"
 # flood_startdate <- "NA"
+# flood_prefix <- "overall"
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -187,13 +190,14 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # tls 2022-2021
-flood_startdate <- "31.05.2022"
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -252,7 +256,7 @@ dir.create(bud_output_path)
 dir.create(t0_output_path)
 dir.create(t1_output_path)
 
-output_bud_report_name <- as.character(paste("budget-report.txt", sep = ""))
+output_bud_report_name <- as.character(paste(flood_prefix, "-budget-report.txt", sep = ""))
 output_bud_report_path <- file.path(bud_output_path, output_bud_report_name, fsep="/")
 
 
@@ -480,36 +484,36 @@ t0_tm_sed <- normalise.raster(t0_sed)
 t1_tm_sed <- normalise.raster(t1_sed)
 
 # Plot comparison between target and classified raster--------------------------
-output_gof_t0_sed_name <- as.character(paste("gof_t0_sed.png", sep = ""))
+output_gof_t0_sed_name <- as.character(paste(flood_prefix, "_gof_t0_sed.png", sep = ""))
 output_gof_t0_sed_path <- file.path(bud_output_path, output_gof_t0_sed_name, fsep="/")
 
-output_gof_t1_sed_name <- as.character(paste("gof_t1_sed.png", sep = ""))
+output_gof_t1_sed_name <- as.character(paste(flood_prefix, "_gof_t1_sed.png", sep = ""))
 output_gof_t1_sed_path <- file.path(bud_output_path, output_gof_t1_sed_name, fsep="/")
 
 if(perspective == "uav"){
-  output_gof_t0_wat_name <- as.character(paste("gof_t0_wat.png", sep = ""))
+  output_gof_t0_wat_name <- as.character(paste(flood_prefix, "_gof_t0_wat.png", sep = ""))
   output_gof_t0_wat_path <- file.path(bud_output_path, output_gof_t0_wat_name, fsep="/")
   
-  output_gof_t1_wat_name <- as.character(paste("gof_t1_wat.png", sep = ""))
+  output_gof_t1_wat_name <- as.character(paste(flood_prefix, "_gof_t1_wat.png", sep = ""))
   output_gof_t1_wat_path <- file.path(bud_output_path, output_gof_t1_wat_name, fsep="/")
 }
 
-output_hab_change_name <- as.character(paste("habitate_change.png", sep = ""))
+output_hab_change_name <- as.character(paste(flood_prefix, "_habitate_change.png", sep = ""))
 output_hab_change_path <- file.path(bud_output_path, output_hab_change_name, fsep="/")
 
-output_elev_name <- as.character(paste("elevation_change.png", sep = ""))
+output_elev_name <- as.character(paste(flood_prefix, "_elevation_change.png", sep = ""))
 output_elev_path <- file.path(bud_output_path, output_elev_name, fsep="/")
 
-output_elev_uncert_name <- as.character(paste("elevation_change_uncert.png", sep = ""))
+output_elev_uncert_name <- as.character(paste(flood_prefix, "_elevation_change_uncert.png", sep = ""))
 output_elev_uncert_path <- file.path(bud_output_path, output_elev_uncert_name, fsep="/")
 
-output_lod_hist_name <- as.character(paste("lod_histogram.png", sep = ""))
+output_lod_hist_name <- as.character(paste(flood_prefix, "_lod_histogram.png", sep = ""))
 output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/")
 
-output_lod_bar_name <- as.character(paste("lod_barplot.png", sep = ""))
+output_lod_bar_name <- as.character(paste(flood_prefix, "_lod_barplot.png", sep = ""))
 output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 
-output_budget_name <- as.character(paste("budget-overview.png", sep = ""))
+output_budget_name <- as.character(paste(flood_prefix, "_budget-overview.png", sep = ""))
 output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
 
 gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
@@ -584,10 +588,10 @@ hab_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = 
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate, bbox = bbox_aoi) +
   tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
-            labels = c("no change", "Deposition", "Erosion ", "Elevation change")) +
+            labels = c("unchanged", "new deposition", "new erosion ", "change in elevation")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
-  tm_layout(main.title = hab_title) +
+  # tm_layout(main.title = hab_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
@@ -612,7 +616,7 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
-  tm_layout(main.title = elev_title) +
+  # tm_layout(main.title = elev_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
@@ -634,7 +638,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("Discarded cells")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
-  tm_layout(main.title = elev_uncert_title) +
+  # tm_layout(main.title = elev_uncert_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tm_elev_uncert
