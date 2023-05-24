@@ -158,32 +158,34 @@ global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
-perspective <- "uav"
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
-
-# uav 2021-2020
 # perspective <- "uav"
-# flood_startdate <- "11.07.2021"
-# flood_prefix <- "110721"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
 # t0_dataset_id <- "1"
-# t0_year <- "2020"
+# t0_year <- "2021"
 # t1_dataset_id <- "1"
-# t1_year <- "2021"
+# t1_year <- "2022"
 # raster_res <- 0.4
 
+# uav 2021-2020
+tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
+perspective <- "uav"
+flood_startdate <- "11.07.2021"
+flood_prefix <- "110721"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+t0_dataset_id <- "1"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2021"
+raster_res <- 0.4
+
 # uav 2020-2020
+# tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
 # perspective <- "uav"
 # flood_startdate <- "22.10.2020"
 # flood_prefix <- "221020"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -191,6 +193,7 @@ raster_res <- 0.4
 # raster_res <- 0.4
 
 # uav overall
+# tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
 # perspective <- "uav"
 # flood_startdate <- "NA"
 # flood_prefix <- "overall"

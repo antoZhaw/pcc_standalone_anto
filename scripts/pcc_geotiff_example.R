@@ -59,10 +59,12 @@ csf_aoi_shp <- read_sf(dsn = "C:/Daten/math_gubelyve/pcc_standalone/data/dut_fil
 
 
 # Generate raster for total aoi
-tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif")
+
+tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/110721_bg.tif")
 e <- extent(2575009, 2575489, 1178385, 1178900)
 tot_aoi <- raster(crs=2056, ext=e, resolution=0.2, vals=NULL)  
 t0_tif_crop <- crop(tif, tot_aoi)
+
 
 tm1 <- tm_shape(t0_tif_crop) +
   tm_rgb(r=1, g=2, b=3) +
@@ -71,5 +73,8 @@ tm1 <- tm_shape(t0_tif_crop) +
   tm_shape(bounding_box_tls) +
   tm_borders(col="yellow", lwd=2.0, alpha = 0.9)
 tm1
+
+rf <- terra::writeRaster(t0_tif_crop, filename="C:/Daten/math_gubelyve/tiff_data/310522_bg.tif", overwrite=TRUE)
+
 
 tmap_save(tm1, "export/study_site.png", width=1920, height=1920, dpi = 600)
