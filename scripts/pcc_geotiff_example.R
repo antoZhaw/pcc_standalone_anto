@@ -41,41 +41,28 @@ bounding_box_tls <- gen_xy_tls %>%
 # Read Shapefiles
 csf_aoi_shp <- read_sf(dsn = "C:/Daten/math_gubelyve/pcc_standalone/data/dut_filter_230315/dut_filter_230315.shp") 
 
-# ggplot() +
-#   geom_sf(data = bounding_box_tls, aes(fill = dat), alpha = 0.1) +
-#   geom_sf(data = csf_aoi_shp, aes(fill = as.factor(id)), alpha = 0.5) +
-#   coord_sf(datum=st_crs(2056)) +
-#   theme_minimal()
-
-# look at the metadata
-# t0_tif
-# Plot the three layered geotiff
-# plot(t0_tif)
-# Plot the combination
-# plotRGB(t0_tif)
-# Task 5: Adding a background map
-# in tmap tm_shape() calls data, and a tm_* object defines how the data is visualized
-# tmap_mode("plot")
-
-
 # Generate raster for total aoi
 # to downsample
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
 
+?aggregate()
 
 tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/110721_bg.tif")
 e <- extent(2575009, 2575489, 1178385, 1178900)
 tot_aoi <- raster(crs=2056, ext=e, resolution=0.2, vals=NULL)  
 t0_tif_crop <- crop(tif, tot_aoi)
 
-
-tm1 <- tm_shape(t0_tif_crop) +
-  tm_rgb(r=1, g=2, b=3) +
-  tm_shape(csf_aoi_shp) +
-  tm_borders(col="red", lwd=2.0, alpha = 0.9) +
-  tm_shape(bounding_box_tls) +
-  tm_borders(col="yellow", lwd=2.0, alpha = 0.9)
+t2 <- terra::aggregate(t0_tif_crop, 20)
+t2
+t0_tif_crop
+tm1 <- tm_shape(t2) +
+  tm_rgb(r=1, g=2, b=3, saturation = 0, contrast = c(1), alpha = 0.5)
+  # tm_shape(csf_aoi_shp) +
+  # tm_borders(col="red", lwd=2.0, alpha = 0.9) +
+  # tm_shape(bounding_box_tls) +
+  # tm_borders(col="yellow", lwd=2.0, alpha = 0.9)
 tm1
+
 
 rf <- terra::writeRaster(t0_tif_crop, filename="C:/Daten/math_gubelyve/tiff_data/310522_bg.tif", overwrite=TRUE)
 

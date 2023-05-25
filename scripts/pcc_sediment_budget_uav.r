@@ -162,6 +162,7 @@ global_breaks <- narrow_breaks
 # flood_startdate <- "31.05.2022"
 # flood_prefix <- "310522"
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 8
 # t0_dataset_id <- "1"
 # t0_year <- "2021"
 # t1_dataset_id <- "1"
@@ -174,6 +175,7 @@ global_breaks <- narrow_breaks
 # flood_startdate <- "11.07.2021"
 # flood_prefix <- "110721"
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+# aggr_factor <- 18
 # t0_dataset_id <- "1"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -182,15 +184,16 @@ global_breaks <- narrow_breaks
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
-# perspective <- "uav"
-# flood_startdate <- "22.10.2020"
-# flood_prefix <- "221020"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2020"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "22.10.2020"
+flood_prefix <- "221020"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
+aggr_factor <- 5
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2020"
+raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
@@ -198,6 +201,7 @@ global_breaks <- narrow_breaks
 # flood_startdate <- "NA"
 # flood_prefix <- "overall"
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 8
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -205,21 +209,27 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # tls 2022-2021
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 8
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Generate static tif as backgroud
+sat_basemap <- 0
+alpha_basemap <- 0.7
+# sat_basemap <- 1
+# alpha_basemap <- 0.4
 e <- extent(2575009, 2575489, 1178385, 1178900)
 tif <- terra::rast(x=tif_path)
-tot_aoi <- raster(crs=2056, ext=e, resolution=0.2, vals=NULL)  
-tif_crop <- crop(tif, tot_aoi)
+tot_aoi <- raster(crs=2056, ext=e, resolution=0.2, vals=NULL)
+tif_aoi <- crop(tif, tot_aoi)
+tif_crop <- terra::aggregate(tif_aoi, aggr_factor)
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
@@ -655,7 +665,7 @@ tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
 tm_hab_bg <- tm_hab +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
+  tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_hab_bg, output_hab_change_bg_path, width = 1920, height = 1920)
 
 # Generate mask for cells which show a change in elevation (pick value 11)
@@ -679,7 +689,7 @@ tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
 tm_elev_bg <- tm_elev +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
+  tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_elev_bg, output_elev_bg_path, width = 1920, height = 1920)
 
 # Calculate critical level of detection-----------------------------------------
@@ -707,7 +717,7 @@ tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1
 
 tm_elev_uncert_bg <- tm_elev_uncert +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
+  tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, height = 1920)
 
 
