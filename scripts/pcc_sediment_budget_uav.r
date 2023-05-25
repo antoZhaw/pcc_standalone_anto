@@ -199,28 +199,28 @@ alpha_basemap <- 0.3
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "uav"
-# flood_startdate <- "NA"
-# flood_prefix <- "overall"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
-
-# tls 2022-2021
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
+perspective <- "uav"
+flood_startdate <- "NA"
+flood_prefix <- "overall"
 tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
 aggr_factor <- 18
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
 t1_year <- "2022"
-raster_res <- 0.2
+raster_res <- 0.4
+
+# tls 2022-2021
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
