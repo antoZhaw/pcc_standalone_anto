@@ -326,6 +326,7 @@ if(length(warnings())!=0){
 }
 
 # Generate rectangular polygon of area of interest
+if(perspective == "uav"){
 gen_xy <- structure(list(dat = c("BURR-1-1-1", "BURR-1-1-1", 
                                  "BURR-1-1-1", "BURR-1-1-1"),
                          Longitude = c(2575011, 2575011, 
@@ -333,7 +334,15 @@ gen_xy <- structure(list(dat = c("BURR-1-1-1", "BURR-1-1-1",
                          Latitude = c(1178366.7, 1178993, 
                                        1178993, 1178366.7)),
                     class = "data.frame", row.names = c(NA,-4L))
-
+}else{
+gen_xy <- structure(list(dat = c("AOI TLS", "AOI TLS", 
+                                     "AOI TLS", "AOI TLS"),
+                             Longitude = c(2575340, 2575340, 
+                                           2575480, 2575480),
+                             Latitude = c(1178520, 1178780, 
+                                          1178780, 1178520)),
+                        class = "data.frame", row.names = c(NA,-4L))
+}
 bounding_box <- gen_xy %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
   group_by(dat) %>%
@@ -344,6 +353,11 @@ bounding_box <- gen_xy %>%
 # mctar_all <- read_sf(dsn = mctar_path) 
 t0_csf_aoi_shp <- read_sf(dsn = t0_mcdut_path)
 t1_csf_aoi_shp <- read_sf(dsn = t1_mcdut_path)
+
+if(perspective == "tls"){
+  t0_csf_aoi_shp <- st_intersection(t0_csf_aoi_shp, bounding_box)
+  t1_csf_aoi_shp <- st_intersection(t0_csf_aoi_shp, bounding_box)
+}
 
 # Read and generate targets only for uav data
 t0_mctar_all <- read_sf(dsn = t0_mctar_path)
@@ -548,9 +562,13 @@ output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 output_budget_name <- as.character(paste(flood_prefix, "_budget-overview.png", sep = ""))
 output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
 
-gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
+if(perspective == "uav"){
+  gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 1.3)
-
+}else{
+  gof_layout <- tm_layout(frame = F, legend.text.size = 0.65, legend.title.size = 0.9, legend.outside = F, legend.position = c(0.9, 0.0),
+                          main.title.position = "center", main.title.size = 0.9)
+}
 t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
 t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
 tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 1920, height = 1920)
