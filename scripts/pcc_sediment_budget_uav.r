@@ -158,10 +158,11 @@ global_breaks <- narrow_breaks
 
 # Settings t0 and t1
 # uav 2022-2021
+# tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
 # perspective <- "uav"
 # flood_startdate <- "31.05.2022"
 # flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
 # t0_dataset_id <- "1"
 # t0_year <- "2021"
 # t1_dataset_id <- "1"
@@ -169,23 +170,23 @@ global_breaks <- narrow_breaks
 # raster_res <- 0.4
 
 # uav 2021-2020
-tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
-perspective <- "uav"
-flood_startdate <- "11.07.2021"
-flood_prefix <- "110721"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
-t0_dataset_id <- "1"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2021"
-raster_res <- 0.4
+# tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
+# perspective <- "uav"
+# flood_startdate <- "11.07.2021"
+# flood_prefix <- "110721"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+# t0_dataset_id <- "1"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2021"
+# raster_res <- 0.4
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
 # perspective <- "uav"
 # flood_startdate <- "22.10.2020"
 # flood_prefix <- "221020"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
 # t0_dataset_id <- "2"
 # t0_year <- "2020"
 # t1_dataset_id <- "1"
@@ -194,15 +195,15 @@ raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "uav"
-# flood_startdate <- "NA"
-# flood_prefix <- "overall"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "NA"
+flood_prefix <- "overall"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # tls 2022-2021
 # flood_startdate <- "31.05.2022"
@@ -623,7 +624,7 @@ hab_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = 
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate, bbox = bbox_aoi) +
   tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
-            labels = c("unchanged", "new deposition", "new erosion ", "change in elevation")) +
+            labels = c("Unchanged", "New deposition", "New erosion ", "Change in elevation")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
   # tm_layout(main.title = hab_title) +
@@ -633,7 +634,7 @@ tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
 tm_hab_bg <- tm_hab +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
 tmap_save(tm = tm_hab_bg, output_hab_change_bg_path, width = 1920, height = 1920)
 
 # Generate mask for cells which show a change in elevation (pick value 11)
@@ -657,7 +658,7 @@ tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
 tm_elev_bg <- tm_elev +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
 tmap_save(tm = tm_elev_bg, output_elev_bg_path, width = 1920, height = 1920)
 
 # Calculate critical level of detection-----------------------------------------
@@ -685,12 +686,12 @@ tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1
 
 tm_elev_uncert_bg <- tm_elev_uncert +
   tm_shape(tif_crop) +
-  tm_rgb(r=1, g=2, b=3, alpha = 0.3)
+  tm_rgb(r=1, g=2, b=3, alpha = 0.4)
 tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, height = 1920)
 
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
-  mutate(cell_status = as.factor(if_else(discarded == T, "discarded", "valid")))
+  mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
 
 # Plot histogram of raster cells
 p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
@@ -770,10 +771,10 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
   xlab("")
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
-p_hist_grob <- p_hist + theme(legend.position = c(0.18, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
+p_hist_grob <- p_hist + theme(legend.position = c(0.17, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
 p_elev_unvert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
-            legend.title.size = 1.3, legend.text.size = 1.0, 
+            legend.title.size = 1.1, legend.text.size = 0.8, 
             legend.outside = F, legend.position = c(0.05, 0.2),
             main.title.position = "center", main.title.size = 1.3)
 p_elev_uncert <- tmap_grob(p_elev_unvert_grob)

@@ -59,6 +59,9 @@ csf_aoi_shp <- read_sf(dsn = "C:/Daten/math_gubelyve/pcc_standalone/data/dut_fil
 
 
 # Generate raster for total aoi
+# to downsample
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+
 
 tif <- terra::rast("C:/Daten/math_gubelyve/tiff_data/110721_bg.tif")
 e <- extent(2575009, 2575489, 1178385, 1178900)
