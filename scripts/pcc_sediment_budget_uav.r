@@ -194,26 +194,26 @@ global_breaks <- narrow_breaks
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "NA"
-flood_prefix <- "overall"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "NA"
+# flood_prefix <- "overall"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
-# t1_year <- "2022"
-# raster_res <- 0.2
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -346,7 +346,6 @@ t0_csf_aoi_shp <- read_sf(dsn = t0_mcdut_path)
 t1_csf_aoi_shp <- read_sf(dsn = t1_mcdut_path)
 
 # Read and generate targets only for uav data
-if(perspective == "uav"){
 t0_mctar_all <- read_sf(dsn = t0_mctar_path)
 t1_mctar_all <- read_sf(dsn = t1_mctar_path)
 
@@ -368,11 +367,12 @@ if(t1_year == "2022"){
 t0_targets_aoi_shp <- st_intersection(t0_mctar_all, bounding_box)
 t1_targets_aoi_shp <- st_intersection(t1_mctar_all, bounding_box)
 
-t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
 t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
-
-t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
 t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
+
+if(perspective == "uav"){
+t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
+t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
 }
 
 # Intersect target with area of interest
@@ -551,14 +551,15 @@ output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
 gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 1.3)
 
+t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
+t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
+tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 1920, height = 1920)
+
+t1_title_sed <- paste("Sediment Classification", t1_cfg$survey_date_pret, sep = " ")  
+t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout)
+tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 1920, height = 1920)
+
 if(perspective == "uav"){
-  t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
-  t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
-  tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 1920, height = 1920)
-  
-  t1_title_sed <- paste("Sediment Classification", t1_cfg$survey_date_pret, sep = " ")  
-  t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout)
-  tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 1920, height = 1920)
 
   t0_title_wat <- paste("Water Classification", t0_cfg$survey_date_pret, sep = " ")  
   t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_csf_aoi_shp, t0_title_wat, gof_layout)
@@ -572,16 +573,6 @@ if(perspective == "uav"){
   plot_grid(t1_title_sed, t1_title_wat, nrow = 1)
 }
 
-# tbd: Insert here for t0_tm_sed, t1_tm_sed, t0_tm_wat, t1_tm_wat and save it
-t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
-t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
-t0_tm_watsum <- summary.norm.raster(t0_tm_wat, raster_res, "t0_tm_wat")
-t1_tm_watsum <- summary.norm.raster(t1_tm_wat, raster_res, "t1_tm_wat")
-
-single_area_results <- rbind(t0_tm_sedsum, t1_tm_sedsum, t0_tm_watsum, t1_tm_watsum)
-write.table(single_area_results, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_single_area_results.csv",
-            append = T, sep = ";", row.names = F, col.names = F)
-
 # Determine habitate change-----------------------------------------------------
 t0_tm_hab <- normalise.raster(t0_sed, 10)
 t1_tm_hab <- t1_tm_sed
@@ -589,12 +580,22 @@ t1_tm_hab <- t1_tm_sed
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
 if(perspective == "uav"){
+  t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
+  t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
+  t0_tm_watsum <- summary.norm.raster(t0_tm_wat, raster_res, "t0_tm_wat")
+  t1_tm_watsum <- summary.norm.raster(t1_tm_wat, raster_res, "t1_tm_wat")
+  single_area_results <- rbind(t0_tm_sedsum, t1_tm_sedsum, t0_tm_watsum, t1_tm_watsum)
+  
   bbox_aoi <- st_bbox(t0_csf_aoi_shp)
   tm_default_layout <- tm_layout(frame = F, 
                                  legend.title.size = 1.3, legend.text.size = 1.0, 
                                  legend.outside = F, legend.position = c(0.0, 0.25),
                                  main.title.position = "center", main.title.size = 1.3)
 }else{
+  t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
+  t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
+  single_area_results <- rbind(t0_tm_sedsum, t1_tm_sedsum)
+  
   gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
                                        "AOI TLS", "AOI TLS"),
                                Longitude = c(2575310, 2575310, 
@@ -611,9 +612,12 @@ if(perspective == "uav"){
   
   tm_default_layout <- tm_layout(frame = F, 
                                  legend.title.size = 1.0, legend.text.size = 0.8, 
-                                 legend.outside = F, legend.position = c(0.0, 0.6),
+                                 legend.outside = F, legend.position = c(0.0, 0.5),
                                  main.title.position = "center", main.title.size = 1.0)
 }
+
+write.table(single_area_results, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_single_area_results.csv",
+            append = T, sep = ";", row.names = F, col.names = F)
 
 # pal4div <- c("#FFFFFF", "#4daf4a", "#e41a1c", "#377eb8")
 # pal4div <- c("#FFFFFF", "#01665e", "#bf812d", "#80cdc1")
@@ -781,4 +785,3 @@ p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
-☻
