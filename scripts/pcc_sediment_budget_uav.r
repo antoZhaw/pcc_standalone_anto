@@ -119,8 +119,6 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
                   col = "#ffffff",
                   labels = c('Area of interest')) +
   spec_layout
-  # tm_layout(frame = TRUE, legend.text.size = 0.5, legend.outside = F, legend.position = c("left", "center"), 
-  #           main.title = plot_title, main.title.position = "center", main.title.size = 0.5)
 }
 
 create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
@@ -150,28 +148,28 @@ timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 # Settings which apply for t0 and t1.
 wholeset <- T
 settype <- if_else(wholeset == T, "wholeset", "subset")
-comment <- "narrow breaks, no saturation"
+comment <- "narrow breaks, full saturation"
 narrow_breaks <- c(-1, -0.5, 0.5, 1)
 wide_breaks <- c(-2, -1, 1, 2)
 global_breaks <- narrow_breaks
-sat_basemap <- 0
-alpha_basemap <- 0.5
-# sat_basemap <- 1
-# alpha_basemap <- 0.4
+# sat_basemap <- 0
+# alpha_basemap <- 0.45
+sat_basemap <- 1
+alpha_basemap <- 0.3
 
 # Settings t0 and t1
 # uav 2022-2021
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# t0_dataset_id <- "1"
+# t0_year <- "2021"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
@@ -213,16 +211,16 @@ raster_res <- 0.4
 # raster_res <- 0.4
 
 # tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
-# t1_year <- "2022"
-# raster_res <- 0.2
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -619,7 +617,7 @@ if(perspective == "uav"){
   bbox_aoi <- st_bbox(t0_csf_aoi_shp)
   tm_default_layout <- tm_layout(frame = F, 
                                  legend.title.size = 1.3, legend.text.size = 1.0, 
-                                 legend.outside = F, legend.position = c(0.0, 0.25),
+                                 legend.outside = F, legend.position = c("left", "center"),
                                  main.title.position = "center", main.title.size = 1.3)
 }else{
   t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
