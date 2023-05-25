@@ -103,9 +103,8 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
   palcsf <- c("#FFFFFF", "#2c7bb6")
   tmap_mode("plot") + # "plot" or "view"
   tm_shape(raster_bin, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", 
-            alpha = 1, palette = palcsf, style = "cat", 
-            labels = c("unclassified", "classified area")) +
+  tm_raster(title="", alpha = 1, palette = palcsf, style = "cat", 
+            labels = c("Unclassified", "Classified area")) +
   tm_shape(target_shp) +
   tm_polygons(alpha = 0.65, lwd = 0.8, col = "#fdae61") +
   tm_shape(aoi) +
@@ -593,7 +592,7 @@ if(perspective == "uav"){
   bbox_aoi <- st_bbox(t0_csf_aoi_shp)
   tm_default_layout <- tm_layout(frame = F, 
                                  legend.title.size = 1.3, legend.text.size = 1.0, 
-                                 legend.outside = F, legend.position = c("left", "center"),
+                                 legend.outside = F, legend.position = c(0.0, 0.25),
                                  main.title.position = "center", main.title.size = 1.3)
 }else{
   gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
@@ -623,12 +622,12 @@ pal4div <- c("#FFFFFF", "#440154", "#fde725", "#31688e")
 hab_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(tm_habitate, bbox = bbox_aoi) +
-  tm_raster(title = "Legend", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
+  tm_raster(title="", palette = pal4div, alpha = 1, style = "cat", breaks = c(0, 2, 10.5),
             labels = c("Unchanged", "New deposition", "New erosion ", "Change in elevation")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
   # tm_layout(main.title = hab_title) +
-  tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_add_legend(type='fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
@@ -782,3 +781,4 @@ p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
+☻
