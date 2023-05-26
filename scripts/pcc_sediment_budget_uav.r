@@ -110,6 +110,8 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
   tm_shape(aoi) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
+  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
+  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
   tm_layout(main.title = plot_title) +
   tm_add_legend('fill', 
                   col = "#fdae61",  alpha = 0.6,
@@ -153,7 +155,7 @@ narrow_breaks <- c(-1, -0.5, 0.5, 1)
 wide_breaks <- c(-2, -1, 1, 2)
 global_breaks <- narrow_breaks
 # sat_basemap <- 0
-# alpha_basemap <- 0.45
+# alpha_basemap <- 0.35
 sat_basemap <- 1
 alpha_basemap <- 0.3
 
@@ -199,28 +201,28 @@ alpha_basemap <- 0.3
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "NA"
-flood_prefix <- "overall"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
-
-# tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
+# perspective <- "uav"
+# flood_startdate <- "NA"
+# flood_prefix <- "overall"
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
 # aggr_factor <- 18
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
 # t1_year <- "2022"
-# raster_res <- 0.2
+# raster_res <- 0.4
+
+# tls 2022-2021
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -640,7 +642,7 @@ if(perspective == "uav"){
   
   tm_default_layout <- tm_layout(frame = F, 
                                  legend.title.size = 1.0, legend.text.size = 0.8, 
-                                 legend.outside = F, legend.position = c(0.0, 0.5),
+                                 legend.outside = F, legend.position = c(0.0, 0.55),
                                  main.title.position = "center", main.title.size = 1.0)
 }
 
@@ -660,6 +662,8 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   tm_polygons(alpha = 0.0, lwd =0.8, border.col = "#000000") +
   # tm_layout(main.title = hab_title) +
   tm_add_legend(type='fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
+  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
@@ -684,6 +688,8 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   # tm_layout(main.title = elev_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
+  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
   tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
@@ -711,6 +717,9 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   # tm_layout(main.title = elev_uncert_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
+  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  # tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
   tm_default_layout
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
@@ -722,8 +731,7 @@ tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, heig
 
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
-  na.omit() %>% 
-  filter(!is.na(cell_vol))
+  filter(!is.na(cell_vol)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
 
 # Plot histogram of raster cells
@@ -735,6 +743,7 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   # scale_fill_manual(values = c("#35b779", "#31688e")) +
   scale_fill_manual(values = c("#000000", "#35b779")) +
   scale_x_continuous(limits = c(-1, 1)) +
+  # scale_y_continuous(limits = c(0, 500)) +
   theme(legend.position = c(0.15, 0.88), legend.text = element_text(size=15), legend.title = element_text(size=15)) +
   theme(axis.line = element_line(color='black'),
         panel.grid.minor = element_blank(),
@@ -808,10 +817,9 @@ p_hist_grob <- p_hist + theme(legend.position = c(0.17, 0.85), legend.text = ele
 p_elev_unvert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
             legend.title.size = 1.1, legend.text.size = 0.8, 
-            legend.outside = F, legend.position = c(0.05, 0.2),
+            legend.outside = F, legend.position = c("left", "center"),
             main.title.position = "center", main.title.size = 1.3)
+
 p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
-
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
-
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
