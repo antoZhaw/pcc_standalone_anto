@@ -110,8 +110,12 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
   tm_shape(aoi) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
+  # for tls
+  # tm_compass(type = "arrow", size = 2, position = c(0, 0.73)) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
   tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  # for tls
+  # tm_scale_bar(breaks = c(0, 0.01, 0.02), text.size = 0.7, position = c(0,0.65)) +
   tm_layout(main.title = plot_title) +
   tm_add_legend('fill', 
                   col = "#fdae61",  alpha = 0.6,
@@ -663,7 +667,8 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = hab_title) +
   tm_add_legend(type='fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
@@ -689,8 +694,9 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = elev_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  tm_default_layout
+  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
+    tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
 tm_elev_bg <- tm_elev +
@@ -718,8 +724,8 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = elev_uncert_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  # tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
+  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
+  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
   tm_default_layout
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
