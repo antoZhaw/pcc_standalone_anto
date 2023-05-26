@@ -722,6 +722,8 @@ tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, heig
 
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
+  na.omit() %>% 
+  filter(!is.na(cell_vol))
   mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
 
 # Plot histogram of raster cells
