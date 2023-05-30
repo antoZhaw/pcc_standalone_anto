@@ -1,71 +1,56 @@
-# libraries ---------------------------------------------------------------
-# install packages
-
+# libraries ####
 library(lidR) # Point cloud classification
 library(papeR) # summary tables
 library(tidyverse) # tidy essentials (ggplot, purr, tidyr, readr, dplyr)
-library(lubridate) # handling dates and time
 library(tmap) # map visualization
 # library(leaflet) # interactive maps
 library(terra) # handling spatial data
 library(sf) # handling spatial data
 library(rgdal) # export raster objects
-library(ncdf4) # export ncdf files
 library(janitor) # clean and consistent naming
 library(forcats) # handling factor levels
 library(raster) # rasterizing vector data
-library(knitr) # for pretty tables
+library(fasterize) # for faster rasterization
 library(rayshader) # for pretty DTMs
-library(RCSF) # for CSF ground classification
-library(RMCC) # for MCC ground classification
 library(geometry) # for raserize_canopy function
-library(lmom) # for Key structural features of boreal forests
 library(purrr) # for map function
 library(rjson) # for JSON generation
 library(rgl) # for RGL Viewer control functions
-library(fasterize) # for faster rasterization
 library(psych) # for cohen's kappa
 library(viridis) # for pretty color schemes
 library(cowplot) # for multiple plot export
 
-# Functions---------------------------------------------------------------------
+# Functions ####
 
-has.lasClassification <- function(las) {
-  classified <- if_else(mean(las$Classification) != 0,T,F)
-  return(classified)
-}
-
-is.lasCRScompliant <- function(las, target_epsg) {
-  las_epsg <- st_crs(las)$epsg
-  compliant <- if_else(las_epsg == target_epsg,T,F)
-  return(compliant)
-}
-
+# Classifies ground points based on given parameter
 classify.gnd <- function(las, steep_slopes = F, class_thres, cloth_res, rigid) {
   mycsf <- csf(steep_slopes, class_thres, cloth_res, rigid)
   las <- classify_ground(las, mycsf)
   las_gnd <- filter_poi(las, Classification == LASGROUND)
-  # plot(las_gnd, size = 1, color = "RGB", bg = "white")
   return(las_gnd)
 }
 
+# Set current RGL device to top view with a given scale
 set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
   view3d(theta = 0, phi = 0, zoom = 0.8)
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
+# Creates a raster mask to subtract water surface from sediment points
 mask.raster.layer <- function(raster_layer) {
   raster_layer[raster_layer != 0] <- 0
   raster_layer[is.na(raster_layer)] <- 1
   raster_layer
 }
 
+# Sets all values unlike NA to a normalised value
 normalise.raster <- function(raster_layer, normal_value = 1) {
   raster_layer[raster_layer != 0] <- normal_value
   raster_layer[is.na(raster_layer)] <- 0
   raster_layer
 }
 
+# Filters a certain value and sets other values to zero
 filter.raster <- function(raster_layer, filter_value = 1) {
   raster_layer[raster_layer != filter_value] <- 0
   raster_layer[raster_layer == filter_value] <- 1
@@ -73,22 +58,26 @@ filter.raster <- function(raster_layer, filter_value = 1) {
   raster_layer
 }
 
+# Sets a certain value to NA
 value.to.na.raster <- function(raster_layer, na_value = 0) {
   raster_layer[raster_layer == na_value] <- NA
   raster_layer
 }
 
+# Sets all raster cells under the level of detection to NA
 discard.uncertain.raster <- function(raster_layer, z_level_of_detection) {
   raster_layer[abs(raster_layer) < z_level_of_detection] <- NA
   raster_layer
 }
 
+# Gathers all uncertain raster cells under the value 10
 gather.uncertain.raster <- function(raster_layer, z_level_of_detection) {
   raster_layer[abs(raster_layer) >= z_level_of_detection] <- NA
   raster_layer[!is.na(raster_layer)] <- 10
   raster_layer
 }
 
+# Create a summary of normalized raster based on a given resolution
 summary.norm.raster <- function(raw_raster, res_m, summary_name) {
   summary <- data.frame(values(raw_raster)) %>% 
   filter(!is.na(values.raw_raster.)) %>%
@@ -97,6 +86,7 @@ summary.norm.raster <- function(raw_raster, res_m, summary_name) {
   summary
 }
 
+# Generate a plot of classified result and reference including aoi and layout variables
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
   # palcsf <- c("#FFFFFF", "#d7191c")
   bbox_aoi <- st_bbox(aoi)
@@ -127,6 +117,7 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
   spec_layout
 }
 
+# Create classes of a common sediment budget based on a classified raster and lod_critical
 create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
   dt <- data.frame(values(raw_raster)) %>% 
     mutate(discarded = if_else(abs(values.raw_raster.) <= lod_critical, T, F),
@@ -142,7 +133,7 @@ create.budget.classes <- function(raw_raster, lod_critical, raster_res) {
   dt
 }
 
-# Globals for Configuration-----------------------------------------------------
+# Globals for Configuration ####
 # Record start date and time
 start <- as_datetime(lubridate::now())
 date <- as.Date(start)
@@ -151,17 +142,16 @@ minute <- minute(start)
 # Generate timestamp for this run.
 timestamp <- as.character(paste(date, hour, minute, sep = "-"))
 
-# Settings which apply for t0 and t1.
+# Settings which are unique for t0 and t1
+# Therefore, such settings are stored here instead of a single-timestep-json
 wholeset <- T
 settype <- if_else(wholeset == T, "wholeset", "subset")
 comment <- "narrow breaks, full saturation"
 narrow_breaks <- c(-1, -0.5, 0.5, 1)
 wide_breaks <- c(-2, -1, 1, 2)
 global_breaks <- narrow_breaks
-# sat_basemap <- 0
-# alpha_basemap <- 0.35
-sat_basemap <- 1
-alpha_basemap <- 0.3
+sat_basemap <- 1 # saturation suggestion: 1 or 0
+alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 
 # Settings t0 and t1
 # uav 2022-2021
@@ -295,44 +285,7 @@ dir.create(t1_output_path)
 output_bud_report_name <- as.character(paste(flood_prefix, "-budget-report.txt", sep = ""))
 output_bud_report_path <- file.path(bud_output_path, output_bud_report_name, fsep="/")
 
-
-# output_json_name <- as.character(paste(output_id, ".json", sep = ""))
-# output_json_path <- file.path(output_path, output_json_name, fsep="/")
-# 
-# output_target_name <- as.character(paste(output_id, ".png", sep = ""))
-# output_target_path <- file.path(output_path, output_target_name, fsep="/")
-# 
-# output_csv_name <- as.character(paste(output_id, ".csv", sep = ""))
-# output_csv_path <- file.path(output_path, output_csv_name, fsep="/")
-# 
-# output_las_inp_name <- as.character(paste(output_id, "-inp.txt", sep = ""))
-# output_las_inp_path <- file.path(output_path, output_las_inp_name, fsep="/")
-# 
-# output_las_aoi_name <- as.character(paste(output_id, "-aoi.txt", sep = ""))
-# output_las_aoi_path <- file.path(output_path, output_las_aoi_name, fsep="/")
-# 
-# output_las_class_name <- as.character(paste(output_id, "-classified.txt", sep = ""))
-# output_las_class_path <- file.path(output_path, output_las_class_name, fsep="/")
-# 
-# output_asc_name <- as.character(paste(output_id, ".asc", sep = ""))
-# output_asc_path <- file.path(output_path, output_asc_name, fsep="/")
-# 
-# output_ncdf_name <- as.character(paste(output_id, ".nc", sep = ""))
-# output_ncdf_path <- file.path(output_path, output_ncdf_name, fsep="/")
-# 
-# output_las_sed_name <- as.character(paste(output_id, "-sed.las", sep = ""))
-# output_las_sed_path <- file.path(output_path, output_las_sed_name, fsep="/")
-# 
-# output_las_gnd_name <- as.character(paste(output_id, "-gnd.las", sep = ""))
-# output_las_gnd_path <- file.path(output_path, output_las_gnd_name, fsep="/")
-# 
-# output_las_all_name <- as.character(paste(output_id, "-all.las", sep = ""))
-# output_las_all_path <- file.path(output_path, output_las_all_name, fsep="/")
-# 
-# output_target_rast_name <- as.character(paste(output_id, "-target.png", sep = ""))
-# output_target_rast_path <- file.path(output_path, output_target_rast_name, fsep="/")
-
-# Read files--------------------------------------------------------------------
+# Read files ####
 
 # empty warnings if existing.
 if(length(warnings())!=0){
@@ -405,17 +358,6 @@ t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
 t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
 }
 
-# Intersect target with area of interest
-# mctar_bb <- st_intersection(mctar_all, bounding_box)
-
-# Separate targets filtered by class
-# mctar_water <- mctar_bb %>%  filter(Id == 1)
-# mctar_sed <- mctar_bb %>%  filter(Id == 2)
-# mctar_veg <- mctar_bb %>%  filter(Id == 3)
-# mctar_rock <- mctar_bb %>%  filter(Id == 5)
-
-# targeted_class <- mctar_sed
-
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
 # of the first point is loaded only to reduce computational time.
@@ -435,7 +377,7 @@ sink(append = T)
 t0_las$Classification <- LASNONCLASSIFIED
 t1_las$Classification <- LASNONCLASSIFIED
 
-# Segment Water with Cloth Simulation Filter------------------------------------
+# Segment Water with Cloth Simulation Filter ####
 # Classify water surface only for uav data
 if(perspective == "uav"){
 t0_rigid_n_water <- t0_cfg$csf_water_rigidness
@@ -485,18 +427,15 @@ t1_las_water <- filter_poi(t1_las_water, Classification != LASNOISE)
 # rgl.snapshot(t1_output_water_png_path)
 # rgl.close()
 
-# Rasterize water point cloud---------------------------------------------------
+# Rasterize water point cloud ####
 t0_DEM_water <- rasterize_canopy(t0_las_water, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_water <- rasterize_canopy(t1_las_water, res = raster_res, p2r(), pkg = "raster")
 
 t0_mask_water <- mask.raster.layer(t0_DEM_water)
 t1_mask_water <- mask.raster.layer(t1_DEM_water)
-
-# plot(t0_mask_water)
-# plot(t1_mask_water)
 }
 
-# Segment Ground with Cloth Simulation Filter-----------------------------------
+# Segment Ground with Cloth Simulation Filter ####
 # classify ground
 t0_rigid_n_sed <- t0_cfg$csf_gnd_rigidness
 t1_rigid_n_sed <- t1_cfg$csf_gnd_rigidness
@@ -516,7 +455,7 @@ t1_las_sed <- classify.gnd(t1_las, t1_steep_slope_sed, t1_class_thres_sed, t1_cl
 t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
 
-# Rasterize sediment------------------------------------------------------------
+# Rasterize sediment ####
 t0_DEM_sed <- rasterize_canopy(t0_las_sed, res = raster_res, p2r(), pkg = "raster")
 t1_DEM_sed <- rasterize_canopy(t1_las_sed, res = raster_res, p2r(), pkg = "raster")
 
@@ -535,7 +474,7 @@ delta_sed <- t0_sed - t1_sed
 t0_tm_sed <- normalise.raster(t0_sed)
 t1_tm_sed <- normalise.raster(t1_sed)
 
-# Plot comparison between target and classified raster--------------------------
+# Plot comparison between target and classified raster ####
 output_gof_t0_sed_name <- as.character(paste(flood_prefix, "_gof_t0_sed.png", sep = ""))
 output_gof_t0_sed_path <- file.path(bud_output_path, output_gof_t0_sed_name, fsep="/")
 
@@ -607,7 +546,7 @@ if(perspective == "uav"){
   plot_grid(t1_title_sed, t1_title_wat, nrow = 1)
 }
 
-# Determine habitate change-----------------------------------------------------
+# Determine habitate change ####
 t0_tm_hab <- normalise.raster(t0_sed, 10)
 t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
@@ -704,7 +643,7 @@ tm_elev_bg <- tm_elev +
   tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_elev_bg, output_elev_bg_path, width = 1920, height = 1920)
 
-# Calculate critical level of detection-----------------------------------------
+# Calculate critical level of detection ####
 lod_crit <- 1.96*sqrt(t1_cfg$z_sigma_estimated^2 + t0_cfg$z_sigma_estimated^2)
 
 delta_z_cleaned <- discard.uncertain.raster(delta_z_all, lod_crit)
