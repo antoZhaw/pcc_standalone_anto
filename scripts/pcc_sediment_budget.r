@@ -470,7 +470,6 @@ if(perspective == "uav"){
   t1_sed <- t1_DEM_sed
 }
 
-delta_sed <- t0_sed - t1_sed
 t0_tm_sed <- normalise.raster(t0_sed)
 t1_tm_sed <- normalise.raster(t1_sed)
 
@@ -621,7 +620,7 @@ tm_elevation_mask <- filter.raster(tm_habitate, 11)
 # Set zero values to na 
 tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 # Apply mask on delta z
-delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
+delta_z_all <- tm_elevation_mask*(t0_sed - t1_sed)
 
 # Plot elevation change without uncertainty assessment
 elev_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
