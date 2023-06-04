@@ -203,28 +203,28 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "NA"
-flood_prefix <- "overall"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
-
-# tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
+# perspective <- "uav"
+# flood_startdate <- "NA"
+# flood_prefix <- "overall"
 # tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
 # aggr_factor <- 18
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
 # t1_year <- "2022"
-# raster_res <- 0.2
+# raster_res <- 0.4
+
+# tls 2022-2021
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -694,6 +694,9 @@ dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>%
   filter(!is.na(cell_vol)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
 
+
+
+
 # Plot histogram of raster cells
 p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   geom_histogram(binwidth = 0.01) +
@@ -771,7 +774,9 @@ export <- data.frame(interval) %>%
          Depo_validzoneavg_m_per_cell = Depo_validvol_m3/Depo_validarea_m2,
          raster_res_m = raster_res,
          reported_date = timestamp,
-         comment)
+         comment,
+         min_delta_z = minValue(delta_z_all),
+         max_delta_z = maxValue(delta_z_all))
 
 write.table(export, file = "C:/Daten/math_gubelyve/pcc_standalone/export/budget_results.csv",
             append = T, sep = ";", row.names = F, col.names = F)
