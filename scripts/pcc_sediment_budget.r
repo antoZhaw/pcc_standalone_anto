@@ -508,6 +508,9 @@ output_hab_change_path <- file.path(bud_output_path, output_hab_change_name, fse
 output_hab_change_bg_name <- as.character(paste(flood_prefix, "_habitate_change_bg.png", sep = ""))
 output_hab_change_bg_path <- file.path(bud_output_path, output_hab_change_bg_name, fsep="/")
 
+output_hab_change_comp_bg_name <- as.character(paste(flood_prefix, "_habitate_change_comp_bg.png", sep = ""))
+output_hab_change_comp_bg_path <- file.path(bud_output_path, output_hab_change_comp_bg_name, fsep="/")
+
 output_elev_name <- as.character(paste(flood_prefix, "_elevation_change.png", sep = ""))
 output_elev_path <- file.path(bud_output_path, output_elev_name, fsep="/")
 
@@ -633,6 +636,21 @@ tm_hab_bg <- tm_hab +
   tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_hab_bg, output_hab_change_bg_path, width = 1920, height = 1920)
 
+tm_hab_bg_comp <- tm_hab +
+  tm_shape(t0_target_sed) +
+  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#d73027") +
+  tm_shape(t1_target_sed) +
+  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#a50026") +
+  tm_shape(tif_masked) +
+  tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap) +
+  tm_add_legend('fill', col = "#a50026",  alpha = 0.5,
+                labels = c('Sediment 2022')) +
+  tm_add_legend('fill', border.col = "#000000", col = "#d73027", alpha = 0.5,
+                labels = c('Sediment 2021'))
+tm_hab_bg_comp
+
+tmap_save(tm = tm_hab_bg_comp, output_hab_change_comp_bg_path, width = 1920, height = 1920)
+
 # Generate mask for cells which show a change in elevation (pick value 11)
 tm_elevation_mask <- filter.raster(tm_habitate, 11)
 # Set zero values to na 
@@ -693,8 +711,6 @@ tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, heig
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
   filter(!is.na(cell_vol)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
-
-
 
 
 # Plot histogram of raster cells
