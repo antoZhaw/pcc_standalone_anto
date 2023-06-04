@@ -2,6 +2,7 @@
 library(lidR) # Point cloud classification
 library(papeR) # summary tables
 library(tidyverse) # tidy essentials (ggplot, purr, tidyr, readr, dplyr)
+library(lubridate)
 library(tmap) # map visualization
 # library(leaflet) # interactive maps
 library(terra) # handling spatial data
@@ -88,6 +89,17 @@ summary.norm.raster <- function(raw_raster, res_m, summary_name) {
 
 # Generate a plot of classified result and reference including aoi and layout variables
 plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, spec_layout, persp) {
+  if(persp == "uav"){
+    cp_position_csf <- c("right", "top")
+    sb_breaks_csf <- c(0, 0.05, 0.1)
+    sb_position_csf <- c(0.0, 0.2)
+    sb_textsize_csf <- 0.8
+  }else{
+    cp_position_csf <- c(0, 0.73)
+    sb_textsize_csf <- 1
+    sb_position_csf <- c(0,0.65)
+    sb_breaks_csf <- c(0, 0.01, 0.02)
+  }
   # palcsf <- c("#FFFFFF", "#d7191c")
   bbox_aoi <- st_bbox(aoi)
   palcsf <- c("#FFFFFF", "#2c7bb6")
@@ -100,12 +112,8 @@ plot.csf.result.vs.target <- function(raster_bin, target_shp, aoi, plot_title, s
   tm_shape(aoi) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   tm_view(control.position = c("right", "top")) +
-  # for tls
-  # tm_compass(type = "arrow", size = 2, position = c(0, 0.73)) +
-  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  # for tls
-  # tm_scale_bar(breaks = c(0, 0.01, 0.02), text.size = 0.7, position = c(0,0.65)) +
+  tm_compass(type = "arrow", size = 2, position = cp_position_csf) +
+  tm_scale_bar(breaks = sb_breaks_csf, text.size = sb_textsize_csf, position = sb_position_csf) +
   tm_layout(main.title = plot_title) +
   tm_add_legend('fill', 
                   col = "#fdae61",  alpha = 0.6,
@@ -156,16 +164,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # Settings t0 and t1
 # uav 2022-2021
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "uav"
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
@@ -207,16 +215,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # raster_res <- 0.4
 
 # tls 2022-2021
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -301,6 +309,9 @@ gen_xy <- structure(list(dat = c("BURR-1-1-1", "BURR-1-1-1",
                          Latitude = c(1178366.7, 1178993, 
                                        1178993, 1178366.7)),
                     class = "data.frame", row.names = c(NA,-4L))
+sb_breaks <- c(0, 0.05, 0.1)
+sb_textsize <- 0.9
+sb_position <- c(0.0, 0.2)
 }else{
 gen_xy <- structure(list(dat = c("AOI TLS", "AOI TLS", 
                                      "AOI TLS", "AOI TLS"),
@@ -309,6 +320,9 @@ gen_xy <- structure(list(dat = c("AOI TLS", "AOI TLS",
                              Latitude = c(1178520, 1178780, 
                                           1178780, 1178520)),
                         class = "data.frame", row.names = c(NA,-4L))
+sb_breaks <- c(0, 0.02, 0.04)
+sb_textsize <- 0.7
+sb_position <- c(0.0, 0.48)
 }
 bounding_box <- gen_xy %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
@@ -506,9 +520,11 @@ output_elev_uncert_path <- file.path(bud_output_path, output_elev_uncert_name, f
 output_elev_uncert_bg_name <- as.character(paste(flood_prefix, "_elevation_change_uncert_bg.png", sep = ""))
 output_elev_uncert_bg_path <- file.path(bud_output_path, output_elev_uncert_bg_name, fsep="/")
 
-
 output_lod_hist_name <- as.character(paste(flood_prefix, "_lod_histogram.png", sep = ""))
 output_lod_hist_path <- file.path(bud_output_path, output_lod_hist_name, fsep="/")
+
+output_lod_hist500_name <- as.character(paste(flood_prefix, "_lod_histogram_y500.png", sep = ""))
+output_lod_hist500_path <- file.path(bud_output_path, output_lod_hist500_name, fsep="/")
 
 output_lod_bar_name <- as.character(paste(flood_prefix, "_lod_barplot.png", sep = ""))
 output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
@@ -516,29 +532,32 @@ output_lod_bar_path <- file.path(bud_output_path, output_lod_bar_name, fsep="/")
 output_budget_name <- as.character(paste(flood_prefix, "_budget-overview.png", sep = ""))
 output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
 
+output_budget500_name <- as.character(paste(flood_prefix, "_budget500-overview.png", sep = ""))
+output_budget500_path <- file.path(bud_output_path, output_budget500_name, fsep="/")
+
 if(perspective == "uav"){
-  gof_layout <- tm_layout(frame = F, legend.text.size = 1.3, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
+  gof_layout <- tm_layout(frame = F, legend.text.size = 1.0, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 1.3)
 }else{
   gof_layout <- tm_layout(frame = F, legend.text.size = 0.65, legend.title.size = 0.9, legend.outside = F, legend.position = c(0.9, 0.0),
                           main.title.position = "center", main.title.size = 0.9)
 }
 t0_title_sed <- paste("Sediment Classification", t0_cfg$survey_date_pret, sep = " ")
-t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout)
+t0_tm_sed_result <- plot.csf.result.vs.target(t0_tm_sed, t0_target_sed, t0_csf_aoi_shp, t0_title_sed, gof_layout, perspective)
 tmap_save(tm = t0_tm_sed_result, output_gof_t0_sed_path, width = 1920, height = 1920)
 
 t1_title_sed <- paste("Sediment Classification", t1_cfg$survey_date_pret, sep = " ")  
-t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout)
+t1_tm_sed_result <- plot.csf.result.vs.target(t1_tm_sed, t1_target_sed, t1_csf_aoi_shp, t1_title_sed, gof_layout, perspective)
 tmap_save(tm = t1_tm_sed_result, output_gof_t1_sed_path, width = 1920, height = 1920)
 
 if(perspective == "uav"){
 
   t0_title_wat <- paste("Water Classification", t0_cfg$survey_date_pret, sep = " ")  
-  t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_csf_aoi_shp, t0_title_wat, gof_layout)
+  t0_tm_wat_result <- plot.csf.result.vs.target(t0_tm_wat, t0_target_wat, t0_csf_aoi_shp, t0_title_wat, gof_layout, perspective)
   tmap_save(tm = t0_tm_wat_result, output_gof_t0_wat_path, width = 1920, height = 1920)
 
   t1_title_wat <- paste("Water Classification", t1_cfg$survey_date_pret, sep = " ")  
-  t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_csf_aoi_shp, t1_title_wat, gof_layout)
+  t1_tm_wat_result <- plot.csf.result.vs.target(t1_tm_wat, t1_target_wat, t1_csf_aoi_shp, t1_title_wat, gof_layout, perspective)
   tmap_save(tm = t1_tm_wat_result, output_gof_t1_wat_path, width = 1920, height = 1920)
   
   plot_grid(t0_title_sed, t0_title_wat, nrow = 1)
@@ -605,8 +624,7 @@ tm_hab <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = hab_title) +
   tm_add_legend(type='fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
+  tm_scale_bar(breaks = sb_breaks, text.size = sb_textsize, position = sb_position) +
   tm_default_layout
 tmap_save(tm = tm_hab, output_hab_change_path, width = 1920, height = 1920)
 
@@ -632,9 +650,8 @@ tm_elev <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = elev_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
-    tm_default_layout
+  tm_scale_bar(breaks = sb_breaks, text.size = sb_textsize, position = sb_position) +
+  tm_default_layout
 tmap_save(tm = tm_elev, output_elev_path, width = 1920, height = 1920)
 
 tm_elev_bg <- tm_elev +
@@ -662,8 +679,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   # tm_layout(main.title = elev_uncert_title) +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  # tm_scale_bar(breaks = c(0, 0.05, 0.1), text.size = 1, position = c(0.0, 0.2)) +
-  tm_scale_bar(breaks = c(0, 0.02, 0.04), text.size = 0.7, position = c(0.0, 0.48)) +
+  tm_scale_bar(breaks = sb_breaks, text.size = sb_textsize, position = sb_position) +
   tm_default_layout
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
@@ -694,6 +710,23 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
         panel.border = element_blank())
 p_hist
 ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px")
+
+# Plot histogram of raster cells
+p_hist500 <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
+  geom_histogram(binwidth = 0.01) +
+  labs(x = "Elevation change [m]", y = "Count", fill = "Cell status") + 
+  theme_bw() +
+  # scale_fill_manual(values = c("#fee090", "#74add1")) +
+  # scale_fill_manual(values = c("#35b779", "#31688e")) +
+  scale_fill_manual(values = c("#000000", "#35b779")) +
+  scale_x_continuous(limits = c(-1, 1)) +
+  scale_y_continuous(limits = c(0, 500)) +
+  theme(legend.position = c(0.15, 0.88), legend.text = element_text(size=15), legend.title = element_text(size=15)) +
+  theme(axis.line = element_line(color='black'),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank())
+p_hist500
+ggsave(output_lod_hist500_path, plot = p_hist500, height=1800, width=2200, units ="px")
 
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
@@ -767,3 +800,7 @@ p_elev_unvert_grob <- tm_elev_uncert +
 p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
+
+p_hist500_grob <- p_hist500 + theme(legend.position = c(0.17, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
+plot_grid(p_elev_uncert, p_hist500_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
+ggsave(output_budget500_path, height=1400, width=2800, units ="px")
