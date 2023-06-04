@@ -164,16 +164,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # Settings t0 and t1
 # uav 2022-2021
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# t0_dataset_id <- "1"
+# t0_year <- "2021"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
@@ -203,16 +203,16 @@ raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "uav"
-# flood_startdate <- "NA"
-# flood_prefix <- "overall"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "NA"
+flood_prefix <- "overall"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # tls 2022-2021
 # flood_startdate <- "31.05.2022"
