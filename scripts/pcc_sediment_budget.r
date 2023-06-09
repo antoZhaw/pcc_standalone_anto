@@ -177,16 +177,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
-# perspective <- "uav"
-# flood_startdate <- "11.07.2021"
-# flood_prefix <- "110721"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
-# aggr_factor <- 18
-# t0_dataset_id <- "1"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2021"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "11.07.2021"
+flood_prefix <- "110721"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+aggr_factor <- 18
+t0_dataset_id <- "1"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2021"
+raster_res <- 0.4
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
@@ -215,16 +215,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # raster_res <- 0.4
 
 # tls 2022-2021
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -367,10 +367,8 @@ t1_targets_aoi_shp <- st_intersection(t1_mctar_all, bounding_box)
 t0_target_sed <- t0_targets_aoi_shp %>%  filter(Id == 2)
 t1_target_sed <- t1_targets_aoi_shp %>%  filter(Id == 2)
 
-if(perspective == "uav"){
 t1_target_wat <- t1_targets_aoi_shp %>%  filter(Id == 1)
 t0_target_wat <- t0_targets_aoi_shp %>%  filter(Id == 1)
-}
 
 # Read LAS
 # Intensity (i), color information (RGB), number of Returns (r), classification (c)
@@ -538,6 +536,12 @@ output_budget_path <- file.path(bud_output_path, output_budget_name, fsep="/")
 output_budget500_name <- as.character(paste(flood_prefix, "_budget500-overview.png", sep = ""))
 output_budget500_path <- file.path(bud_output_path, output_budget500_name, fsep="/")
 
+output_budget_bg_name <- as.character(paste(flood_prefix, "_budget-bg-overview.png", sep = ""))
+output_budget_path <- file.path(bud_output_path, output_budget_bg_name, fsep="/")
+
+output_budget500_bg_name <- as.character(paste(flood_prefix, "_budget500-bg-overview.png", sep = ""))
+output_budget500_bg_path <- file.path(bud_output_path, output_budget500_bg_name, fsep="/")
+
 if(perspective == "uav"){
   gof_layout <- tm_layout(frame = F, legend.text.size = 1.0, legend.title.size = 1.3, legend.outside = F, legend.position = c("left", "center"),
                         main.title.position = "center", main.title.size = 1.3)
@@ -694,8 +698,11 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("Discarded cells")) +
   tm_shape(t0_csf_aoi_shp) +
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
-  # tm_layout(main.title = elev_uncert_title) +
+  # tm_layout(main.title = elev_uncert_title) + 
+  tm_shape(t1_target_wat) +
+  tm_polygons(alpha = 0.0, lwd = 0.7, border.col = "#8073ac", col = "#ffffff") +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_add_legend('fill', border.col = "#8073ac", col = "#ffffff", labels = c('Water reference')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
   tm_scale_bar(breaks = sb_breaks, text.size = sb_textsize, position = sb_position) +
   tm_default_layout
@@ -707,11 +714,9 @@ tm_elev_uncert_bg <- tm_elev_uncert +
   tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, height = 1920)
 
-
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
   filter(!is.na(cell_vol)) %>% 
   mutate(cell_status = as.factor(if_else(discarded == T, "Discarded", "Valid")))
-
 
 # Plot histogram of raster cells
 p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
@@ -812,16 +817,31 @@ p_bud <- ggplot(dist_sum, aes(fill=class, x=1, y=vol)) +
 ggsave(output_lod_bar_path, plot = p_bud, height=1800, width=2200, units ="px")
 
 p_hist_grob <- p_hist + theme(legend.position = c(0.17, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
-p_elev_unvert_grob <- tm_elev_uncert +
+p_elev_uncert_grob <- tm_elev_uncert +
   tm_layout(frame = F, 
             legend.title.size = 1.1, legend.text.size = 0.8, 
             legend.outside = F, legend.position = c("left", "center"),
             main.title.position = "center", main.title.size = 1.3)
 
-p_elev_uncert <- tmap_grob(p_elev_unvert_grob)
+p_elev_uncert_bg_grob <- tm_elev_uncert_bg +
+  tm_layout(frame = F, 
+            legend.title.size = 1.1, legend.text.size = 0.8, 
+            legend.outside = F, legend.position = c("left", "center"),
+            main.title.position = "center", main.title.size = 1.3)
+
+p_elev_uncert <- tmap_grob(p_elev_uncert_grob)
 plot_grid(p_elev_uncert, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 ggsave(output_budget_path, height=1400, width=2800, units ="px")
 
 p_hist500_grob <- p_hist500 + theme(legend.position = c(0.17, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
 plot_grid(p_elev_uncert, p_hist500_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
 ggsave(output_budget500_path, height=1400, width=2800, units ="px")
+
+# Plot with basemap
+p_elev_uncert_bg <- tmap_grob(p_elev_uncert_bg_grob)
+plot_grid(p_elev_uncert_bg, p_hist_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
+ggsave(output_budget_bg_path, height=1400, width=2800, units ="px")
+
+p_hist500_grob_bg <- p_hist500 + theme(legend.position = c(0.17, 0.85), legend.text = element_text(size=12), legend.title = element_text(size=12))
+plot_grid(p_elev_uncert_bg, p_hist500_grob, nrow = 1, labels = c('1', '2'), label_size = 12)
+ggsave(output_budget500_bg_path, height=1400, width=2800, units ="px")
