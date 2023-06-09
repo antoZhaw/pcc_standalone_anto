@@ -164,29 +164,29 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # Settings t0 and t1
 # uav 2022-2021
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-# perspective <- "uav"
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# t0_dataset_id <- "1"
-# t0_year <- "2021"
-# t1_dataset_id <- "1"
-# t1_year <- "2022"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+t0_dataset_id <- "1"
+t0_year <- "2021"
+t1_dataset_id <- "1"
+t1_year <- "2022"
+raster_res <- 0.4
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
-perspective <- "uav"
-flood_startdate <- "11.07.2021"
-flood_prefix <- "110721"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "1"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2021"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "11.07.2021"
+# flood_prefix <- "110721"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/110721_bg.tif"
+# aggr_factor <- 18
+# t0_dataset_id <- "1"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2021"
+# raster_res <- 0.4
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
@@ -537,7 +537,7 @@ output_budget500_name <- as.character(paste(flood_prefix, "_budget500-overview.p
 output_budget500_path <- file.path(bud_output_path, output_budget500_name, fsep="/")
 
 output_budget_bg_name <- as.character(paste(flood_prefix, "_budget-bg-overview.png", sep = ""))
-output_budget_path <- file.path(bud_output_path, output_budget_bg_name, fsep="/")
+output_budget_bg_path <- file.path(bud_output_path, output_budget_bg_name, fsep="/")
 
 output_budget500_bg_name <- as.character(paste(flood_prefix, "_budget500-bg-overview.png", sep = ""))
 output_budget500_bg_path <- file.path(bud_output_path, output_budget500_bg_name, fsep="/")
@@ -704,8 +704,10 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_add_legend('fill', border.col = "#8073ac", col = "#ffffff", labels = c('Water reference')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
-  tm_scale_bar(breaks = sb_breaks, text.size = sb_textsize, position = sb_position) +
-  tm_default_layout
+  tm_scale_bar(breaks = sb_breaks, text.size = 1.05, position = sb_position) +
+  tm_layout(frame = F, legend.title.size = 1.2, legend.text.size = 1.1, 
+            legend.outside = F, legend.position = c("left", "center"),
+            main.title.position = "center", main.title.size = 1.2)
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
 
@@ -733,7 +735,7 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
 p_hist
-ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=2200, units ="px")
+ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=1800, units ="px")
 
 # Plot histogram of raster cells
 p_hist500 <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
