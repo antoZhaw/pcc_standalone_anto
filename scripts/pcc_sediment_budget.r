@@ -190,16 +190,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
-# perspective <- "uav"
-# flood_startdate <- "22.10.2020"
-# flood_prefix <- "221020"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
-# aggr_factor <- 5
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2020"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "22.10.2020"
+flood_prefix <- "221020"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
+aggr_factor <- 5
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2020"
+raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
@@ -215,16 +215,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # raster_res <- 0.4
 
 # tls 2022-2021
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-perspective <- "tls"
-t0_dataset_id <- "4"
-t0_year <- "2021"
-t1_dataset_id <- "4"
-t1_year <- "2022"
-raster_res <- 0.2
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# perspective <- "tls"
+# t0_dataset_id <- "4"
+# t0_year <- "2021"
+# t1_dataset_id <- "4"
+# t1_year <- "2022"
+# raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -787,7 +787,7 @@ p_hist500 <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   theme(axis.line = element_line(color='black'), panel.grid.minor = element_blank(),
         panel.border = element_blank(), text = element_text(size=15))
 p_hist500
-ggsave(output_lod_hist500_path, plot = p_hist500, height=1800, width=2200, units ="px")
+ggsave(output_lod_hist500_path, plot = p_hist500, height=1800, width=1800, units ="px")
 
 dist_sum <- dist %>%
   filter(!is.na(values.raw_raster.)) %>% 
