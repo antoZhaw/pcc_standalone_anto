@@ -164,16 +164,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 # Settings t0 and t1
 # uav 2022-2021
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
-perspective <- "uav"
-flood_startdate <- "31.05.2022"
-flood_prefix <- "310522"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-aggr_factor <- 18
-t0_dataset_id <- "1"
-t0_year <- "2021"
-t1_dataset_id <- "1"
-t1_year <- "2022"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "31.05.2022"
+# flood_prefix <- "310522"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+# aggr_factor <- 18
+# t0_dataset_id <- "1"
+# t0_year <- "2021"
+# t1_dataset_id <- "1"
+# t1_year <- "2022"
+# raster_res <- 0.4
 
 # uav 2021-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/sarine_211014_rgb_mask.tif"
@@ -190,16 +190,16 @@ raster_res <- 0.4
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
-# perspective <- "uav"
-# flood_startdate <- "22.10.2020"
-# flood_prefix <- "221020"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
-# aggr_factor <- 5
-# t0_dataset_id <- "2"
-# t0_year <- "2020"
-# t1_dataset_id <- "1"
-# t1_year <- "2020"
-# raster_res <- 0.4
+perspective <- "uav"
+flood_startdate <- "22.10.2020"
+flood_prefix <- "221020"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
+aggr_factor <- 5
+t0_dataset_id <- "2"
+t0_year <- "2020"
+t1_dataset_id <- "1"
+t1_year <- "2020"
+raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
@@ -509,6 +509,9 @@ output_hab_change_bg_path <- file.path(bud_output_path, output_hab_change_bg_nam
 output_hab_change_comp_bg_name <- as.character(paste(flood_prefix, "_habitate_change_comp_bg.png", sep = ""))
 output_hab_change_comp_bg_path <- file.path(bud_output_path, output_hab_change_comp_bg_name, fsep="/")
 
+output_elev_change_comp_bg_name <- as.character(paste(flood_prefix, "_elev_change_comp_bg.png", sep = ""))
+output_elev_change_comp_bg_path <- file.path(bud_output_path, output_elev_change_comp_bg_name, fsep="/")
+
 output_elev_name <- as.character(paste(flood_prefix, "_elevation_change.png", sep = ""))
 output_elev_path <- file.path(bud_output_path, output_elev_name, fsep="/")
 
@@ -577,6 +580,20 @@ t1_tm_hab <- t1_tm_sed
 # Generate raster of pseudo factors (with values 0, 1, 10, 11)
 tm_habitate <- t0_tm_hab + t1_tm_hab
 
+gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
+                                     "AOI TLS", "AOI TLS"),
+                             Longitude = c(2575310, 2575310, 
+                                           2575480, 2575480),
+                             Latitude = c(1178520, 1178780, 
+                                          1178780, 1178520)),
+                        class = "data.frame", row.names = c(NA,-4L))
+
+bbox_comp <- gen_xy_tls %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
+  group_by(dat) %>%
+  summarise(geometry = st_combine(geometry)) %>%
+  st_cast("POLYGON")
+
 if(perspective == "uav"){
   t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
   t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
@@ -593,15 +610,6 @@ if(perspective == "uav"){
   t0_tm_sedsum <- summary.norm.raster(t0_tm_sed, raster_res, "t0_tm_sed")
   t1_tm_sedsum <- summary.norm.raster(t1_tm_sed, raster_res, "t1_tm_sed")
   single_area_results <- rbind(t0_tm_sedsum, t1_tm_sedsum)
-  
-  gen_xy_tls <- structure(list(dat = c("AOI TLS", "AOI TLS", 
-                                       "AOI TLS", "AOI TLS"),
-                               Longitude = c(2575310, 2575310, 
-                                             2575480, 2575480),
-                               Latitude = c(1178520, 1178780, 
-                                            1178780, 1178520)),
-                          class = "data.frame", row.names = c(NA,-4L))
-  
   bbox_aoi <- gen_xy_tls %>%
     st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
     group_by(dat) %>%
@@ -715,6 +723,33 @@ tm_elev_uncert_bg <- tm_elev_uncert +
   tm_shape(tif_masked) +
   tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap)
 tmap_save(tm = tm_elev_uncert_bg, output_elev_uncert_bg_path, width = 1920, height = 1920)
+
+tm_elev_uncert_bg_comp <- tmap_mode("plot") + # "plot" or "view"
+  tm_shape(delta_z_cleaned, bbox = bbox_comp) +
+  tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
+  tm_shape(delta_z_noise) +
+  tm_raster(title = "", palette = paldisc, alpha = 1, style = "cont", labels = c("Discarded cells")) +
+  tm_shape(t0_csf_aoi_shp) +
+  tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
+  # tm_layout(main.title = elev_uncert_title) + 
+  tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
+  tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
+  tm_layout(frame = F, legend.title.size = 1.2, legend.text.size = 1.1, 
+            legend.outside = T, legend.position = c("left", "center"),
+            main.title.position = "center", main.title.size = 1.2) +
+  tm_shape(t0_target_sed) +
+  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#74c476") +
+  tm_shape(t1_target_sed) +
+  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#41ab5d") +
+  tm_shape(tif_masked) +
+  tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap) +
+  tm_add_legend('fill', col = "#41ab5d",  alpha = 0.4,
+                labels = c('Sediment 2022')) +
+  tm_add_legend('fill', border.col = "#000000", col = "#74c476", alpha = 0.4,
+                labels = c('Sediment 2021'))
+tm_elev_uncert_bg_comp
+
+tmap_save(tm = tm_elev_uncert_bg_comp, output_elev_change_comp_bg_path, width = 1920, height = 1920)
 
 dist <- create.budget.classes(delta_z_all, lod_crit, yres(delta_z_all)) %>% 
   filter(!is.na(cell_vol)) %>% 
