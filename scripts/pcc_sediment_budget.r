@@ -32,8 +32,8 @@ classify.gnd <- function(las, steep_slopes = F, class_thres, cloth_res, rigid) {
 }
 
 # Set current RGL device to top view with a given scale
-set.RGLtopview <- function(x_scale = 800, y_scale = 800) {
-  view3d(theta = 0, phi = 0, zoom = 0.8)
+set.RGLtopview <- function(x_scale = 800, y_scale = 800, zoom_rgl = 0.8) {
+  view3d(theta = 0, phi = 0, zoom = zoom_rgl)
   par3d(windowRect = c(30, 30, x_scale, y_scale))
 }
 
@@ -190,16 +190,16 @@ alpha_basemap <- 0.3 # alpha suggestion: 0.3 or 0.35
 
 # uav 2020-2020
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20201105_Sarine_ppk_2_GCP_transparent_mosaic_group1.tif"
-perspective <- "uav"
-flood_startdate <- "22.10.2020"
-flood_prefix <- "221020"
-tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
-aggr_factor <- 5
-t0_dataset_id <- "2"
-t0_year <- "2020"
-t1_dataset_id <- "1"
-t1_year <- "2020"
-raster_res <- 0.4
+# perspective <- "uav"
+# flood_startdate <- "22.10.2020"
+# flood_prefix <- "221020"
+# tif_path <- "C:/Daten/math_gubelyve/tiff_data/221020_bg.tif"
+# aggr_factor <- 5
+# t0_dataset_id <- "2"
+# t0_year <- "2020"
+# t1_dataset_id <- "1"
+# t1_year <- "2020"
+# raster_res <- 0.4
 
 # uav overall
 # tif_path_old <- "C:/Daten/math_gubelyve/tiff_data/20221007_sarine_rgb_transparent_mosaic_res_46.tif"
@@ -215,16 +215,16 @@ raster_res <- 0.4
 # raster_res <- 0.4
 
 # tls 2022-2021
-# flood_startdate <- "31.05.2022"
-# flood_prefix <- "310522"
-# tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
-# aggr_factor <- 18
-# perspective <- "tls"
-# t0_dataset_id <- "4"
-# t0_year <- "2021"
-# t1_dataset_id <- "4"
-# t1_year <- "2022"
-# raster_res <- 0.2
+flood_startdate <- "31.05.2022"
+flood_prefix <- "310522"
+tif_path <- "C:/Daten/math_gubelyve/tiff_data/310522_bg.tif"
+aggr_factor <- 18
+perspective <- "tls"
+t0_dataset_id <- "4"
+t0_year <- "2021"
+t1_dataset_id <- "4"
+t1_year <- "2022"
+raster_res <- 0.2
 
 # Generate static tif as backgroud
 e <- extent(2575009, 2575489, 1178385, 1178900)
@@ -322,7 +322,7 @@ gen_xy <- structure(list(dat = c("AOI TLS", "AOI TLS",
                         class = "data.frame", row.names = c(NA,-4L))
 sb_breaks <- c(0, 0.02, 0.04)
 sb_textsize <- 0.7
-sb_position <- c(0.0, 0.48)
+sb_position <- c(1.2, 0)
 }
 bounding_box <- gen_xy %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 2056) %>%
@@ -391,6 +391,7 @@ t1_las$Classification <- LASNONCLASSIFIED
 
 # Segment Water with Cloth Simulation Filter ####
 # Classify water surface only for uav data
+
 if(perspective == "uav"){
 t0_rigid_n_water <- t0_cfg$csf_water_rigidness
 t1_rigid_n_water <- t1_cfg$csf_water_rigidness
@@ -401,12 +402,6 @@ t1_cloth_res_water <- t1_cfg$csf_water_cloth_resolution
 t0_steep_slope_water <- if_else(t0_rigid_n_water == 3, F, T)
 t1_steep_slope_water <- if_else(t1_rigid_n_water == 3, F, T)
 
-t0_status_water <- as.character(paste("00_water", t0_year, "_rigid", t0_rigid_n_water,
-                                   "_clthres", t0_class_thres_water,
-                                   "clothres", t0_cloth_res_water, sep = ""))
-t1_status_water <- as.character(paste("00_water", t1_year, "_rigid", t1_rigid_n_water,
-                                      "_clthres", t1_class_thres_water,
-                                      "clothres", t1_cloth_res_water, sep = ""))
 
 t0_las_water <- classify.gnd(t0_las, t0_steep_slope_water, t0_class_thres_water, t0_cloth_res_water, t0_rigid_n_water)
 t1_las_water <- classify.gnd(t1_las, t1_steep_slope_water, t1_class_thres_water, t1_cloth_res_water, t1_rigid_n_water)
@@ -423,21 +418,10 @@ t1_las_water <- filter_poi(t1_las_water, Classification == LASGROUND)
 # Filter points which are not within area of interest
 t0_las_water <- classify_poi(t0_las_water, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t0_las_water <- filter_poi(t0_las_water, Classification != LASNOISE)
-# plot(t0_las_water, size = 1, color = "RGB", bg = "black", axis = F)
-# set.RGLtopview()
-# t0_output_water_png_name <- as.character(paste(t0_status_water, ".png", sep = ""))
-# t0_output_water_png_path <- file.path(bud_output_path, t0_output_water_png_name, fsep="/")
-# rgl.snapshot(t0_output_water_png_path)
-# rgl.close()
 
 t1_las_water <- classify_poi(t1_las_water, class = LASNOISE, roi = t1_csf_aoi_shp, inverse_roi = T)
 t1_las_water <- filter_poi(t1_las_water, Classification != LASNOISE)
-# plot(t1_las_water, size = 1, color = "RGB", bg = "black", axis = F)
-# set.RGLtopview()
-# t1_output_water_png_name <- as.character(paste(t1_status_water, ".png", sep = ""))
-# t1_output_water_png_path <- file.path(bud_output_path, t1_output_water_png_name, fsep="/")
-# rgl.snapshot(t1_output_water_png_path)
-# rgl.close()
+
 
 # Rasterize water point cloud ####
 t0_DEM_water <- rasterize_canopy(t0_las_water, res = raster_res, p2r(), pkg = "raster")
@@ -463,9 +447,26 @@ t0_las_sed <- classify_poi(t0_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, i
 t0_las_sed <- filter_poi(t0_las_sed, Classification != LASNOISE)
 
 # classify ground
+# set filesnames for comparison
+t0_status_water <- as.character(paste(t0_year, "classified_sed", sep = ""))
+t1_status_water <- as.character(paste(t1_year, "classified_sed", sep = ""))
+t0_output_water_png_name <- as.character(paste(t0_status_water, ".png", sep = ""))
+t0_output_water_png_path <- file.path(bud_output_path, t0_output_water_png_name, fsep="/")
+t1_output_water_png_name <- as.character(paste(t1_status_water, ".png", sep = ""))
+t1_output_water_png_path <- file.path(bud_output_path, t1_output_water_png_name, fsep="/")
+
 t1_las_sed <- classify.gnd(t1_las, t1_steep_slope_sed, t1_class_thres_sed, t1_cloth_res_sed, t1_rigid_n_sed)
 t1_las_sed <- classify_poi(t1_las_sed, class = LASNOISE, roi = t0_csf_aoi_shp, inverse_roi = T)
 t1_las_sed <- filter_poi(t1_las_sed, Classification != LASNOISE)
+
+plot(t1_las_sed, size = 1, color = "RGB", bg = "white", axis = F)
+set.RGLtopview(1200, 1200, 0.8)
+rgl.snapshot(t1_output_water_png_path)
+rgl.close()
+plot(t0_las_sed, size = 1, color = "RGB", bg = "white", axis = F)
+set.RGLtopview(1200, 1200, 0.8)
+rgl.snapshot(t0_output_water_png_path)
+rgl.close()
 
 # Rasterize sediment ####
 t0_DEM_sed <- rasterize_canopy(t0_las_sed, res = raster_res, p2r(), pkg = "raster")
@@ -699,6 +700,7 @@ delta_z_noise <- gather.uncertain.raster(delta_z_all, lod_crit)
 paldisc <- c("#000000")
 elev_uncert_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
 
+legend_pos <- if_else(perspective == "uav", F, T)
 tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_shape(delta_z_cleaned, bbox = bbox_aoi) +
   tm_raster(title = "Elevation change [m]", alpha = 1, style = "cont", palette = "RdBu", breaks = global_breaks) + 
@@ -714,7 +716,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
   tm_scale_bar(breaks = sb_breaks, text.size = 1.05, position = sb_position) +
   tm_layout(frame = F, legend.title.size = 1.2, legend.text.size = 1.1, 
-            legend.outside = F, legend.position = c("left", "center"),
+            legend.outside = legend_pos, legend.position = c("left", "center"),
             main.title.position = "center", main.title.size = 1.2)
 tm_elev_uncert
 tmap_save(tm = tm_elev_uncert, output_elev_uncert_path, width = 1920, height = 1920)
@@ -738,9 +740,9 @@ tm_elev_uncert_bg_comp <- tmap_mode("plot") + # "plot" or "view"
             legend.outside = T, legend.position = c("left", "center"),
             main.title.position = "center", main.title.size = 1.2) +
   tm_shape(t0_target_sed) +
-  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#74c476") +
+  tm_polygons(alpha = 0.2, lwd = 0.8, col = "#74c476") +
   tm_shape(t1_target_sed) +
-  tm_polygons(alpha = 0.5, lwd = 0.8, col = "#41ab5d") +
+  tm_polygons(alpha = 0.2, lwd = 0.8, col = "#41ab5d") +
   tm_shape(tif_masked) +
   tm_rgb(r=1, g=2, b=3, alpha = alpha_basemap, saturation = sat_basemap) +
   tm_add_legend('fill', col = "#41ab5d",  alpha = 0.4,
