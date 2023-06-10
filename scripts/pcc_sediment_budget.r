@@ -700,7 +700,7 @@ tm_elev_uncert <- tmap_mode("plot") + # "plot" or "view"
   tm_polygons(alpha = 0.0, lwd = 0.8, border.col = "#000000") +
   # tm_layout(main.title = elev_uncert_title) + 
   tm_shape(t1_target_wat) +
-  tm_polygons(alpha = 0.0, lwd = 0.7, border.col = "#8073ac", col = "#ffffff") +
+  tm_polygons(alpha = 0.0, lwd = 0.5, border.col = "#8073ac", col = "#ffffff") +
   tm_add_legend('fill', border.col = "#000000", col = "#ffffff", labels = c('Area of interest')) +
   tm_add_legend('fill', border.col = "#8073ac", col = "#ffffff", labels = c('Water reference')) +
   tm_compass(type = "arrow", size = 2, position = c("right", "top")) +
@@ -731,9 +731,8 @@ p_hist <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   scale_x_continuous(limits = c(-1, 1)) +
   # scale_y_continuous(limits = c(0, 500)) +
   theme(legend.position = c(0.15, 0.88), legend.text = element_text(size=15), legend.title = element_text(size=15)) +
-  theme(axis.line = element_line(color='black'),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank())
+  theme(axis.line = element_line(color='black'), panel.grid.minor = element_blank(),
+        panel.border = element_blank(), text = element_text(size=15))
 p_hist
 ggsave(output_lod_hist_path, plot = p_hist, height=1800, width=1800, units ="px")
 
@@ -748,9 +747,8 @@ p_hist500 <- ggplot(dist, aes(values.raw_raster., fill = cell_status)) +
   scale_x_continuous(limits = c(-1, 1)) +
   scale_y_continuous(limits = c(0, 500)) +
   theme(legend.position = c(0.15, 0.88), legend.text = element_text(size=15), legend.title = element_text(size=15)) +
-  theme(axis.line = element_line(color='black'),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank())
+  theme(axis.line = element_line(color='black'), panel.grid.minor = element_blank(),
+        panel.border = element_blank(), text = element_text(size=15))
 p_hist500
 ggsave(output_lod_hist500_path, plot = p_hist500, height=1800, width=2200, units ="px")
 
