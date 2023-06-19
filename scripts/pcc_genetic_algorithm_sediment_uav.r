@@ -1,4 +1,19 @@
-# libraries ---------------------------------------------------------------
+#### Quantitative assessment of terrestrial sediment budgets in a ####
+# hydropower-regulated floodplain using point cloud classification
+# Documentation:  
+# https://github.com/gubely/math_documentation/blob/main/main_math_documentation.pdf
+
+# Author: Yves Gubelmann
+# Contact: yves.gubelmann@gmx.ch
+
+# Description: This script searches the best parameter set for a UAV point cloud
+# within a given parameter window. For this, the developed terrestrial sediment 
+# classification routine based on cloth simulation filter (CSF) uses a genetic
+# algorithm to classify the provided raw point cloud, subtract the prior classified
+# water surface and compare the intermediate result with a reference map.
+# Intermediate results are saved in a .csv-file.
+
+# libraries ####
 # install packages
 
 library(lidR) # Point cloud classification
@@ -29,7 +44,7 @@ library(psych) # for cohen's kappa
 library(GA) # genetic algorithm for parameter search optimisation
 
 
-# Functions---------------------------------------------------------------------
+# Functions ####
 
 has.lasClassification <- function(las) {
   classified <- if_else(mean(las$Classification) != 0,T,F)
@@ -104,16 +119,6 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
   # Subtract water course
   sed_ij <- DEM_sed_ij * msk_wat_ij
   
-  # Restrict Area of interest with additional raster
-  # bb_sed <- extent(xmin(sed_ij), xmax(sed_ij), 1178480, ymax(sed_ij))
-  # bb_sed_r <- raster(ext=bb_sed)
-  # sed_ij <- crop(sed_ij, bb_sed_r)
-  # 
-  # Restrict Area of interest with additional raster
-  # bb_wat <- extent(xmin(DEM_wat_ij), xmax(DEM_wat_ij), 1178480, ymax(DEM_wat_ij))
-  # bb_wat_r <- raster(ext=bb_wat)
-  # DEM_wat_ij <- crop(DEM_wat_ij, bb_wat_r)
-  
   # Save plot of masked raster
   output_sed_rast_name <- as.character(paste(msg_sed, ".png", sep = ""))
   output_sed_rast_path <- file.path(ga_output_path, output_sed_rast_name, fsep="/")
@@ -176,7 +181,7 @@ cohen.kappa.csf.sed <- function(raw_las, ga_aoi_shp, targets_shp,
   return(popsize_kappa)
 }
 
-# Globals for Configuration-----------------------------------------------------
+# Globals for Configuration ####
 # Specify dataset
 dataset_id <- "1"
 wholeset <- T
@@ -184,7 +189,7 @@ year <- "2022"
 perspective <- "uav"
 settype <- if_else(wholeset == T, "wholeset", "subset")
 
-# Internal globals such as paths and IDs----------------------------------------
+# Internal globals such as paths and IDs ####
 # Record start date and time
 start <- as_datetime(lubridate::now())
 date <- as.Date(start)
@@ -277,7 +282,7 @@ output_ga_sed_report_path <- file.path(dir_export, output_ga_sed_report_name, fs
 
 data_path <- file.path(dir_data, dir_persp, year, settype, dataset)
 
-# Read files--------------------------------------------------------------------
+# Read files ####
 
 # empty warnings if existing.
 if(length(warnings())!=0){
@@ -349,7 +354,7 @@ if(has.lasClassification(las)){
 
 par(mfrow=c(1,1))
 
-# Genetic algorithm for parameter optimisation----------------------------------
+# Genetic algorithm for parameter optimisation ####
 # Write header before start
 df <- as.character(paste("sed_name", "sed_rigidness", "sed_classthreshold",
                  "sed_clothresolution", "sed_steepslope", "sed_kappa",
@@ -380,44 +385,3 @@ GA <- ga(type = "real-valued",
 gar3_end <- as_datetime(lubridate::now())
 timespan <- interval(gar3_start, gar3_end)
 timespan
-
-# old try
-# GA <- ga(type = "real-valued", 
-#          fitness =  function(x) -cohen.kappa.csf.sed(las, csf_aoi_shp, targets_aoi_shp, output_path, 
-#                                                  x[1], x[2], x[3], x[4], x[5], x[6], x[7]),
-#          lower = c(1, 0.9, 2.0, 3, 0.7, 14, 0.4), 
-#          upper = c(1, 6.9, 6.5, 3, 2.9, 22, 0.5), 
-#          suggestions = c(1, 5, 3.9, 3, 1.8, 16, 0.5),
-#          popSize = 1000, maxiter = 50, run = 10,
-#          maxFitness = 10000,
-#          optim = F)
-
-
-# lower = c(1, 0.8, 2.0, 1, 0.2, 3.3, 0.4), 
-# upper = c(3, 8, 40, 3, 0.8, 40, 0.5), 
-# suggestions = c(3, 1.75, 9.2, 3, 0.52, 8.6, 0.5),
-
-# Generate JSON report----------------------------------------------------------
-end <- as_datetime(lubridate::now())
-timespan <- interval(start, end)
-
-run_time <- end - start
-run_time
-
-report <- cfg
-report$timestamp <- timestamp
-report$run_time_minutes <- as.numeric(timespan, "minutes")
-report$data <- data_path
-report$config_json <- config_json_path
-
-json_report <- toJSON(report, indent = 1)
-write(json_report, output_json_path, append = F)
-
-# Save png of targets
-png(output_target_sed_path, height=nrow(tar_sed), width=ncol(tar_sed)) 
-plot(tar_sed, maxpixels=ncell(tar_sed), legend =F)
-dev.off()
-
-png(output_target_wat_path, height=nrow(tar_wat), width=ncol(tar_wat)) 
-plot(tar_wat, maxpixels=ncell(tar_wat), legend =F)
-dev.off()

@@ -1,3 +1,21 @@
+#### Quantitative assessment of terrestrial sediment budgets in a ####
+# hydropower-regulated floodplain using point cloud classification
+# Documentation:  
+# https://github.com/gubely/math_documentation/blob/main/main_math_documentation.pdf
+
+# Author: Yves Gubelmann
+# Contact: yves.gubelmann@gmx.ch
+
+# Description: This script calculates a terrrestrial sediment budget based on two
+# provided point clouds. First, terrestrial sediment is classified with cloth
+# simulation filter (CSF) based on given .json-parameter. Second, an 2D habitat
+# change map is calculated. Finally, assessed uncertainties are discarded from
+# the calculated raster of difference (RoD) and displayed in an elevation change
+# distribution (ECD). The calculated terrestrial volumes and areas are also saved
+# as .csv-file for further analysis. Beforehand, the best CSF parameter were
+# searched with a genetic algorithm. For detailed information, see:
+# https://github.com/gubely/pcc_standalone/tree/master
+
 # libraries ####
 library(lidR) # Point cloud classification
 library(tidyverse) # tidy essentials (ggplot, purr, tidyr, readr, dplyr)
