@@ -1,20 +1,30 @@
 class;n;vol;area;interval;flood_startdate;lod_crit_m;perspective;raster_res_m;reported_date;comment;class_order
+Total Deposition;1418;25.53744;226.88;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;5
+Total Erosion;5203;-219.0992;832.48;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;6
 Deposition;326;14.42544;52.16;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;2
 Discarded Deposition;1092;11.112;174.72;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;1
 Discarded Erosion;1710;-20.7616;273.6;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;3
 Erosion;3493;-198.3376;558.88;8.10.20 - 7.10.22;NA;0.15;uav;0.4;2023-06-04-18-37;narrow breaks, full saturation;4
+Total Deposition;893;17.70592;142.88;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;5
+Total Erosion;7000;-272.5544;1120;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;6
 Deposition;262;11.3992;41.92;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;2
 Discarded Deposition;631;6.30672;100.96;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;1
 Discarded Erosion;1639;-22.8032;262.24;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;3
 Erosion;5361;-249.7512;857.76;8.10.20 - 5.11.20;22.10.2020;0.15;uav;0.4;2023-06-04-19-32;narrow breaks, full saturation;4
+Total Deposition;14743;586.74736;2358.88;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;5
+Total Erosion;5547;-168.5288;887.52;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;6
 Deposition;10404;533.65024;1664.64;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;2
 Discarded Deposition;4339;53.09712;694.24;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;1
 Discarded Erosion;2959;-31.84576;473.44;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;3
 Erosion;2588;-136.68304;414.08;5.11.20 - 14.10.21;11.07.2021;0.15;uav;0.4;2023-06-04-19-35;narrow breaks, full saturation;4
+Total Deposition;5925;71.4456;948;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;5
+Total Erosion;18971;-347.10192;3035.36;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;6
 Deposition;648;29.41312;103.68;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;2
 Discarded Deposition;5277;42.03248;844.32;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;1
 Discarded Erosion;14452;-155.12048;2312.32;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;3
 Erosion;4519;-191.98144;723.04;14.10.21 - 7.10.22;31.05.2022;0.15;uav;0.4;2023-06-04-19-41;narrow breaks, full saturation;4
+Total Deposition;7481;18.82356;299.24;13.10.21 - 11.10.22;31.05.2022;0.18;tls;0.2;2023-06-04-20-7;narrow breaks, full saturation;5
+Total Erosion;12647;-60.7418;505.88;13.10.21 - 11.10.22;31.05.2022;0.18;tls;0.2;2023-06-04-20-7;narrow breaks, full saturation;6
 Deposition;480;6.63768;19.2;13.10.21 - 11.10.22;31.05.2022;0.18;tls;0.2;2023-06-04-20-7;narrow breaks, full saturation;2
 Discarded Deposition;7001;12.18588;280.04;13.10.21 - 11.10.22;31.05.2022;0.18;tls;0.2;2023-06-04-20-7;narrow breaks, full saturation;1
 Discarded Erosion;10608;-27.39932;424.32;13.10.21 - 11.10.22;31.05.2022;0.18;tls;0.2;2023-06-04-20-7;narrow breaks, full saturation;3
