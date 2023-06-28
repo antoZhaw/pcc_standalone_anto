@@ -5,4 +5,4 @@ Sediment budgeting is an established method to assess spatiotemporal volumetric 
 Gubelmann, Y (2023). Quantitative assessment of terrestrial sediment budgets in a hydropower-regulated floodplain using point cloud classification. (Master Thesis). Ecohydrology Research Group, Zurich University of Applied Sciences.
 
 # Documentation
-
+Can be found here: https://github.com/gubely/pcc_standalone/blob/master/submission/20230629_Gubelmann_Yves_MaTh_ENR.pdf
