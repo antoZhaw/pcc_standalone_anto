@@ -1,25 +1,8 @@
-# Unmittelbar
-* Datenaufbereitung: CRS setzen, alle in CH190+/LV95 transformieren.
-* Mit Align tool, .ply transformieren: https://danielgm.net/cc/forum/viewtopic.php?t=2739
-* Sediment Budget berechnen.
+# Abstract
+Sediment budgeting is an established method to assess spatiotemporal volumetric changes of erosion and deposition along gravel-bed rivers. Especially along hydropower-regulated rivers, sediment budgeting allows the volumetric impact caused by artificial floods to be quantified and provides valuable information to estimate their positive impact on the ecosystem. To date, this has been achieved with cumbersome survey techniques and labor-intensive post-processing. Recent advances in remote sensing allow the acquisition of high-resolution point cloud data in less time and on network scale level. This master thesis presents a workflow in which common sediment budgeting was further developed using point cloud classification and applied on a densely vegetated and hydropower-regulated floodplain in the pre-alpine Sarine River. Prior to the budget calculation, cloth simulation filter (CSF) was tested for the automated point cloud classification of sediment and water bodies. Sediment point clouds with the highest agreement compared to a reference data set were used for sediment budgeting. Furthermore, the point cloud uncertainties were measured and propagated into the sediment budget with a confidence interval of 95%. With the developed workflow, point clouds acquired by a terrestrial laser scanner (TLS) were compared with point clouds derived from airborne Structure-from-motion (UAV-SfM) to investigate added value of TLS technique. Furthermore, sediment budgets of three flood events were calculated based on UAV-SfM point clouds and used to investigate the quantitative effects on erosion and deposition. Compared to the reference data, the water bodies derived from CSF classification showed substantial agreement, whereas sediment classification showed slightly lower agreement. Additionally, TLS-based classifications identified terrestrial sediment areas below overhanging vegetation which was overseen with UAV-based classifications. The measured surface uncertainties of UAV data resulted in a critical level of detection of ± 0.15 m which is in alignment with similar studies, while TLS failed to achieve smaller levels due to georeferencing errors. Two of three obtained sediment budgets achieved a reasonable loss of discarded volumes, whereas the smallest flood showed a significant number of discarded volumes. However, elevation change distribution (ECD) of each flood showed a unique and plausible geomorphic signature. It was concluded that: (i) the different agreement scores derived from sediment and water classification resulted from low point density and fragmented sediment bodies (for UAV data) and lacking suitability of CSF for the terrestrial perspective (for TLS), (ii) added value was observed for TLS when applied in small-scale river sections where overhanging vegetation covers sediment, (iii) minor floods exhibited an erosion-dominant character, whereas the largest investigated flood showed a pronounced deposition of sediment, that was mobilized upstream and transported to the floodplain. The developed workflow provides a scalable, computer eﬀicient and accessible tool for sediment budgeting but requires further testing on network-scale gravel-bed rivers. However, it entails the potential of supporting river management and is built for the implementation of upcoming point cloud classification features.
 
+# Citation
+Gubelmann, Y (2023). Quantitative assessment of terrestrial sediment budgets in a hydropower-regulated floodplain using point cloud classification. (Master Thesis). Ecohydrology Research Group, Zurich University of Applied Sciences.
 
-# Fragen zum Vorgehen
-* globales Filterset versus datasetspezifische Konfigfiles?
-* Konservative Filtereinstellungen versus supertuned.
+# Documentation
 
-# Programmierfragen
-
-# Potenzial
-* Erkennen von Totholz
-* Bessere Filtration von grauen Punkten -> Sediment Index?
-* Ansatz für braune Punkte
-
-# Fragen anto
-
-# to do
-
-
-# Ausbaupotenzial
-* Punktmetriken neu miteinbeziehen, um die glatte Felswand zu segmentieren?
-* Linearität für Holzstämme und Äste?
