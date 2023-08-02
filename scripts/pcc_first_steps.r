@@ -117,7 +117,7 @@ dataset <- paste(datasetname, ".las", sep = "")
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
-if(user == "gubelyve"| user == "xgby"){
+if(user == "gubelyve"| user == "anto"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
