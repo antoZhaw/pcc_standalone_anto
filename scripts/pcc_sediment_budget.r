@@ -244,7 +244,7 @@ tif_crop <- terra::aggregate(tif_aoi, aggr_factor) # downsample tif to reasonabl
 
 # Load environment dependent paths.
 user <- Sys.getenv("USERNAME")
-if(user == "gubelyve"| user == "xgby"){
+if(user == "gubelyve"| user == "anto"){
   dir_repo <- "C:/Daten/math_gubelyve/pcc_standalone"
   dir_data <- "C:/Daten/math_gubelyve"
 } else{
@@ -629,7 +629,7 @@ tm_elevation_mask <- filter.raster(tm_habitate, 11)
 # Set zero values to na 
 tm_elevation_mask <- value.to.na.raster(tm_elevation_mask)
 # Apply mask on delta z
-delta_z_all <- tm_elevation_mask*(t0_sed - t1_sed)
+delta_z_all <- tm_elevation_mask*(t1_sed - t0_sed)
 
 # Plot elevation change without uncertainty assessment
 elev_title <- paste(t1_cfg$survey_date_pret, "-", t0_cfg$survey_date_pret, sep = " ")
